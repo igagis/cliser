@@ -178,8 +178,7 @@ void SendNetworkDataToServerMessage::Handle(){
 
 		//send data
 		this->nt->socket.SendAll(this->data.Buf(), this->data.SizeInBytes());
-	}catch(ting::Socket::Exc){
-		ASSERT(false)
+	}catch(ting::Socket::Exc&){
 		this->nt->HandleDisconnection();
 		return;
 	}
