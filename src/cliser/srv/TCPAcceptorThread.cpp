@@ -38,15 +38,22 @@ void TCPAcceptorThread::Run(){
 
 		if(sock.CanRead()){
 			ting::TCPSocket newSock;
-			while((newSock = sock.Accept()).IsValid()){
-				ting::Ptr<ting::Message> msg(
-						new NewConnectionAcceptedMessage(this->serverMainThread, newSock)
-					);
-				this->serverMainThread->PushMessage(msg);
+			try{
+				while((newSock = sock.Accept()).IsValid()){
+					ting::Ptr<ting::Message> msg(
+							new NewConnectionAcceptedMessage(this->serverMainThread, newSock)
+						);
+					this->serverMainThread->PushMessage(msg);
+				}
+			}catch(ting::Socket::Exc& e){
+				ASSERT_INFO(false, "sock.Accept() failed")
 			}
 		}
 		//TRACE(<<"C_TCPAcceptorThread::Run(): cycle"<<std::endl)
 	}
+
+	waitSet.Remove(&this->queue);
+	waitSet.Remove(&sock);
 
 	TRACE(<<"C_TCPAcceptorThread::Run(): exit"<<std::endl)
 
