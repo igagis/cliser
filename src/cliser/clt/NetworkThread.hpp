@@ -22,7 +22,7 @@
 
 namespace cliser{
 
-class NetworkThread : public ting::Thread{
+class NetworkThread : public ting::MsgThread{
     friend class ConnectToServerMessage;
 	friend class DisconnectFromServerMessage;
     friend class SendNetworkDataToServerMessage;
