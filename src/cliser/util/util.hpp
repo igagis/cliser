@@ -15,11 +15,11 @@
 namespace cliser{
 
 struct NetworkReceiverState{
-	ting::uint numBytesInPacketSizeHolder;
-	ting::StaticBuffer<ting::byte, 2> packetSizeHolder;
+	unsigned numBytesInPacketSizeHolder;
+	ting::StaticBuffer<ting::u8, 2> packetSizeHolder;
 
-	ting::uint numBytesToReceive;
-	ting::Array<ting::byte> receivedData;
+	unsigned numBytesToReceive;
+	ting::Array<ting::u8> receivedData;
 
 	NetworkReceiverState() :
 			numBytesInPacketSizeHolder(0),
@@ -29,7 +29,7 @@ struct NetworkReceiverState{
 	class PacketListener{
 		friend class NetworkReceiverState;
 	protected:
-		virtual void OnNewDataPacketReceived(ting::Array<ting::byte> d) = 0;
+		virtual void OnNewDataPacketReceived(ting::Array<ting::u8> d) = 0;
 	};
 
 	//returns true if socket disconnected

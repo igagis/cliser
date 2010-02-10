@@ -22,8 +22,8 @@ bool NetworkReceiverState::ReadSocket(
 	)
 {
 	//receive data from socket
-	ting::byte data[8192];//8kb
-	ting::uint numRecvd;
+	ting::u8 data[8192];//8kb
+	unsigned numRecvd;
 	try{
 		numRecvd = s->Recv(data, sizeof(data));
 	}catch(Socket::Exc& e){
@@ -39,13 +39,13 @@ bool NetworkReceiverState::ReadSocket(
 		return true;//socket disconnected
 	}
 
-	ting::byte* curDataPtr = data;
-	for(ting::uint numBytesUnparsed = numRecvd; numBytesUnparsed > 0 ;){
+	ting::u8* curDataPtr = data;
+	for(unsigned numBytesUnparsed = numRecvd; numBytesUnparsed > 0 ;){
 		if(this->numBytesToReceive != 0){//we know the packet size and are in process of receiving packet
 			ASSERT(this->receivedData.Size()!=0)
 			ASSERT(this->numBytesToReceive <= this->receivedData.Size())
 
-			ting::uint numBytesToCopy = ting::Min(numBytesUnparsed, this->numBytesToReceive);
+			unsigned numBytesToCopy = ting::Min(numBytesUnparsed, this->numBytesToReceive);
 			memcpy(
 					this->receivedData.Buf() + (this->receivedData.Size() - this->numBytesToReceive),
 					curDataPtr,
@@ -70,7 +70,7 @@ bool NetworkReceiverState::ReadSocket(
 				)
 			{
 				ASSERT(this->numBytesInPacketSizeHolder < this->packetSizeHolder.SizeInBytes())
-				ting::byte *p = &this->packetSizeHolder[0] + this->numBytesInPacketSizeHolder;
+				ting::u8 *p = &this->packetSizeHolder[0] + this->numBytesInPacketSizeHolder;
 				*p = *curDataPtr;
 				++(this->numBytesInPacketSizeHolder);
 

@@ -42,14 +42,14 @@ class Server : public ting::Thread{
 	typedef T_ThrList::iterator T_ThrIter;
     T_ThrList clientsThreads;
 
-	ting::uint maxClientsPerThread;
+	unsigned maxClientsPerThread;
 	
 public:
-	inline ting::uint MaxClientsPerThread()const{
+	inline unsigned MaxClientsPerThread()const{
 		return this->maxClientsPerThread;
 	}
 
-    Server(ting::u16 listeningPort, ting::uint maxClientPerOneThread) :
+    Server(ting::u16 listeningPort, unsigned maxClientPerOneThread) :
 			acceptorThread(this, listeningPort),
 			maxClientsPerThread(maxClientPerOneThread)
 	{}
@@ -70,7 +70,7 @@ public:
 
 	virtual void OnClientDisconnected(ting::Ref<Client>& c) = 0;
 
-	virtual void OnDataReceivedFromClient(ting::Ref<Client>& c, ting::Array<ting::byte> d) = 0;
+	virtual void OnDataReceivedFromClient(ting::Ref<Client>& c, ting::Array<ting::u8> d) = 0;
 
 private:
 	//override
