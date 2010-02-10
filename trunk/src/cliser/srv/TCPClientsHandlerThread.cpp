@@ -84,7 +84,7 @@ bool TCPClientsHandlerThread::HandleClientSocketActivity(ting::Ref<Client>& c){
 		ting::Ref<Client> c;
 
 		//override
-		void OnNewDataPacketReceived(ting::Array<ting::byte> d){
+		void OnNewDataPacketReceived(ting::Array<ting::u8> d){
 			this->smt->OnDataReceivedFromClient(this->c, d);
 		}
 
@@ -239,7 +239,7 @@ void SendNetworkDataToClientMessage::Handle(){
 	ASSERT(this->data.SizeInBytes() != 0 && this->data.SizeInBytes() <= (0xffff) )
 
 	//send packet size
-	ting::byte packetSize[2];
+	ting::u8 packetSize[2];
 	ting::ToNetworkFormat16(this->data.SizeInBytes(), packetSize);
 
 //	TRACE(<< "SendNetworkDataToClientMessage::Handle(): sending " << this->data.SizeInBytes() << " bytes" << std::endl)

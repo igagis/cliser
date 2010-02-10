@@ -14,7 +14,7 @@
 using namespace cliser;
 
 
-void Client::SendNetworkData_ts(ting::Array<ting::byte> data){
+void Client::SendNetworkData_ts(ting::Array<ting::u8> data){
 	ting::Mutex::Guard mutexGuard(this->mutex);//make sure that this->clientThread won't be zeroed out by other thread
 	if(!this->clientThread){
 		//client disconnected, do nothing
@@ -31,8 +31,8 @@ void Client::SendNetworkData_ts(ting::Array<ting::byte> data){
 
 
 
-void Client::SendNetworkDataCopy_ts(const ting::Array<ting::byte>& data){
-	ting::Array<ting::byte> buf(data.SizeInBytes());
+void Client::SendNetworkDataCopy_ts(const ting::Array<ting::u8>& data){
+	ting::Array<ting::u8> buf(data.SizeInBytes());
 	memcpy(&buf[0], &data[0], buf.SizeInBytes());
 
 	this->SendNetworkData_ts(buf);

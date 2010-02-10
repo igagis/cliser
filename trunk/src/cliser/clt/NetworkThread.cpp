@@ -60,7 +60,7 @@ void NetworkThread::HandleSocketActivity(){
 		NetworkThread* thr;
 
 		//override
-		void OnNewDataPacketReceived(ting::Array<ting::byte> d){
+		void OnNewDataPacketReceived(ting::Array<ting::u8> d){
 			this->thr->OnDataReceived(d);
 		}
 
@@ -147,7 +147,7 @@ void ConnectToServerMessage::Handle(){
 
 
 
-void NetworkThread::SendData_ts(ting::Array<ting::byte> data){
+void NetworkThread::SendData_ts(ting::Array<ting::u8> data){
 	this->PushMessage(
 			ting::Ptr<ting::Message>(
 					new SendNetworkDataToServerMessage(this, data)
@@ -166,7 +166,7 @@ void SendNetworkDataToServerMessage::Handle(){
 	ASSERT(this->data.SizeInBytes() != 0 && this->data.SizeInBytes() <= (0xffff) )
 
 	//send packet size
-	ting::byte packetSize[2];
+	ting::u8 packetSize[2];
 	ting::ToNetworkFormat16(this->data.SizeInBytes(), packetSize);
 
 //	TRACE(<<"SendNetworkDataToServerMessage::Handle(): sending " << this->data.SizeInBytes() << " bytes" << std::endl)

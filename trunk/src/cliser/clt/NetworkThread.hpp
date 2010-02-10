@@ -51,7 +51,7 @@ public:
 	//send disconnection request message to the thread
 	void Disconnect_ts();
 
-	virtual void OnDataReceived(ting::Array<ting::byte> data) = 0;
+	virtual void OnDataReceived(ting::Array<ting::u8> data) = 0;
 
 	enum EConnectFailReason{
 		SUCCESS,
@@ -64,7 +64,7 @@ public:
 
 	virtual void OnDisconnect() = 0;
 
-	void SendData_ts(ting::Array<ting::byte> data);
+	void SendData_ts(ting::Array<ting::u8> data);
 
 private:
 	//override
@@ -118,9 +118,9 @@ class DisconnectFromServerMessage : public ting::Message{
 
 class SendNetworkDataToServerMessage : public ting::Message{
     NetworkThread* nt;
-    ting::Array<ting::byte> data;
+    ting::Array<ting::u8> data;
   public:
-    SendNetworkDataToServerMessage(NetworkThread* netwrokThread, ting::Array<ting::byte> &dataToSend) :
+    SendNetworkDataToServerMessage(NetworkThread* netwrokThread, ting::Array<ting::u8> &dataToSend) :
             nt(netwrokThread),
             data(dataToSend)
     {

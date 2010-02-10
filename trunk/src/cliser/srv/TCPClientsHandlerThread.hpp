@@ -50,7 +50,7 @@ class TCPClientsHandlerThread : public ting::Thread{
 
 public:
 	//This data is controlled by Server Main Thread
-	ting::uint numClients;
+	unsigned numClients;
 	//~
 
 	TCPClientsHandlerThread(Server *serverMainThread);
@@ -134,13 +134,13 @@ class SendNetworkDataToClientMessage : public ting::Message{
 
 	ting::Ref<Client> client;
 
-	ting::Array<ting::byte> data;
+	ting::Array<ting::u8> data;
 
   public:
 	SendNetworkDataToClientMessage(
 			TCPClientsHandlerThread* clientThread,
 			ting::Ref<Client>& clt,
-			ting::Array<ting::byte> d
+			ting::Array<ting::u8> d
 		) :
 			cht(clientThread),
 			client(clt),
