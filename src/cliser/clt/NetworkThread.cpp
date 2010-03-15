@@ -10,6 +10,7 @@
 #include <ting/Socket.hpp>
 #include <ting/utils.hpp>
 #include <ting/Ptr.hpp>
+#include <ting/Buffer.hpp>
 
 #include "NetworkThread.hpp"
 
@@ -166,18 +167,18 @@ void SendNetworkDataToServerMessage::Handle(){
 	ASSERT(this->data.SizeInBytes() != 0 && this->data.SizeInBytes() <= (0xffff) )
 
 	//send packet size
-	ting::u8 packetSize[2];
-	ting::ToNetworkFormat16(this->data.SizeInBytes(), packetSize);
+	ting::StaticBuffer<ting::u8, 2> packetSize;
+	ting::ToNetworkFormat16(this->data.SizeInBytes(), packetSize.Buf());
 
 //	TRACE(<<"SendNetworkDataToServerMessage::Handle(): sending " << this->data.SizeInBytes() << " bytes" << std::endl)
 //	TRACE(<<"SendNetworkDataToServerMessage::Handle(): bytes = " << u32(this->data[0]) << " " << "..." << std::endl)
 
 	try{
 		//send packet size
-		this->nt->socket.SendAll(packetSize, sizeof(packetSize));
+		this->nt->socket.SendAll(packetSize);
 
 		//send data
-		this->nt->socket.SendAll(this->data.Buf(), this->data.SizeInBytes());
+		this->nt->socket.SendAll(this->data);
 	}catch(ting::Socket::Exc&){
 		this->nt->HandleDisconnection();
 		return;

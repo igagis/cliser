@@ -11,6 +11,7 @@
 #include <ting/debug.hpp>
 #include <ting/math.hpp>
 #include <ting/utils.hpp>
+#include <ting/Buffer.hpp>
 
 #include "Server.hpp"
 #include "Client.hpp"
@@ -236,20 +237,20 @@ void SendNetworkDataToClientMessage::Handle(){
 		return;
 	}
 
-	ASSERT(this->data.SizeInBytes() != 0 && this->data.SizeInBytes() <= (0xffff) )
+	ASSERT(this->data.SizeInBytes() != 0 && this->data.SizeInBytes() <= (0xffff))
 
 	//send packet size
-	ting::u8 packetSize[2];
-	ting::ToNetworkFormat16(this->data.SizeInBytes(), packetSize);
+	ting::StaticBuffer<ting::u8, 2> packetSize;
+	ting::ToNetworkFormat16(this->data.SizeInBytes(), packetSize.Buf());
 
 //	TRACE(<< "SendNetworkDataToClientMessage::Handle(): sending " << this->data.SizeInBytes() << " bytes" << std::endl)
 
 	try{
 		//send packet size
-		this->client->socket.SendAll(packetSize, sizeof(packetSize));
+		this->client->socket.SendAll(packetSize);
 
 		//send data
-		this->client->socket.SendAll(this->data.Buf(), this->data.SizeInBytes());
+		this->client->socket.SendAll(this->data);
 	}catch(ting::Socket::Exc& e){
 		this->client->Disconnect();
 	}
