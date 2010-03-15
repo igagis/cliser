@@ -8,6 +8,7 @@
 #include <ting/debug.hpp>
 #include <ting/math.hpp>
 #include <ting/utils.hpp>
+#include <ting/Buffer.hpp>
 
 #include "util.hpp"
 
@@ -21,25 +22,27 @@ bool NetworkReceiverState::ReadSocket(
 		NetworkReceiverState::PacketListener* rl
 	)
 {
+	ASSERT(rl)
+	
 	//receive data from socket
-	ting::u8 data[8192];//8kb
+	ting::StaticBuffer<ting::u8, 8192> data;//8kb
 	unsigned numRecvd;
 	try{
-		numRecvd = s->Recv(data, sizeof(data));
+		numRecvd = s->Recv(data);
 	}catch(Socket::Exc& e){
 		TRACE_AND_LOG(<< "NetworkReceiverState::ReadSocket(): Recv() has thrown an exception: " << e.What() << std::endl)
 		//some error, terminate connection
 		return true;
 	}
 //	TRACE(<< "Recv " << numRecvd << " bytes" << std::endl)
-	ASSERT(numRecvd <= sizeof(data))
+	ASSERT(numRecvd <= data.Size())
 
 	if(numRecvd == 0){//connection closed by peer
 //		TRACE(<<"NetworkReceiverState::ReadSocket(): socket disconnected"<<std::endl)
 		return true;//socket disconnected
 	}
 
-	ting::u8* curDataPtr = data;
+	ting::u8* curDataPtr = data.Buf();
 	for(unsigned numBytesUnparsed = numRecvd; numBytesUnparsed > 0 ;){
 		if(this->numBytesToReceive != 0){//we know the packet size and are in process of receiving packet
 			ASSERT(this->receivedData.Size()!=0)
