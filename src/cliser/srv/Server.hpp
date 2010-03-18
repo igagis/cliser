@@ -31,7 +31,7 @@ class ClientRemovedFromThreadMessage;
 //==============================================================================
 //==============================================================================
 //==============================================================================
-class Server : public ting::Thread{
+class Server : public ting::MsgThread{
     friend class ClientRemovedFromThreadMessage;
 	friend class NewConnectionAcceptedMessage;
 

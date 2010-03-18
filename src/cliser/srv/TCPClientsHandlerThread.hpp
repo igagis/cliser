@@ -37,7 +37,7 @@ class Server;
 
 
 
-class TCPClientsHandlerThread : public ting::Thread{
+class TCPClientsHandlerThread : public ting::MsgThread{
 	friend class AddClientToThreadMessage;
 	friend class RemoveClientFromThreadMessage;
 
