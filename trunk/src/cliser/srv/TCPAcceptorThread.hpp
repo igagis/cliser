@@ -14,7 +14,7 @@ namespace cliser{
 //forward declarations
 class Server;
 
-class TCPAcceptorThread : public ting::Thread{
+class TCPAcceptorThread : public ting::MsgThread{
     Server *serverMainThread;
 
 	ting::u16 port;

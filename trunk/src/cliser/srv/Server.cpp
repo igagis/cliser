@@ -119,7 +119,7 @@ void ClientRemovedFromThreadMessage::Handle(){
 					ting::Ptr<ting::Message>(
 							new C_KillThreadMessage(
 									&this->smt->threadsKillerThread,
-									ting::Ptr<ting::Thread>(static_cast<ting::Thread*>((*i).Extract()))
+									ting::Ptr<ting::MsgThread>(static_cast<ting::MsgThread*>((*i).Extract()))
 								)
 						)
 				);

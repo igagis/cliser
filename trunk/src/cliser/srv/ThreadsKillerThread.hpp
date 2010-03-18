@@ -17,7 +17,7 @@ class Server;
 class ThreadsKillerThread;
 class C_KillThreadMessage;
 
-class ThreadsKillerThread : public ting::Thread{
+class ThreadsKillerThread : public ting::MsgThread{
     friend class C_KillThreadMessage;
     
   public:
@@ -32,9 +32,9 @@ class ThreadsKillerThread : public ting::Thread{
 
 class C_KillThreadMessage : public ting::Message{
     ThreadsKillerThread *tkt;//to whom this message will be sent
-    ting::Ptr<ting::Thread> thr;//thread to kill
+    ting::Ptr<ting::MsgThread> thr;//thread to kill
   public:
-    C_KillThreadMessage(ThreadsKillerThread *threadKillerThread, ting::Ptr<ting::Thread> thread) :
+    C_KillThreadMessage(ThreadsKillerThread *threadKillerThread, ting::Ptr<ting::MsgThread> thread) :
             tkt(threadKillerThread),
             thr(thread)
     {
