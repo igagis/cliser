@@ -68,7 +68,7 @@ public:
 	void Disconnect();
 
 	void SendNetworkData_ts(ting::Array<ting::u8> data);
-	void SendNetworkDataCopy_ts(const ting::Array<ting::u8>& data);
+	void SendNetworkDataCopy_ts(const ting::Array<ting::u8>& data);//TODO: use ting::Buffer as argument
 };
 
 }//~namespace
