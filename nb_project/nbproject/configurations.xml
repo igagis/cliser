@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="69">
+  <logicalFolder name="root" displayName="root" projectFiles="true">
+    <df name="src" root="../src">
+      <df name="cliser" kind="SOURCE_LOGICAL_FOLDER">
+        <df name="clt" kind="SOURCE_LOGICAL_FOLDER">
+          <in>NetworkThread.cpp</in>
+          <in>NetworkThread.hpp</in>
+        </df>
+        <df name="srv" kind="SOURCE_LOGICAL_FOLDER">
+          <in>Client.cpp</in>
+          <in>Client.hpp</in>
+          <in>Server.cpp</in>
+          <in>Server.hpp</in>
+          <in>TCPAcceptorThread.cpp</in>
+          <in>TCPAcceptorThread.hpp</in>
+          <in>TCPClientsHandlerThread.cpp</in>
+          <in>TCPClientsHandlerThread.hpp</in>
+          <in>ThreadsKillerThread.cpp</in>
+          <in>ThreadsKillerThread.hpp</in>
+        </df>
+        <df name="util" kind="SOURCE_LOGICAL_FOLDER">
+          <in>util.cpp</in>
+          <in>util.hpp</in>
+        </df>
+      </df>
+    </df>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>../makefile</itemPath>
+      <itemPath>nb_project-Makefile.mk</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <sourceRootList>
+    <Elem>../src</Elem>
+  </sourceRootList>
+  <projectmakefile>nb_project-Makefile.mk</projectmakefile>
+  <confs>
+    <conf name="Default" type="0">
+      <toolsSet>
+        <developmentServer>localhost</developmentServer>
+        <compilerSet>GNU|GNU</compilerSet>
+        <platform>2</platform>
+      </toolsSet>
+      <makefileType>
+        <makeTool>
+          <buildCommandWorkingDir>..</buildCommandWorkingDir>
+          <buildCommand>${MAKE}</buildCommand>
+          <cleanCommand>${MAKE} clean</cleanCommand>
+          <executablePath></executablePath>
+        </makeTool>
+      </makefileType>
+      <folder path="src/cliser/srv">
+        <ccTool>
+          <incDir>
+            <pElem>../src/cliser/srv</pElem>
+          </incDir>
+        </ccTool>
+      </folder>
+    </conf>
+  </confs>
+</configurationDescriptor>
