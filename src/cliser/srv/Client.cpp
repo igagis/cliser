@@ -31,7 +31,7 @@ void Client::SendNetworkData_ts(ting::Array<ting::u8> data){
 
 
 
-void Client::SendNetworkDataCopy_ts(const ting::Array<ting::u8>& data){
+void Client::SendNetworkDataCopy_ts(const ting::Buffer<ting::u8>& data){
 	ting::Array<ting::u8> buf(data.SizeInBytes());
 	memcpy(&buf[0], &data[0], buf.SizeInBytes());
 

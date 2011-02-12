@@ -1,5 +1,5 @@
 subdirs :=
-#subdirs += other
+subdirs += test
 
 
 
