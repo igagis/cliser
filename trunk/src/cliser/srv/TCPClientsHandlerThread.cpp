@@ -74,7 +74,7 @@ void TCPClientsHandlerThread::Run(){
 	this->clients.clear();//clear clients list
 
 	ASSERT(this->clients.size() == 0)
-	M_SRV_CLIENTS_HANDLER_TRACE(<<"TCPClientsHandlerThread::Run(): exiting"<<std::endl)
+	M_SRV_CLIENTS_HANDLER_TRACE(<< "TCPClientsHandlerThread::Run(): exiting" << std::endl)
 }
 
 

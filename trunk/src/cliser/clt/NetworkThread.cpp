@@ -19,6 +19,22 @@ using namespace cliser;
 
 
 
+NetworkThread::NetworkThread() :
+		waitSet(2) //1 for socket and 1 for queue
+{
+//        TRACE(<<"C_NetworkThread::C_NetworkThread(): enter"<<std::endl)
+	this->waitSet.Add(&this->queue, ting::Waitable::READ);
+}
+
+
+
+NetworkThread::~NetworkThread(){
+//        TRACE(<<"C_NetworkThread::~C_NetworkThread(): invoked"<<std::endl)
+	this->waitSet.Remove(&this->queue);
+}
+
+
+
 //override
 void NetworkThread::Run(){
 	while(!this->quitFlag){
@@ -168,7 +184,7 @@ void SendNetworkDataToServerMessage::Handle(){
 
 	//send packet size
 	ting::StaticBuffer<ting::u8, 2> packetSize;
-	ting::ToNetworkFormat16(this->data.SizeInBytes(), packetSize.Buf());
+	ting::Serialize16(this->data.SizeInBytes(), packetSize.Buf());
 
 //	TRACE(<<"SendNetworkDataToServerMessage::Handle(): sending " << this->data.SizeInBytes() << " bytes" << std::endl)
 //	TRACE(<<"SendNetworkDataToServerMessage::Handle(): bytes = " << u32(this->data[0]) << " " << "..." << std::endl)

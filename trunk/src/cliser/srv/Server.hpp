@@ -31,6 +31,7 @@ class ClientRemovedFromThreadMessage;
 //==============================================================================
 //==============================================================================
 //==============================================================================
+//TODO: private inheritance
 class Server : public ting::MsgThread{
     friend class ClientRemovedFromThreadMessage;
 	friend class NewConnectionAcceptedMessage;
@@ -49,9 +50,9 @@ public:
 		return this->maxClientsPerThread;
 	}
 
-    Server(ting::u16 listeningPort, unsigned maxClientPerOneThread) :
+    Server(ting::u16 listeningPort, unsigned maxClientsPerThread) :
 			acceptorThread(this, listeningPort),
-			maxClientsPerThread(maxClientPerOneThread)
+			maxClientsPerThread(maxClientsPerThread)
 	{}
 
 	~Server(){

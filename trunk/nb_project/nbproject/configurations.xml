@@ -25,6 +25,10 @@
         </df>
       </df>
     </df>
+    <df name="test" root="../test">
+      <in>main.cpp</in>
+      <in>makefile</in>
+    </df>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
                    projectFiles="false"
@@ -35,6 +39,7 @@
   </logicalFolder>
   <sourceRootList>
     <Elem>../src</Elem>
+    <Elem>../test</Elem>
   </sourceRootList>
   <projectmakefile>nb_project-Makefile.mk</projectmakefile>
   <confs>

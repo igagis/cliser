@@ -33,17 +33,9 @@ class NetworkThread : public ting::MsgThread{
     cliser::NetworkReceiverState netReceiverState;
 	
 public:
-    NetworkThread() :
-            waitSet(2) //1 for socket and 1 for queue
-    {
-//        TRACE(<<"C_NetworkThread::C_NetworkThread(): enter"<<std::endl)
-		this->waitSet.Add(&this->queue, ting::Waitable::READ);
-    }
+    NetworkThread();
     
-    ~NetworkThread(){
-//        TRACE(<<"C_NetworkThread::~C_NetworkThread(): invoked"<<std::endl)
-		this->waitSet.Remove(&this->queue);
-    }
+    ~NetworkThread();
 
 	//send connection request message to the thread
 	void Connect_ts(const std::string& host, ting::u16 port);
@@ -53,14 +45,14 @@ public:
 
 	virtual void OnDataReceived(ting::Array<ting::u8> data) = 0;
 
-	enum EConnectFailReason{
+	enum EConnectFailureReason{
 		SUCCESS,
 		ALREADY_CONNECTED,
 		COULD_NOT_RESOLVE_HOST_IP,
 		SOME_ERROR
 	};
 	
-	virtual void OnConnect(EConnectFailReason failReason) = 0;
+	virtual void OnConnect(EConnectFailureReason failReason) = 0;
 
 	virtual void OnDisconnect() = 0;
 

@@ -23,7 +23,7 @@ bool NetworkReceiverState::ReadSocket(
 	)
 {
 	ASSERT(rl)
-	
+
 	//receive data from socket
 	ting::StaticBuffer<ting::u8, 8192> data;//8kb
 	unsigned numRecvd;
@@ -95,8 +95,9 @@ bool NetworkReceiverState::ReadSocket(
 			if(packetSize > 0){//if packet has nonzero size
 				this->receivedData.Init(packetSize);
 				this->numBytesToReceive = this->receivedData.SizeInBytes();
-			}else//packet has zero size
+			}else{//packet has zero size
 				continue;//read packet size again
+			}
 		}//~else
 	}//~for(unparsedData)
 
