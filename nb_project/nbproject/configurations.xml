@@ -8,14 +8,14 @@
           <in>NetworkThread.hpp</in>
         </df>
         <df name="srv" kind="SOURCE_LOGICAL_FOLDER">
-          <in>Client.cpp</in>
-          <in>Client.hpp</in>
+          <in>Connection.cpp</in>
+          <in>Connection.hpp</in>
+          <in>ConnectionsThread.cpp</in>
+          <in>ConnectionsThread.hpp</in>
           <in>Server.cpp</in>
           <in>Server.hpp</in>
           <in>TCPAcceptorThread.cpp</in>
           <in>TCPAcceptorThread.hpp</in>
-          <in>TCPClientsHandlerThread.cpp</in>
-          <in>TCPClientsHandlerThread.hpp</in>
           <in>ThreadsKillerThread.cpp</in>
           <in>ThreadsKillerThread.hpp</in>
         </df>
@@ -26,6 +26,7 @@
       </df>
     </df>
     <df name="test" root="../test">
+      <in>cliser_test</in>
       <in>main.cpp</in>
       <in>makefile</in>
     </df>

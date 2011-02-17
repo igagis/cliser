@@ -5,50 +5,57 @@
 // Description:
 //          Client class
 
-#include "Client.hpp"
-#include "TCPClientsHandlerThread.hpp"
-
 #include <ting/debug.hpp>
 #include <ting/Thread.hpp>
+
+#include "Connection.hpp"
+#include "ConnectionsThread.hpp"
+
+
 
 using namespace cliser;
 
 
-void Client::SendNetworkData_ts(ting::Array<ting::u8> data){
+
+void Connection::Send_ts(ting::Array<ting::u8> data){
 	ting::Mutex::Guard mutexGuard(this->mutex);//make sure that this->clientThread won't be zeroed out by other thread
 	if(!this->clientThread){
 		//client disconnected, do nothing
 		return;
 	}
 	ASSERT(this->clientThread)
-	ting::Ref<Client> c(this);
+	
+	ting::Ref<Connection> c(this);
 	this->clientThread->PushMessage(
 			ting::Ptr<ting::Message>(
-					new SendNetworkDataToClientMessage(this->clientThread, c, data)
+					new ConnectionsThread::SendDataMessage(this->clientThread, c, data)
 				)
 		);
 }
 
 
 
-void Client::SendNetworkDataCopy_ts(const ting::Buffer<ting::u8>& data){
-	ting::Array<ting::u8> buf(data.SizeInBytes());
-	memcpy(&buf[0], &data[0], buf.SizeInBytes());
+void Connection::SendCopy_ts(const ting::Buffer<ting::u8>& data){
+	ting::Array<ting::u8> buf(data);
 
-	this->SendNetworkData_ts(buf);
+	this->Send_ts(buf);
 }
 
 
 
-void Client::Disconnect(){
+void Connection::Disconnect_ts(){
 	ting::Mutex::Guard mutexGuard(this->mutex);
 	if(!this->clientThread){
 		//client disconnected, do nothing
 		return;
 	}
 	ASSERT(this->clientThread)
-	ting::Ref<Client> c(this);
+	ting::Ref<Connection> c(this);
 	this->clientThread->PushMessage(
-			ting::Ptr<ting::Message>(new RemoveClientFromThreadMessage(this->clientThread, c))
+			ting::Ptr<ting::Message>(
+					new ConnectionsThread::RemoveConnectionMessage(this->clientThread, c)
+				)
 		);
+
+	this->clientThread = 0;
 }
