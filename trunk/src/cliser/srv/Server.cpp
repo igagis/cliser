@@ -47,15 +47,15 @@ void Server::Run(){
 
 
 
-TCPClientsHandlerThread* Server::GetNotFullThread(){
+ConnectionsThread* Server::GetNotFullThread(){
 	for(T_ThrIter i = this->clientsThreads.begin(); i != this->clientsThreads.end(); ++i){
 		if((*i)->numClients < this->maxClientsPerThread)
 			return (*i).operator->();
 	}
 
 	this->clientsThreads.push_back(
-			ting::Ptr<TCPClientsHandlerThread>(
-					new TCPClientsHandlerThread(this)
+			ting::Ptr<ConnectionsThread>(
+					new ConnectionsThread(this)
 				)
 		);
 	this->clientsThreads.back()->Start();//start new thread
@@ -70,7 +70,7 @@ void Server::HandleNewConnection(ting::TCPSocket socket){
 
 	ASSERT(socket.IsValid())
 
-	TCPClientsHandlerThread* thr;
+	ConnectionsThread* thr;
 	try{
 		 thr = this->GetNotFullThread();
 	}catch(std::exception& e){
@@ -83,10 +83,19 @@ void Server::HandleNewConnection(ting::TCPSocket socket){
 
 	ASSERT(thr)
 
-	ting::Ref<Client> clt = this->CreateClientObject();
+	ting::Ref<Connection> conn = this->CreateClientObject();
+
+	//set client socket
+	conn->socket = socket;
+	ASSERT(conn->socket.IsValid())
+
+	//set Waitable pointer to connection
+	conn->socket.SetUserData(conn.operator->());
 
 	thr->PushMessage(
-			ting::Ptr<ting::Message>(new AddClientToThreadMessage(thr, clt, socket))
+			ting::Ptr<ting::Message>(
+					new ConnectionsThread::AddClientToThreadMessage(thr, conn)
+				)
 		);
 	++thr->numClients;
 
@@ -107,6 +116,7 @@ void ClientRemovedFromThreadMessage::Handle(){
 	//if we get here then numClients is 0, remove the thread then:
 	//find it in the threads list and push to ThreadKillerThread
 
+	//TODO:store iterator
 	for(Server::T_ThrIter i = this->smt->clientsThreads.begin();
 			i != this->smt->clientsThreads.end();
 			++i

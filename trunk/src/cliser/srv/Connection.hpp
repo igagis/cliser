@@ -16,33 +16,35 @@
 
 #include "../util/util.hpp"
 
+
+
 namespace cliser{
 
+
+
 //forward declarations
-class TCPClientsHandlerThread;
-class Server;
+class ConnectionsThread;
 
-class Client : public ting::RefCounted{
-	friend class TCPClientsHandlerThread;
-	friend class SendNetworkDataToClientMessage;
-	friend class AddClientToThreadMessage;
-	friend class RemoveClientFromThreadMessage;
 
-	//This is the network data associated with Client.
-	//This data is controlled by clients's TCPClientsHandlerThread thread
-	//after the client is added to the theread.
-	cliser::NetworkReceiverState netReceiverState;
+
+class Connection : public ting::RefCounted{
+	friend class Server;
+	friend class ConnectionsThread;
+
+	//This is the network data associated with Connection
+	std::list<ting::Array<ting::u8> > packetQueue;
+	unsigned dataSent;//number of bytes sent from first packet in the queue
 	//~
 
 	ting::TCPSocket socket;//socket which corresponds to the client
-
+	
 	//NOTE: clientThread may be accessed from different threads, therefore, protect it with mutex
-	TCPClientsHandlerThread *clientThread;
+	ConnectionsThread *clientThread;
 	ting::Mutex mutex;
 
-	inline void SetClientHandlerThread(TCPClientsHandlerThread *thr){
+	inline void SetClientHandlerThread(ConnectionsThread *thr){
 		ASSERT(thr)
-		ting::Mutex::Guard mutexGueard(this->mutex);
+		ting::Mutex::Guard mutexGuard(this->mutex);
 		//Assert that client is not added to some thread already.
 		ASSERT_INFO(!this->clientThread, "client's handler thread is already set")
 		this->clientThread = thr;
@@ -57,18 +59,23 @@ class Client : public ting::RefCounted{
 protected:
 
 public:
-	inline Client() :
+	inline Connection() :
 			clientThread(0)
 	{}
 
-	virtual ~Client(){
+	virtual ~Connection(){
 //		TRACE(<< "~cliser::Client(): invoked" << std::endl)
 	}
 
-	void Disconnect();
+	void Disconnect_ts();
 
-	void SendNetworkData_ts(ting::Array<ting::u8> data);
-	void SendNetworkDataCopy_ts(const ting::Buffer<ting::u8>& data);//TODO: use ting::Buffer as argument
+	void Send_ts(ting::Array<ting::u8> data);
+	void SendCopy_ts(const ting::Buffer<ting::u8>& data);
+
+
+	static inline ting::Ref<cliser::Connection> New(){
+		return ting::Ref<cliser::Connection>(new cliser::Connection());
+	}
 };
 
 }//~namespace

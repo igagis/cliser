@@ -15,10 +15,11 @@
 #include <ting/Thread.hpp>
 #include <ting/Socket.hpp>
 
-#include "TCPClientsHandlerThread.hpp"
+#include "ConnectionsThread.hpp"
 #include "ThreadsKillerThread.hpp"
 #include "TCPAcceptorThread.hpp"
-#include "Client.hpp"
+#include "Connection.hpp"
+
 
 
 namespace cliser{
@@ -28,18 +29,19 @@ class Server;
 class NewConnectionAcceptedMessage;
 class ClientRemovedFromThreadMessage;
 
+
+
 //==============================================================================
 //==============================================================================
 //==============================================================================
-//TODO: private inheritance
 class Server : public ting::MsgThread{
     friend class ClientRemovedFromThreadMessage;
 	friend class NewConnectionAcceptedMessage;
 
-	TCPAcceptorThread acceptorThread;
+	TCPAcceptorThread acceptorThread;//TODO: listen in server thread, no needfor separate acceptor thread
     ThreadsKillerThread threadsKillerThread;
 
-	typedef std::list<ting::Ptr<TCPClientsHandlerThread> > T_ThrList;
+	typedef std::list<ting::Ptr<ConnectionsThread> > T_ThrList;
 	typedef T_ThrList::iterator T_ThrIter;
     T_ThrList clientsThreads;
 
@@ -59,29 +61,27 @@ public:
 		ASSERT(this->clientsThreads.size() == 0)
 	}
 
-	inline void MainLoop(){
-		this->Run();
-	}
-
-	virtual ting::Ref<cliser::Client> CreateClientObject(){
-		return ting::Ref<cliser::Client>(new cliser::Client());
-	}
-
-	virtual void OnClientConnected(ting::Ref<Client>& c) = 0;
-
-	virtual void OnClientDisconnected(ting::Ref<Client>& c) = 0;
-
-	virtual void OnDataReceivedFromClient(ting::Ref<Client>& c, ting::Array<ting::u8> d) = 0;
-
-private:
 	//override
     void Run();
-	
-    TCPClientsHandlerThread* GetNotFullThread();
+
+	virtual ting::Ref<cliser::Connection> CreateClientObject(){
+		return cliser::Connection::New();
+	}
+
+	virtual void OnClientConnected_ts(ting::Ref<Connection>& c) = 0;
+
+	virtual void OnClientDisconnected_ts(ting::Ref<Connection>& c) = 0;
+
+	virtual void OnDataReceived_ts(ting::Ref<Connection>& c, const ting::Buffer<ting::u8>& d) = 0;
+
+	virtual void OnDataSent_ts(ting::Ref<Connection>& c){}
+
+private:	
+    ConnectionsThread* GetNotFullThread();
 
 	void HandleNewConnection(ting::TCPSocket socket);
 
-	void DisconnectClient(ting::Ref<Client>& c);
+	void DisconnectClient(ting::Ref<Connection>& c);
 };
 
 //==============================================================================
@@ -117,9 +117,9 @@ public:
 //and the connection was closed. The player was removed from its handler thread.
 class ClientRemovedFromThreadMessage : public ting::Message{
     Server *smt;//this mesage should hold reference to the thread this message is sent to
-	TCPClientsHandlerThread* cht;
+	ConnectionsThread* cht;
   public:
-    ClientRemovedFromThreadMessage(Server* serverMainThread, TCPClientsHandlerThread* clientsHandlerThread) :
+    ClientRemovedFromThreadMessage(Server* serverMainThread, ConnectionsThread* clientsHandlerThread) :
             smt(serverMainThread),
             cht(clientsHandlerThread)
     {

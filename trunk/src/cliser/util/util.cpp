@@ -48,7 +48,7 @@ bool NetworkReceiverState::ReadSocket(
 			ASSERT(this->receivedData.Size()!=0)
 			ASSERT(this->numBytesToReceive <= this->receivedData.Size())
 
-			unsigned numBytesToCopy = ting::Min(numBytesUnparsed, this->numBytesToReceive);
+			unsigned numBytesToCopy = (std::min)(numBytesUnparsed, this->numBytesToReceive);
 			memcpy(
 					this->receivedData.Buf() + (this->receivedData.Size() - this->numBytesToReceive),
 					curDataPtr,
@@ -91,7 +91,7 @@ bool NetworkReceiverState::ReadSocket(
 			//if we get here then we have completely read packet size
 			this->numBytesInPacketSizeHolder = 0;//reset bytes counter
 
-			ting::u16 packetSize = ting::FromNetworkFormat16(&this->packetSizeHolder[0]);
+			ting::u16 packetSize = ting::Deserialize16(&this->packetSizeHolder[0]);
 			if(packetSize > 0){//if packet has nonzero size
 				this->receivedData.Init(packetSize);
 				this->numBytesToReceive = this->receivedData.SizeInBytes();

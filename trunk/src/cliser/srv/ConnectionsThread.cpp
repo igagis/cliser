@@ -1,0 +1,276 @@
+// (c) Ivan Gagis
+// e-mail: igagis@gmail.com
+// Version: 1
+
+// Description:
+//
+
+#include <list>
+
+#include <ting/Socket.hpp>
+#include <ting/debug.hpp>
+#include <ting/math.hpp>
+#include <ting/utils.hpp>
+#include <ting/Buffer.hpp>
+
+#include "Server.hpp"
+#include "Connection.hpp"
+#include "ConnectionsThread.hpp"
+#include "../util/util.hpp"
+
+
+
+using namespace cliser;
+
+
+
+ConnectionsThread::ConnectionsThread(Server *serverMainThread) :
+		smt(serverMainThread),
+		waitSet(serverMainThread->MaxClientsPerThread() + 1), //+1 for messages queue
+		numClients(0)
+{
+	M_SRV_CLIENTS_HANDLER_TRACE(<<"TCPClientsHandlerThread::TCPClientsHandlerThread(): invoked"<<std::endl)
+	ASSERT(this->smt)
+
+	this->waitSet.Add(&this->queue, ting::Waitable::READ);
+}
+
+
+
+void ConnectionsThread::Run(){
+	M_SRV_CLIENTS_HANDLER_TRACE(<<"TCPClientsHandlerThread::Run(): new thread started"<<std::endl)
+
+	ting::Array<ting::Waitable*> triggered(this->waitSet.Size());
+
+	while(!this->quitFlag){
+		//NOTE: queue is added to wait set, so, wait infinitely
+		unsigned numTriggered = this->waitSet.Wait(&triggered);
+		ASSERT(numTriggered > 0)
+
+		if(this->queue.CanRead()){
+			while(ting::Ptr<ting::Message> m = this->queue.PeekMsg()){
+				M_SRV_CLIENTS_HANDLER_TRACE(<<"TCPClientsHandlerThread::Run(): message got"<<std::endl)
+				m->Handle();
+			}
+			continue;
+		}else{
+			//Handle socket activities
+
+			ting::Waitable** p = triggered.Begin();
+			for(unsigned i = 0; i != numTriggered; ++i, ++p){
+				ASSERT(p != triggered.End())
+				ASSERT(*p)
+
+				cliser::Connection* conn = reinterpret_cast<cliser::Connection*>(p->GetUserData());
+				ASSERT(conn)
+
+				//TODO:
+			}
+
+			M_SRV_CLIENTS_HANDLER_TRACE(<<"TCPClientsHandlerThread::Run(): active sockets found"<<std::endl)
+			//this->HandleSocketActivities();
+		}
+//        M_SRV_CLIENTS_HANDLER_TRACE(<<"TCPClientsHandlerThread::Run(): cycle"<<std::endl)
+	}//~while(): main loop of the thread
+
+	//disconnect all clients
+	//TODO: rewise
+	for(T_ConnectionsIter i = this->connections.begin(); i != this->connections.end(); ++i){
+		ting::Ref<Connection> c(*i);
+		
+		this->RemoveSocketFromSocketSet(&c->socket);
+		c->socket.Close();
+		c->ClearClientHandlerThread();
+
+		//NOTE: Do not send notifications to server main thread because this thread is
+		//exiting, therefore it is not an active thread which can be used for adding
+		//new clients further.
+
+		//notify client disconnection
+		this->smt->OnClientDisconnected_ts(c);
+	}
+	this->connections.clear();//clear clients list
+
+	ASSERT(this->connections.size() == 0)
+	M_SRV_CLIENTS_HANDLER_TRACE(<< "TCPClientsHandlerThread::Run(): exiting" << std::endl)
+}
+
+
+
+//bool ConnectionsThread::HandleClientSocketActivity(ting::Ref<Connection>& c){
+//	class ResListener : public cliser::NetworkReceiverState::PacketListener{
+//		Server* smt;
+//		ting::Ref<Connection> c;
+//
+//		//override
+//		void OnNewDataPacketReceived(ting::Array<ting::u8> d){
+//			this->smt->OnDataReceived_ts(this->c, d);
+//		}
+//
+//	public:
+//		ResListener(Server* p, ting::Ref<Connection> client) :
+//				smt(p),
+//				c(client)
+//		{}
+//		virtual ~ResListener(){}
+//	} rl(this->smt, c);
+//
+//	return c->netReceiverState.ReadSocket(&c->socket, &rl);
+//}
+
+
+
+//void ConnectionsThread::HandleSocketActivities(){
+//	M_SRV_CLIENTS_HANDLER_TRACE(<<"TCPClientsHandlerThread::HandleSocketActivities(): enter, size = "<< this->connections.size()<<std::endl)
+//
+//	for(T_ConnectionsIter i = this->connections.begin(); i != this->connections.end();){
+//		M_SRV_CLIENTS_HANDLER_TRACE(<<"TCPClientsHandlerThread::HandleSocketActivities(): cycle"<<std::endl)
+//		ASSERT((*i)->socket.IsValid())
+//		if((*i)->socket.CanRead()){//if socket has activity
+//			if(this->HandleClientSocketActivity(*i)){//if client disconnected, remove it from list
+////				M_SRV_CLIENTS_HANDLER_TRACE(<<"TCPClientsHandlerThread::HandleSocketActivities(): removing client"<<std::endl)
+//				ting::Ref<Connection> c(*i);
+//
+//				//remove client from list
+//				i = this->connections.erase(i);
+//
+//				//handle client disconnection
+//				this->RemoveSocketFromSocketSet(&c->socket);
+//				c->socket.Close();
+//				c->ClearClientHandlerThread();
+//
+//				//send notification to server main thread
+//				this->smt->PushMessage(
+//						ting::Ptr<ting::Message>(new ClientRemovedFromThreadMessage(this->smt, this))
+//					);
+//
+//				//notify client disconnection
+//				this->smt->OnClientDisconnected_ts(c);
+//
+////				M_SRV_CLIENTS_HANDLER_TRACE(<<"TCPClientsHandlerThread::HandleSocketActivities(): client removed, size = "<<this->clients.size()<<" isEnd = "<<(i == this->clients.end()) << " isBegin = "<<(i == this->clients.begin())<<std::endl)
+//				continue;//because iterator is already pointing to next client, no need for ++i
+//			}//~if disconnected
+//		}//~if(CanRead)
+//		++i;
+//	}//~for(client)
+//};
+
+
+
+
+
+
+
+//
+// M       M  EEEEEE   SSSS    SSSS    AAAA    GGGG   EEEEEE   SSSS
+// MM     MM  E       S       S       A    A  G    G  E       S
+// M M   M M  E       S       S       A    A  G       E       S
+// M  M M  M  EEEEEE   SSSS    SSSS   A    A  G  GG   EEEEEE   SSSS
+// M   M   M  E            S       S  AAAAAA  G    G  E            S
+// M       M  E            S       S  A    A  G    G  E            S
+// M       M  EEEEEE   SSSS    SSSS   A    A   GGGG   EEEEEE   SSSS
+//
+void ConnectionsThread::AddConnectionMessage::Handle(){
+	M_SRV_CLIENTS_HANDLER_TRACE(<<"C_AddClientToThreadMessage::Handle(): enter"<<std::endl)
+
+//    ASSERT(!this->thread->IsFull())
+	
+	//set client's handler thread
+	this->conn->SetClientHandlerThread(this->thread);
+
+	//add socket to waitset
+	this->thread->AddSocketToSocketSet(&this->conn->socket);
+
+	this->thread->connections.push_back(this->conn);
+
+	//notify new client connection
+	this->thread->smt->OnClientConnected_ts(this->conn);
+
+	//ASSERT(this->thread->numPlayers <= this->thread->players.Size())
+	M_SRV_CLIENTS_HANDLER_TRACE(<<"C_AddClientToThreadMessage::Handle(): exit"<<std::endl)
+}
+
+
+
+//removing client means disconnect as well
+void ConnectionsThread::RemoveConnectionMessage::Handle(){
+	M_SRV_CLIENTS_HANDLER_TRACE(<<"C_RemoveClientFromThreadMessage::Handle(): enter"<<std::endl)
+
+	ASSERT(this->conn.IsValid())
+
+	if(!this->conn->clientThread){
+		//client already removed, probably removal request was posted twice.
+		//This is normal situation.
+		M_SRV_CLIENTS_HANDLER_TRACE(
+				<< "C_RemoveClientFromThreadMessage::Handle(): already removed, do nothing"
+				<< std::endl
+			)
+		return;
+	}
+
+	ASSERT(this->conn->clientThread == this->thread)//make sure we are removing client from the right thread
+
+	try{
+		for(ConnectionsThread::T_ConnectionsIter i = this->thread->connections.begin();
+				i != this->thread->connections.end();
+				++i
+			)
+		{
+			if((*i) == this->conn){
+				this->thread->connections.erase(i);//remove client from list
+
+				this->thread->RemoveSocketFromSocketSet(&(*i)->socket);
+				this->conn->socket.Close();//close connection if it is opened
+				this->conn->ClearClientHandlerThread();
+
+				//send notification message to server main thread
+				this->thread->smt->PushMessage(
+						ting::Ptr<ting::Message>(new ClientRemovedFromThreadMessage(this->thread->smt, this->thread))
+					);
+
+				//notify client disconnection
+				this->thread->smt->OnClientDisconnected_ts(this->conn);
+
+				break;
+			}
+		}
+
+		ASSERT(this->thread->connections.size() <= this->thread->smt->MaxClientsPerThread())
+	}catch(...){
+		ASSERT_INFO(false, "C_RemoveClientFromThreadMessage::Handle(): removing client failed, should send RemoveClientFailed message to main server thread, it is unimplemented yet")
+	}
+}
+
+
+
+//override
+void ConnectionsThread::SendDataMessage::Handle(){
+//	TRACE(<<"SendNetworkDataToClientMessage::Handle(): enter"<<std::endl)
+	if(!this->conn->socket.IsValid()){
+		TRACE(<< "SendNetworkDataToClientMessage::Handle(): socket is disconnected, ignoring message" << std::endl)
+		return;
+	}
+
+//	ASSERT(this->data.SizeInBytes() != 0 && this->data.SizeInBytes() <= (0xffff))
+
+	//send packet size
+	//TODO: reomove
+//	ting::StaticBuffer<ting::u8, 2> packetSize;
+//	ting::Serialize16(this->data.SizeInBytes(), packetSize.Buf());
+
+//	TRACE(<< "SendNetworkDataToClientMessage::Handle(): sending " << this->data.SizeInBytes() << " bytes" << std::endl)
+
+	try{
+		//Remove
+		//send packet size
+		//this->client->socket.SendAll(packetSize);
+
+		//send data
+		//TODO: not SendAll
+		this->conn->socket.SendAll(this->data);
+	}catch(ting::Socket::Exc& e){
+		this->conn->Disconnect_ts();
+	}
+}
+
+
