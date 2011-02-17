@@ -61,11 +61,50 @@ void ConnectionsThread::Run(){
 				ASSERT(p != triggered.End())
 				ASSERT(*p)
 
-				cliser::Connection* conn = reinterpret_cast<cliser::Connection*>(p->GetUserData());
+				ting::Ref<cliser::Connection> conn(
+						reinterpret_cast<cliser::Connection*>(p->GetUserData())
+					);
 				ASSERT(conn)
 
-				//TODO:
-			}
+				if(conn->socket.CanRead()){
+					ting::StaticBuffer<ting::u8, 0xfff> buffer;//4kb
+
+					unsigned bytesReceived = conn->socket.Recv(buffer);
+					if(bytesReceived != 0){
+						ting::Buffer b(buffer.Begin(), bytesReceived);
+						ASS(this->smt)->OnDataReceived_ts(conn, b);
+					}else{
+						//connection closed
+						//TODO:
+						continue;
+					}
+				}
+
+				if(conn->socket.CanWrite()){
+					ASSERT(conn->packetQueue.size() != 0)
+
+					ASSERT(conn->dataSent < conn->packetQueue.front().Size())
+
+					try{
+						conn->dataSent += conn->socket.Send(conn->packetQueue.front(), conn->dataSent);
+						ASSERT(conn->dataSent <= conn->packetQueue.front().Size())
+
+						if(conn->dataSent == conn->packetQueue.front().Size()){
+							conn->packetQueue.pop_front();
+							conn->dataSent = 0;
+
+							this->smt->OnDataSent_ts(conn);
+
+							if(conn->packetQueue.size() == 0){
+								//clear WRITE waiting flag, only READ wait flag remains.
+								this->waitSet.Change(&conn->socket, ting::Waitable::READ);
+							}
+						}
+					}catch(ting::Socket::Exc &e){
+						conn->Disconnect_ts();
+					}
+				}
+			}//~for()
 
 			M_SRV_CLIENTS_HANDLER_TRACE(<<"TCPClientsHandlerThread::Run(): active sockets found"<<std::endl)
 			//this->HandleSocketActivities();
@@ -198,18 +237,6 @@ void ConnectionsThread::RemoveConnectionMessage::Handle(){
 
 	ASSERT(this->conn.IsValid())
 
-	if(!this->conn->clientThread){
-		//client already removed, probably removal request was posted twice.
-		//This is normal situation.
-		M_SRV_CLIENTS_HANDLER_TRACE(
-				<< "C_RemoveClientFromThreadMessage::Handle(): already removed, do nothing"
-				<< std::endl
-			)
-		return;
-	}
-
-	ASSERT(this->conn->clientThread == this->thread)//make sure we are removing client from the right thread
-
 	try{
 		for(ConnectionsThread::T_ConnectionsIter i = this->thread->connections.begin();
 				i != this->thread->connections.end();
@@ -220,8 +247,13 @@ void ConnectionsThread::RemoveConnectionMessage::Handle(){
 				this->thread->connections.erase(i);//remove client from list
 
 				this->thread->RemoveSocketFromSocketSet(&(*i)->socket);
+				
 				this->conn->socket.Close();//close connection if it is opened
-				this->conn->ClearClientHandlerThread();
+
+				ASSERT(this->conn->clientThread == 0)
+
+				//clear packetQueue
+				this->conn->packetQueue.clear();
 
 				//send notification message to server main thread
 				this->thread->smt->PushMessage(
@@ -234,8 +266,6 @@ void ConnectionsThread::RemoveConnectionMessage::Handle(){
 				break;
 			}
 		}
-
-		ASSERT(this->thread->connections.size() <= this->thread->smt->MaxClientsPerThread())
 	}catch(...){
 		ASSERT_INFO(false, "C_RemoveClientFromThreadMessage::Handle(): removing client failed, should send RemoveClientFailed message to main server thread, it is unimplemented yet")
 	}
@@ -251,25 +281,24 @@ void ConnectionsThread::SendDataMessage::Handle(){
 		return;
 	}
 
-//	ASSERT(this->data.SizeInBytes() != 0 && this->data.SizeInBytes() <= (0xffff))
+	if(this->conn->packetQueue.size() != 0){
+		this->conn->packetQueue.push_back(this->data);
+		return;
+	}else{
+		try{
+			unsigned numBytesSent = this->conn->socket.Send(this->data);
+			ASSERT(numBytesSent <= this->data.Size())
 
-	//send packet size
-	//TODO: reomove
-//	ting::StaticBuffer<ting::u8, 2> packetSize;
-//	ting::Serialize16(this->data.SizeInBytes(), packetSize.Buf());
+			if(numBytesSent != this->data.Size()){
+				this->conn->dataSent = numBytesSent;
+				this->conn->packetQueue.push_back(this->data);
 
-//	TRACE(<< "SendNetworkDataToClientMessage::Handle(): sending " << this->data.SizeInBytes() << " bytes" << std::endl)
-
-	try{
-		//Remove
-		//send packet size
-		//this->client->socket.SendAll(packetSize);
-
-		//send data
-		//TODO: not SendAll
-		this->conn->socket.SendAll(this->data);
-	}catch(ting::Socket::Exc& e){
-		this->conn->Disconnect_ts();
+				//Set WRITE wait flag
+				this->cht->waitSet.Change(this->conn->socket, ting::Waitable::READ_AND_WRITE);
+			}
+		}catch(ting::Socket::Exc& e){
+			this->conn->Disconnect_ts();
+		}
 	}
 }
 
