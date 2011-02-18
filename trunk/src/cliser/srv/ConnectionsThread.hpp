@@ -37,6 +37,7 @@ class Server;
 
 
 class ConnectionsThread : public ting::MsgThread{
+	friend class Server;
 	friend class Connection;
 
 	Server* const smt;
@@ -73,13 +74,6 @@ private:
 	inline void RemoveSocketFromSocketSet(ting::TCPSocket *sock){
 		this->waitSet.Remove(sock);
 	}
-
-	//TODO: remove
-//	void HandleSocketActivities();
-
-	//TODO: remove
-	//return true if client has beed disconnected
-//	bool HandleClientSocketActivity(ting::Ref<Connection>& c);
 
 
 
@@ -120,8 +114,12 @@ private:
 		}
 
 		//override
-		void Handle();
+		void Handle(){
+			this->thread->HandleRemoveConnectionMessage(this->conn);
+		}
 	};
+
+	void HandleRemoveConnectionMessage(ting::Ref<Connection>& conn);
 
 
 
