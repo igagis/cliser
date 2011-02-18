@@ -50,18 +50,19 @@ class ConnectionsThread : public ting::MsgThread{
 	//This data is controlled by Server Main Thread
 	unsigned numClients;
 	//~
-public:
 
+private:
 	ConnectionsThread(Server *serverMainThread);
 
+	//override
+	void Run();
+
+public:
 	~ConnectionsThread(){
 		M_SRV_CLIENTS_HANDLER_TRACE(<< "~TCPClientsHandlerThread(): invoked" << std::endl)
 		this->waitSet.Remove(&this->queue);
 		ASSERT(this->connections.size() == 0)
 	}
-
-	//override
-	void Run();
 
 private:
 	inline void AddSocketToSocketSet(ting::TCPSocket *sock){

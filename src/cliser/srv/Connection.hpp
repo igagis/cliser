@@ -28,8 +28,8 @@ class ConnectionsThread;
 
 
 class Connection : public ting::RefCounted{
-	friend class Server;
 	friend class ConnectionsThread;
+	friend class Server;
 
 	//This is the network data associated with Connection
 	std::list<ting::Array<ting::u8> > packetQueue;
