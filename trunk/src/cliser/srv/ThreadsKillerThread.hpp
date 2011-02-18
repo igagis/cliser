@@ -14,11 +14,12 @@ namespace cliser{
 
 //forward declarations
 class Server;
-class ThreadsKillerThread;
-class C_KillThreadMessage;
+
+
 
 class ThreadsKillerThread : public ting::MsgThread{
-	friend class C_KillThreadMessage;
+	friend class Server;
+	friend class KillThreadMessage;
 
 public:
 	ThreadsKillerThread(){};
@@ -27,11 +28,11 @@ public:
 	void Run();
 
 private:
-	class C_KillThreadMessage : public ting::Message{
+	class KillThreadMessage : public ting::Message{
 		ThreadsKillerThread *tkt;//to whom this message will be sent
 		ting::Ptr<ting::MsgThread> thr;//thread to kill
 	  public:
-		C_KillThreadMessage(ThreadsKillerThread *threadKillerThread, ting::Ptr<ting::MsgThread> thread) :
+		KillThreadMessage(ThreadsKillerThread *threadKillerThread, ting::Ptr<ting::MsgThread> thread) :
 				tkt(threadKillerThread),
 				thr(thread)
 		{

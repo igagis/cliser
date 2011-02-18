@@ -11,7 +11,6 @@ srcs := main.cpp
 srcs += ../src/cliser/srv/Connection.cpp
 srcs += ../src/cliser/srv/ConnectionsThread.cpp
 srcs += ../src/cliser/srv/Server.cpp
-srcs += ../src/cliser/srv/TCPAcceptorThread.cpp
 srcs += ../src/cliser/srv/ThreadsKillerThread.cpp
 srcs += ../src/cliser/util/util.cpp
 

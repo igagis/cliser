@@ -17,7 +17,6 @@
 
 #include "ConnectionsThread.hpp"
 #include "ThreadsKillerThread.hpp"
-#include "TCPAcceptorThread.hpp"
 #include "Connection.hpp"
 
 
@@ -34,12 +33,13 @@ namespace cliser{
 class Server : public ting::MsgThread{
 	friend class ConnectionsThread;
 
-	TCPAcceptorThread acceptorThread;//TODO: listen in server thread, no need for separate acceptor thread
     ThreadsKillerThread threadsKillerThread;
 
 	typedef std::list<ting::Ptr<ConnectionsThread> > T_ThrList;
 	typedef T_ThrList::iterator T_ThrIter;
     T_ThrList clientsThreads;
+
+	ting::u16 port;
 
 	unsigned maxClientsPerThread;
 	
@@ -48,8 +48,8 @@ public:
 		return this->maxClientsPerThread;
 	}
 
-    Server(ting::u16 listeningPort, unsigned maxClientsPerThread) :
-			acceptorThread(this, listeningPort),
+    Server(ting::u16 port, unsigned maxClientsPerThread) :
+			port(port),
 			maxClientsPerThread(maxClientsPerThread)
 	{}
 
@@ -75,53 +75,36 @@ public:
 private:	
     ConnectionsThread* GetNotFullThread();
 
-	void HandleNewConnection(ting::TCPSocket socket);
-
 	void DisconnectClient(ting::Ref<Connection>& c);
 
 
 
 private:
-	class NewConnectionAcceptedMessage : public ting::Message{
-		Server *smt;//this mesage should hold reference to the thread this message is sent to
-
-		ting::TCPSocket socket;
-
-	public:
-		NewConnectionAcceptedMessage(Server* serverMainThread, ting::TCPSocket sock) :
-				smt(serverMainThread),
-				socket(sock)
-		{
-			ASSERT(this->smt)
-			ASSERT(this->socket.IsValid())
-		}
-
-		//override
-		void Handle(){
-	//		TRACE(<<"C_NewConnectionAcceptedMessage::Handle(): invoked"<<std::endl)
-			this->smt->HandleNewConnection(this->socket);
-		}
-	};
+	void HandleNewConnection(ting::TCPSocket socket);
 
 
 
 	//This message is sent to server main thread when the client has been disconnected,
 	//and the connection was closed. The player was removed from its handler thread.
 	class ConnectionRemovedMessage : public ting::Message{
-		Server *smt;//this mesage should hold reference to the thread this message is sent to
+		Server *thread;//this mesage should hold reference to the thread this message is sent to
 		ConnectionsThread* cht;
 	  public:
 		ConnectionRemovedMessage(Server* serverMainThread, ConnectionsThread* clientsHandlerThread) :
-				smt(serverMainThread),
+				thread(serverMainThread),
 				cht(clientsHandlerThread)
 		{
-			ASSERT(this->smt)
+			ASSERT(this->thread)
 			ASSERT(this->cht)
 		}
 
 		//override
-		void Handle();
+		void Handle(){
+			ASS(this->thread)->HandleConnectionRemovedMessage(this->cht);
+		}
 	};
+
+	void HandleConnectionRemovedMessage(ConnectionsThread* cht);
 };
 
 

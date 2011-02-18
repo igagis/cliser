@@ -148,24 +148,24 @@ void ConnectionsThread::Run(){
 // M       M  E            S       S  A    A  G    G  E            S
 // M       M  EEEEEE   SSSS    SSSS   A    A   GGGG   EEEEEE   SSSS
 //
-void ConnectionsThread::AddConnectionMessage::Handle(){
+void ConnectionsThread::HandleAddConnectionMessage(ting::Ref<Connection>& conn){
 	M_SRV_CLIENTS_HANDLER_TRACE(<<"C_AddClientToThreadMessage::Handle(): enter"<<std::endl)
 
 //    ASSERT(!this->thread->IsFull())
 	
 	//set client's handler thread
-	this->conn->SetClientHandlerThread(this->thread);
+	conn->SetClientHandlerThread(this);
 
 	//add socket to waitset
-	this->thread->AddSocketToSocketSet(&this->conn->socket);
+	this->AddSocketToSocketSet(&conn->socket);
 
-	this->thread->connections.push_back(this->conn);
+	this->connections.push_back(conn);
 
 	//notify new client connection
-	this->thread->smt->OnClientConnected_ts(this->conn);
+	this->smt->OnClientConnected_ts(conn);
 
 	//ASSERT(this->thread->numPlayers <= this->thread->players.Size())
-	M_SRV_CLIENTS_HANDLER_TRACE(<<"C_AddClientToThreadMessage::Handle(): exit"<<std::endl)
+	M_SRV_CLIENTS_HANDLER_TRACE(<< "C_AddClientToThreadMessage::Handle(): exit" << std::endl)
 }
 
 
@@ -212,31 +212,30 @@ void ConnectionsThread::HandleRemoveConnectionMessage(ting::Ref<Connection>& con
 
 
 
-//override
-void ConnectionsThread::SendDataMessage::Handle(){
+void ConnectionsThread::HandleSendDataMessage(ting::Ref<Connection>& conn, ting::Array<ting::u8> data){
 //	TRACE(<<"SendNetworkDataToClientMessage::Handle(): enter"<<std::endl)
-	if(!this->conn->socket.IsValid()){
+	if(!conn->socket.IsValid()){
 		TRACE(<< "SendNetworkDataToClientMessage::Handle(): socket is disconnected, ignoring message" << std::endl)
 		return;
 	}
 
-	if(this->conn->packetQueue.size() != 0){
-		this->conn->packetQueue.push_back(this->data);
+	if(conn->packetQueue.size() != 0){
+		conn->packetQueue.push_back(data);
 		return;
 	}else{
 		try{
-			unsigned numBytesSent = this->conn->socket.Send(this->data);
-			ASSERT(numBytesSent <= this->data.Size())
+			unsigned numBytesSent = conn->socket.Send(data);
+			ASSERT(numBytesSent <= data.Size())
 
-			if(numBytesSent != this->data.Size()){
-				this->conn->dataSent = numBytesSent;
-				this->conn->packetQueue.push_back(this->data);
+			if(numBytesSent != data.Size()){
+				conn->dataSent = numBytesSent;
+				conn->packetQueue.push_back(data);
 
 				//Set WRITE wait flag
-				this->cht->waitSet.Change(this->conn->socket, ting::Waitable::READ_AND_WRITE);
+				this->waitSet.Change(&conn->socket, ting::Waitable::READ_AND_WRITE);
 			}
 		}catch(ting::Socket::Exc& e){
-			this->conn->Disconnect_ts();
+			conn->Disconnect_ts();
 		}
 	}
 }

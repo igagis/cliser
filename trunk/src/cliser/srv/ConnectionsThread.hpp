@@ -81,23 +81,23 @@ private:
 	class AddConnectionMessage : public ting::Message{
 		ConnectionsThread* thread;
 		ting::Ref<Connection> conn;
+
 	public:
-
-
 		AddConnectionMessage(
 				ConnectionsThread* t,
 				ting::Ref<Connection>& c
 			) :
-				thread(t),
-				conn(c)
-		{
-			ASSERT(this->thread)
-			ASSERT(this->conn)
-		}
+				thread(ASS(t)),
+				conn(ASS(c))
+		{}
 
 		//override
-		void Handle();
+		void Handle(){
+			ASS(this->thread)->HandleAddConnectionMessage(this->conn);
+		}
 	};
+
+	void HandleAddConnectionMessage(ting::Ref<Connection>& conn);
 
 
 	
@@ -106,12 +106,9 @@ private:
 		ting::Ref<Connection> conn;
 	  public:
 		RemoveConnectionMessage(ConnectionsThread* t, ting::Ref<Connection>& c) :
-				thread(t),
-				conn(c)
-		{
-			ASSERT(this->thread)
-			ASSERT(this->conn)
-		}
+				thread(ASS(t)),
+				conn(ASS(c))
+		{}
 
 		//override
 		void Handle(){
@@ -124,7 +121,7 @@ private:
 
 
 	class SendDataMessage : public ting::Message{
-		ConnectionsThread *cht;//this mesage should hold reference to the thread this message is sent to
+		ConnectionsThread *thread;//this mesage should hold reference to the thread this message is sent to
 
 		ting::Ref<Connection> conn;
 
@@ -133,21 +130,21 @@ private:
 	  public:
 		SendDataMessage(
 				ConnectionsThread* clientThread,
-				ting::Ref<Connection>& clt,
+				ting::Ref<Connection>& conn,
 				ting::Array<ting::u8> d
 			) :
-				cht(clientThread),
-				conn(clt),
-				data(d)
-		{
-			ASSERT(this->cht)
-			ASSERT(this->conn)
-			ASSERT(this->data.Size() != 0)
-		}
+				thread(ASS(clientThread)),
+				conn(ASS(conn)),
+				data(ASS(d))
+		{}
 
 		//override
-		void Handle();
+		void Handle(){
+			ASS(this->thread)->HandleSendDataMessage(this->conn, this->data);
+		}
 	};
+
+	void HandleSendDataMessage(ting::Ref<Connection>& conn, ting::Array<ting::u8> data);
 
 };
 

@@ -42,7 +42,7 @@ bool NetworkReceiverState::ReadSocket(
 		return true;//socket disconnected
 	}
 
-	ting::u8* curDataPtr = data.Buf();
+	ting::u8* curDataPtr = data.Begin();
 	for(unsigned numBytesUnparsed = numRecvd; numBytesUnparsed > 0 ;){
 		if(this->numBytesToReceive != 0){//we know the packet size and are in process of receiving packet
 			ASSERT(this->receivedData.Size()!=0)
@@ -50,7 +50,7 @@ bool NetworkReceiverState::ReadSocket(
 
 			unsigned numBytesToCopy = (std::min)(numBytesUnparsed, this->numBytesToReceive);
 			memcpy(
-					this->receivedData.Buf() + (this->receivedData.Size() - this->numBytesToReceive),
+					this->receivedData.Begin() + (this->receivedData.Size() - this->numBytesToReceive),
 					curDataPtr,
 					numBytesToCopy
 				);
