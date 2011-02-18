@@ -13,15 +13,15 @@
 namespace cliser{
 
 //forward declarations
-class Server;
+//...
 
 
 
 class ThreadsKillerThread : public ting::MsgThread{
 	friend class Server;
-	friend class KillThreadMessage;
 
-public:
+
+private:
 	ThreadsKillerThread(){};
 
 	//override
@@ -29,14 +29,14 @@ public:
 
 private:
 	class KillThreadMessage : public ting::Message{
-		ThreadsKillerThread *tkt;//to whom this message will be sent
+		ThreadsKillerThread *thread;//to whom this message will be sent
 		ting::Ptr<ting::MsgThread> thr;//thread to kill
 	  public:
 		KillThreadMessage(ThreadsKillerThread *threadKillerThread, ting::Ptr<ting::MsgThread> thread) :
-				tkt(threadKillerThread),
+				thread(threadKillerThread),
 				thr(thread)
 		{
-			ASSERT(this->tkt)
+			ASSERT(this->thread)
 			ASSERT(this->thr.IsValid())
 			this->thr->PushQuitMessage();//post a quit message to the thread before message is sent to threads kiler thread
 		};
