@@ -25,9 +25,6 @@
 namespace cliser{
 
 //forward declarations
-class Server;
-class NewConnectionAcceptedMessage;
-class ClientRemovedFromThreadMessage;
 
 
 
@@ -35,10 +32,9 @@ class ClientRemovedFromThreadMessage;
 //==============================================================================
 //==============================================================================
 class Server : public ting::MsgThread{
-    friend class ClientRemovedFromThreadMessage;
-	friend class NewConnectionAcceptedMessage;
+	friend class ConnectionsThread;
 
-	TCPAcceptorThread acceptorThread;//TODO: listen in server thread, no needfor separate acceptor thread
+	TCPAcceptorThread acceptorThread;//TODO: listen in server thread, no need for separate acceptor thread
     ThreadsKillerThread threadsKillerThread;
 
 	typedef std::list<ting::Ptr<ConnectionsThread> > T_ThrList;
@@ -82,53 +78,50 @@ private:
 	void HandleNewConnection(ting::TCPSocket socket);
 
 	void DisconnectClient(ting::Ref<Connection>& c);
-};
-
-//==============================================================================
-//==============================================================================
-//==============================================================================
 
 
 
-class NewConnectionAcceptedMessage : public ting::Message{
-    Server *smt;//this mesage should hold reference to the thread this message is sent to
+private:
+	class NewConnectionAcceptedMessage : public ting::Message{
+		Server *smt;//this mesage should hold reference to the thread this message is sent to
 
-    ting::TCPSocket socket;
+		ting::TCPSocket socket;
 
-public:
-    NewConnectionAcceptedMessage(Server* serverMainThread, ting::TCPSocket sock) :
-            smt(serverMainThread),
-            socket(sock)
-    {
-        ASSERT(this->smt)
-        ASSERT(this->socket.IsValid())
-    }
+	public:
+		NewConnectionAcceptedMessage(Server* serverMainThread, ting::TCPSocket sock) :
+				smt(serverMainThread),
+				socket(sock)
+		{
+			ASSERT(this->smt)
+			ASSERT(this->socket.IsValid())
+		}
 
-    //override
-    void Handle(){
-//		TRACE(<<"C_NewConnectionAcceptedMessage::Handle(): invoked"<<std::endl)
-		this->smt->HandleNewConnection(this->socket);
-	}
-};
+		//override
+		void Handle(){
+	//		TRACE(<<"C_NewConnectionAcceptedMessage::Handle(): invoked"<<std::endl)
+			this->smt->HandleNewConnection(this->socket);
+		}
+	};
 
 
 
-//This message is sent to server main thread when the client has been disconnected,
-//and the connection was closed. The player was removed from its handler thread.
-class ClientRemovedFromThreadMessage : public ting::Message{
-    Server *smt;//this mesage should hold reference to the thread this message is sent to
-	ConnectionsThread* cht;
-  public:
-    ClientRemovedFromThreadMessage(Server* serverMainThread, ConnectionsThread* clientsHandlerThread) :
-            smt(serverMainThread),
-            cht(clientsHandlerThread)
-    {
-        ASSERT(this->smt)
-        ASSERT(this->cht)
-    }
-    
-    //override
-    void Handle();
+	//This message is sent to server main thread when the client has been disconnected,
+	//and the connection was closed. The player was removed from its handler thread.
+	class ConnectionRemovedMessage : public ting::Message{
+		Server *smt;//this mesage should hold reference to the thread this message is sent to
+		ConnectionsThread* cht;
+	  public:
+		ConnectionRemovedMessage(Server* serverMainThread, ConnectionsThread* clientsHandlerThread) :
+				smt(serverMainThread),
+				cht(clientsHandlerThread)
+		{
+			ASSERT(this->smt)
+			ASSERT(this->cht)
+		}
+
+		//override
+		void Handle();
+	};
 };
 
 

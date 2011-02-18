@@ -36,7 +36,7 @@ class Connection : public ting::RefCounted{
 	unsigned dataSent;//number of bytes sent from first packet in the queue
 	//~
 
-	ting::TCPSocket socket;//socket which corresponds to the client
+	ting::TCPSocket socket;
 	
 	//NOTE: clientThread may be accessed from different threads, therefore, protect it with mutex
 	ConnectionsThread *clientThread;

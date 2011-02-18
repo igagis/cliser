@@ -94,7 +94,7 @@ void Server::HandleNewConnection(ting::TCPSocket socket){
 
 	thr->PushMessage(
 			ting::Ptr<ting::Message>(
-					new ConnectionsThread::AddClientToThreadMessage(thr, conn)
+					new ConnectionsThread::AddConnectionMessage(thr, conn)
 				)
 		);
 	++thr->numClients;
@@ -104,7 +104,7 @@ void Server::HandleNewConnection(ting::TCPSocket socket){
 
 
 
-void ClientRemovedFromThreadMessage::Handle(){
+void Server::ConnectionRemovedMessage::Handle(){
 //    TRACE(<<"C_ClientRemovedFromThreadMessage::Handle(): enter"<<std::endl)
 
 	ASSERT(this->cht->numClients > 0)
