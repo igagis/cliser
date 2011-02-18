@@ -21,7 +21,7 @@ void ThreadsKillerThread::Run(){
 
 
 //override
-void C_KillThreadMessage::Handle(){
+void ThreadsKillerThread::KillThreadMessage::Handle(){
 //	TRACE(<<"C_KillThreadMessage::Handle(): invoked"<<std::endl)
 
 	this->thr->Join();//wait for thread finish

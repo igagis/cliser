@@ -20,18 +20,42 @@ using namespace cliser;
 void Server::Run(){
 	TRACE(<<"Server::Run(): enter thread"<<std::endl)
 	this->threadsKillerThread.Start();
-	this->acceptorThread.Start();
-
 	TRACE(<<"Server::Run(): threads started"<<std::endl)
 
+	ting::TCPServerSocket sock(this->port);//create and open listening socket
+
+	ting::WaitSet waitSet(2);
+	waitSet.Add(&sock, ting::Waitable::READ);
+	waitSet.Add(&this->queue, ting::Waitable::READ);
+
 	while(!this->quitFlag){
-		this->queue.GetMsg()->Handle();
-//		TRACE(<<"Server::Run(): message handled"<<std::endl)
+		waitSet.Wait();
+
+		//TRACE(<<"C_TCPAcceptorThread::Run(): going to get message"<<std::endl)
+		if(this->queue.CanRead()){
+			while(ting::Ptr<ting::Message> m = this->queue.PeekMsg()){
+				m->Handle();
+			}
+		}
+
+		if(sock.CanRead()){
+			ting::TCPSocket newSock;
+			try{
+				while((newSock = sock.Accept()).IsValid()){
+					this->HandleNewConnection(newSock);
+				}
+			}catch(ting::Socket::Exc& e){
+				ASSERT_INFO(false, "sock.Accept() failed")
+			}
+		}
+		//TRACE(<<"C_TCPAcceptorThread::Run(): cycle"<<std::endl)
 	}
+
+	waitSet.Remove(&this->queue);
+	waitSet.Remove(&sock);
 
 	TRACE(<<"Server::Run(): quiting thread"<<std::endl)
 	this->threadsKillerThread.PushQuitMessage();
-	this->acceptorThread.PushQuitMessage();
 
 	//kill all client threads
 	for(T_ThrIter i = this->clientsThreads.begin(); i != this->clientsThreads.end(); ++i)
@@ -40,7 +64,6 @@ void Server::Run(){
 		(*i)->Join();
 
 	this->threadsKillerThread.Join();
-	this->acceptorThread.Join();
 
 	this->clientsThreads.clear();
 }
@@ -104,39 +127,39 @@ void Server::HandleNewConnection(ting::TCPSocket socket){
 
 
 
-void Server::ConnectionRemovedMessage::Handle(){
+void Server::HandleConnectionRemovedMessage(ConnectionsThread* cht){
 //    TRACE(<<"C_ClientRemovedFromThreadMessage::Handle(): enter"<<std::endl)
 
-	ASSERT(this->cht->numClients > 0)
-	--this->cht->numClients;
+	ASSERT(cht->numClients > 0)
+	--cht->numClients;
 
-	if(this->cht->numClients > 0)
+	if(cht->numClients > 0)
 		return;
 
 	//if we get here then numClients is 0, remove the thread then:
 	//find it in the threads list and push to ThreadKillerThread
 
 	//TODO:store iterator
-	for(Server::T_ThrIter i = this->smt->clientsThreads.begin();
-			i != this->smt->clientsThreads.end();
+	for(Server::T_ThrIter i = this->clientsThreads.begin();
+			i != this->clientsThreads.end();
 			++i
 		)
 	{
-		if((*i) == this->cht){
+		if((*i) == cht){
 			(*i)->PushQuitMessage();//initiate exiting process in the thread
 			//schedule thread for termination
-			this->smt->threadsKillerThread.PushMessage(
+			this->threadsKillerThread.PushMessage(
 					ting::Ptr<ting::Message>(
-							new C_KillThreadMessage(
-									&this->smt->threadsKillerThread,
+							new ThreadsKillerThread::KillThreadMessage(
+									&this->threadsKillerThread,
 									ting::Ptr<ting::MsgThread>(static_cast<ting::MsgThread*>((*i).Extract()))
 								)
 						)
 				);
 			//remove thread from threads list
-			this->smt->clientsThreads.erase(i);
+			this->clientsThreads.erase(i);
 			break;
-		}
+		}//~if
 	}//~for
 }
 
