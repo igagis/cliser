@@ -72,7 +72,7 @@ void Server::Run(){
 
 ConnectionsThread* Server::GetNotFullThread(){
 	for(T_ThrIter i = this->clientsThreads.begin(); i != this->clientsThreads.end(); ++i){
-		if((*i)->numClients < this->maxClientsPerThread)
+		if((*i)->numConnections < this->maxClientsPerThread)
 			return (*i).operator->();
 	}
 
@@ -120,7 +120,7 @@ void Server::HandleNewConnection(ting::TCPSocket socket){
 					new ConnectionsThread::AddConnectionMessage(thr, conn)
 				)
 		);
-	++thr->numClients;
+	++thr->numConnections;
 
 //	ASSERT( thr->numClients <= C_TCPClientsHandlerThread::maxClientsPerThread )
 }
@@ -130,10 +130,10 @@ void Server::HandleNewConnection(ting::TCPSocket socket){
 void Server::HandleConnectionRemovedMessage(ConnectionsThread* cht){
 //    TRACE(<<"C_ClientRemovedFromThreadMessage::Handle(): enter"<<std::endl)
 
-	ASSERT(cht->numClients > 0)
-	--cht->numClients;
+	ASSERT(cht->numConnections > 0)
+	--cht->numConnections;
 
-	if(cht->numClients > 0)
+	if(cht->numConnections > 0)
 		return;
 
 	//if we get here then numClients is 0, remove the thread then:
