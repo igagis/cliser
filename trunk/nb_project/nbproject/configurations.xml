@@ -14,8 +14,6 @@
           <in>ConnectionsThread.hpp</in>
           <in>Server.cpp</in>
           <in>Server.hpp</in>
-          <in>TCPAcceptorThread.cpp</in>
-          <in>TCPAcceptorThread.hpp</in>
           <in>ThreadsKillerThread.cpp</in>
           <in>ThreadsKillerThread.hpp</in>
         </df>
@@ -24,6 +22,10 @@
           <in>util.hpp</in>
         </df>
       </df>
+    </df>
+    <df name="test" root="../test">
+      <in>main.cpp</in>
+      <in>makefile</in>
     </df>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"

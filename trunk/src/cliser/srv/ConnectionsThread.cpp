@@ -27,7 +27,7 @@ using namespace cliser;
 ConnectionsThread::ConnectionsThread(Server *serverMainThread) :
 		smt(serverMainThread),
 		waitSet(serverMainThread->MaxClientsPerThread() + 1), //+1 for messages queue
-		numClients(0)
+		numConnections(0)
 {
 	M_SRV_CLIENTS_HANDLER_TRACE(<<"TCPClientsHandlerThread::TCPClientsHandlerThread(): invoked"<<std::endl)
 	ASSERT(this->smt)
@@ -66,44 +66,7 @@ void ConnectionsThread::Run(){
 					);
 				ASSERT(conn)
 
-				if(conn->socket.CanRead()){
-					ting::StaticBuffer<ting::u8, 0xfff> buffer;//4kb
-
-					unsigned bytesReceived = conn->socket.Recv(buffer);
-					if(bytesReceived != 0){
-						ting::Buffer<ting::u8> b(buffer.Begin(), bytesReceived);
-						ASS(this->smt)->OnDataReceived_ts(conn, b);
-					}else{
-						//connection closed
-						conn->Disconnect_ts();
-						continue;
-					}
-				}
-
-				if(conn->socket.CanWrite()){
-					ASSERT(conn->packetQueue.size() != 0)
-
-					ASSERT(conn->dataSent < conn->packetQueue.front().Size())
-
-					try{
-						conn->dataSent += conn->socket.Send(conn->packetQueue.front(), conn->dataSent);
-						ASSERT(conn->dataSent <= conn->packetQueue.front().Size())
-
-						if(conn->dataSent == conn->packetQueue.front().Size()){
-							conn->packetQueue.pop_front();
-							conn->dataSent = 0;
-
-							this->smt->OnDataSent_ts(conn);
-
-							if(conn->packetQueue.size() == 0){
-								//clear WRITE waiting flag, only READ wait flag remains.
-								this->waitSet.Change(&conn->socket, ting::Waitable::READ);
-							}
-						}
-					}catch(ting::Socket::Exc &e){
-						conn->Disconnect_ts();
-					}
-				}
+				this->HandleSocketActivity(conn);
 			}//~for()
 
 			M_SRV_CLIENTS_HANDLER_TRACE(<<"TCPClientsHandlerThread::Run(): active sockets found"<<std::endl)
@@ -135,7 +98,46 @@ void ConnectionsThread::Run(){
 
 
 
+void ConnectionsThread::HandleSocketActivity(const ting::Ref<Connection>& conn){
+	if(conn->socket.CanRead()){
+		ting::StaticBuffer<ting::u8, 0xfff> buffer;//4kb
 
+		unsigned bytesReceived = conn->socket.Recv(buffer);
+		if(bytesReceived != 0){
+			ting::Buffer<ting::u8> b(buffer.Begin(), bytesReceived);
+			ASS(this->smt)->OnDataReceived_ts(conn, b);
+		}else{
+			//connection closed
+			conn->Disconnect_ts();
+			return;
+		}
+	}
+
+	if(conn->socket.CanWrite()){
+		ASSERT(conn->packetQueue.size() != 0)
+
+		ASSERT(conn->dataSent < conn->packetQueue.front().Size())
+
+		try{
+			conn->dataSent += conn->socket.Send(conn->packetQueue.front(), conn->dataSent);
+			ASSERT(conn->dataSent <= conn->packetQueue.front().Size())
+
+			if(conn->dataSent == conn->packetQueue.front().Size()){
+				conn->packetQueue.pop_front();
+				conn->dataSent = 0;
+
+				this->smt->OnDataSent_ts(conn);
+
+				if(conn->packetQueue.size() == 0){
+					//clear WRITE waiting flag, only READ wait flag remains.
+					this->waitSet.Change(&conn->socket, ting::Waitable::READ);
+				}
+			}
+		}catch(ting::Socket::Exc &e){
+			conn->Disconnect_ts();
+		}
+	}
+}
 
 
 

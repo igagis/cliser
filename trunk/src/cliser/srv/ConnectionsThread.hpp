@@ -48,7 +48,7 @@ class ConnectionsThread : public ting::MsgThread{
 	ting::WaitSet waitSet;
 
 	//This data is controlled by Server Main Thread
-	unsigned numClients;
+	unsigned numConnections;
 	//~
 
 private:
@@ -56,6 +56,8 @@ private:
 
 	//override
 	void Run();
+
+	void HandleSocketActivity(const ting::Ref<Connection>& conn);
 
 public:
 	~ConnectionsThread(){

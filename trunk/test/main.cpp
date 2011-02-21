@@ -50,18 +50,18 @@ public:
 	}
 
 	//override
-	void OnClientConnected_ts(ting::Ref<cliser::Connection>& c){
+	void OnClientConnected_ts(const ting::Ref<cliser::Connection>& c){
 		c.StaticCast<Connection>()->SendPortion();
 		//TODO: how to determine that 2 packets are in queue for sending???
 	}
 
 	//override
-	void OnClientDisconnected_ts(ting::Ref<cliser::Connection>& c){
+	void OnClientDisconnected_ts(const ting::Ref<cliser::Connection>& c){
 		//do nothing
 	}
 
 	//override
-	void OnDataReceived_ts(ting::Ref<cliser::Connection>& c, const ting::Buffer<ting::u8>& d){
+	void OnDataReceived_ts(const ting::Ref<cliser::Connection>& c, const ting::Buffer<ting::u8>& d){
 		ting::Ref<Connection> con = c.StaticCast<Connection>();
 
 		for(const ting::u8* p = d.Begin(); p != d.End(); ++p){
@@ -78,7 +78,7 @@ public:
 	}
 
 	//override
-	void OnDataSent_ts(ting::Ref<cliser::Connection>& c){
+	void OnDataSent_ts(const ting::Ref<cliser::Connection>& c){
 		c.StaticCast<Connection>()->SendPortion();
 	}
 };
