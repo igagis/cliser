@@ -5,6 +5,7 @@
 // Description:
 //          Server main Thread class
 
+#include <exception>
 
 #include <ting/debug.hpp>
 #include <ting/Thread.hpp>
@@ -70,16 +71,16 @@ void Server::Run(){
 
 
 
-ConnectionsThread* Server::GetNotFullThread(){
+Server::ServerConnectionsThread* Server::GetNotFullThread(){
+	//TODO: adjust threads order for faster search
 	for(T_ThrIter i = this->clientsThreads.begin(); i != this->clientsThreads.end(); ++i){
 		if((*i)->numConnections < this->maxClientsPerThread)
 			return (*i).operator->();
 	}
 
-	this->clientsThreads.push_back(
-			ting::Ptr<ConnectionsThread>(
-					new ConnectionsThread(this)
-				)
+	this->clientsThreads.push_back(ServerConnectionsThread::New(
+			this,
+			this->MaxClientsPerThread())
 		);
 	this->clientsThreads.back()->Start();//start new thread
 	return this->clientsThreads.back().operator->();
@@ -93,7 +94,7 @@ void Server::HandleNewConnection(ting::TCPSocket socket){
 
 	ASSERT(socket.IsValid())
 
-	ConnectionsThread* thr;
+	ServerConnectionsThread* thr;
 	try{
 		 thr = this->GetNotFullThread();
 	}catch(std::exception& e){
@@ -127,7 +128,7 @@ void Server::HandleNewConnection(ting::TCPSocket socket){
 
 
 
-void Server::HandleConnectionRemovedMessage(ConnectionsThread* cht){
+void Server::HandleConnectionRemovedMessage(Server::ServerConnectionsThread* cht){
 //    TRACE(<<"C_ClientRemovedFromThreadMessage::Handle(): enter"<<std::endl)
 
 	ASSERT(cht->numConnections > 0)

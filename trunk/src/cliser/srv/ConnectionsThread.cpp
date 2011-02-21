@@ -24,13 +24,10 @@ using namespace cliser;
 
 
 
-ConnectionsThread::ConnectionsThread(Server *serverMainThread) :
-		smt(serverMainThread),
-		waitSet(serverMainThread->MaxClientsPerThread() + 1), //+1 for messages queue
-		numConnections(0)
+ConnectionsThread::ConnectionsThread(unsigned maxConnections) :
+		waitSet(maxConnections + 1) //+1 for messages queue
 {
 	M_SRV_CLIENTS_HANDLER_TRACE(<<"TCPClientsHandlerThread::TCPClientsHandlerThread(): invoked"<<std::endl)
-	ASSERT(this->smt)
 
 	this->waitSet.Add(&this->queue, ting::Waitable::READ);
 }
@@ -86,9 +83,6 @@ void ConnectionsThread::Run(){
 		//NOTE: Do not send notifications to server main thread because this thread is
 		//exiting, therefore it is not an active thread which can be used for adding
 		//new clients further.
-
-		//notify client disconnection
-		this->smt->OnClientDisconnected_ts(c);
 	}
 	this->connections.clear();//clear clients list
 
@@ -105,7 +99,7 @@ void ConnectionsThread::HandleSocketActivity(const ting::Ref<Connection>& conn){
 		unsigned bytesReceived = conn->socket.Recv(buffer);
 		if(bytesReceived != 0){
 			ting::Buffer<ting::u8> b(buffer.Begin(), bytesReceived);
-			ASS(this->smt)->OnDataReceived_ts(conn, b);
+			this->OnDataReceived_ts(conn, b);
 		}else{
 			//connection closed
 			conn->Disconnect_ts();
@@ -126,7 +120,7 @@ void ConnectionsThread::HandleSocketActivity(const ting::Ref<Connection>& conn){
 				conn->packetQueue.pop_front();
 				conn->dataSent = 0;
 
-				this->smt->OnDataSent_ts(conn);
+				this->OnDataSent_ts(conn);
 
 				if(conn->packetQueue.size() == 0){
 					//clear WRITE waiting flag, only READ wait flag remains.
@@ -164,7 +158,7 @@ void ConnectionsThread::HandleAddConnectionMessage(ting::Ref<Connection>& conn){
 	this->connections.push_back(conn);
 
 	//notify new client connection
-	this->smt->OnClientConnected_ts(conn);
+	this->OnClientConnected_ts(conn);
 
 	//ASSERT(this->thread->numPlayers <= this->thread->players.Size())
 	M_SRV_CLIENTS_HANDLER_TRACE(<< "C_AddClientToThreadMessage::Handle(): exit" << std::endl)
@@ -196,13 +190,8 @@ void ConnectionsThread::HandleRemoveConnectionMessage(ting::Ref<Connection>& con
 				//clear packetQueue
 				conn->packetQueue.clear();
 
-				//send notification message to server main thread
-				this->smt->PushMessage(
-						ting::Ptr<ting::Message>(new Server::ConnectionRemovedMessage(this->smt, this))
-					);
-
 				//notify client disconnection
-				this->smt->OnClientDisconnected_ts(conn);
+				this->OnClientDisconnected_ts(conn);
 
 				break;
 			}
