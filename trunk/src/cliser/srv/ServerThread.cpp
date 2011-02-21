@@ -12,13 +12,15 @@
 #include <ting/Socket.hpp>
 #include <ting/utils.hpp>
 
-#include "Server.hpp"
+#include "ServerThread.hpp"
+
 
 using namespace cliser;
 
 
+
 //override
-void Server::Run(){
+void ServerThread::Run(){
 	TRACE(<<"Server::Run(): enter thread"<<std::endl)
 	this->threadsKillerThread.Start();
 	TRACE(<<"Server::Run(): threads started"<<std::endl)
@@ -71,7 +73,7 @@ void Server::Run(){
 
 
 
-Server::ServerConnectionsThread* Server::GetNotFullThread(){
+ServerThread::ServerConnectionsThread* ServerThread::GetNotFullThread(){
 	//TODO: adjust threads order for faster search
 	for(T_ThrIter i = this->clientsThreads.begin(); i != this->clientsThreads.end(); ++i){
 		if((*i)->numConnections < this->maxClientsPerThread)
@@ -88,7 +90,7 @@ Server::ServerConnectionsThread* Server::GetNotFullThread(){
 
 
 
-void Server::HandleNewConnection(ting::TCPSocket socket){
+void ServerThread::HandleNewConnection(ting::TCPSocket socket){
 	//LOG(<<"Server::HandleNewConnection(): enter"<<std::endl)
 //	TRACE(<< "Server::HandleNewConnection(): enter" << std::endl)
 
@@ -128,7 +130,7 @@ void Server::HandleNewConnection(ting::TCPSocket socket){
 
 
 
-void Server::HandleConnectionRemovedMessage(Server::ServerConnectionsThread* cht){
+void ServerThread::HandleConnectionRemovedMessage(ServerThread::ServerConnectionsThread* cht){
 //    TRACE(<<"C_ClientRemovedFromThreadMessage::Handle(): enter"<<std::endl)
 
 	ASSERT(cht->numConnections > 0)
@@ -141,7 +143,7 @@ void Server::HandleConnectionRemovedMessage(Server::ServerConnectionsThread* cht
 	//find it in the threads list and push to ThreadKillerThread
 
 	//TODO:store iterator
-	for(Server::T_ThrIter i = this->clientsThreads.begin();
+	for(ServerThread::T_ThrIter i = this->clientsThreads.begin();
 			i != this->clientsThreads.end();
 			++i
 		)
