@@ -13,7 +13,7 @@
 #include <ting/utils.hpp>
 #include <ting/Buffer.hpp>
 
-#include "Server.hpp"
+#include "ServerThread.hpp"
 #include "Connection.hpp"
 #include "ConnectionsThread.hpp"
 #include "../util/util.hpp"

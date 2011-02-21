@@ -1,6 +1,5 @@
 // (c) Ivan Gagis
 // e-mail: igagis@gmail.com
-// Version: 1
 
 // Description:
 //          Server main Thread class
@@ -30,7 +29,7 @@ namespace cliser{
 //==============================================================================
 //==============================================================================
 //==============================================================================
-class Server : public ting::MsgThread{
+class ServerThread : public ting::MsgThread{
 //	friend class ServerConnectionsThread;
 
 	ThreadsKillerThread threadsKillerThread;
@@ -51,21 +50,19 @@ public:
 		return this->maxClientsPerThread;
 	}
 
-	Server(ting::u16 port, unsigned maxClientsPerThread) :
+	ServerThread(ting::u16 port, unsigned maxClientsPerThread) :
 			port(port),
 			maxClientsPerThread(maxClientsPerThread)
 	{}
 
-	~Server(){
+	~ServerThread(){
 		ASSERT(this->clientsThreads.size() == 0)
 	}
 
 	//override
 	void Run();
 
-	virtual ting::Ref<cliser::Connection> CreateClientObject(){
-		return cliser::Connection::New();
-	}
+	virtual ting::Ref<cliser::Connection> CreateClientObject() = 0;
 
 	virtual void OnClientConnected_ts(const ting::Ref<Connection>& c) = 0;
 
@@ -90,10 +87,10 @@ private:
 	//This message is sent to server main thread when the client has been disconnected,
 	//and the connection was closed. The player was removed from its handler thread.
 	class ConnectionRemovedMessage : public ting::Message{
-		Server *thread;//this mesage should hold reference to the thread this message is sent to
-		Server::ServerConnectionsThread* cht;
+		ServerThread *thread;//this mesage should hold reference to the thread this message is sent to
+		ServerThread::ServerConnectionsThread* cht;
 	  public:
-		ConnectionRemovedMessage(Server* serverMainThread, Server::ServerConnectionsThread* clientsHandlerThread) :
+		ConnectionRemovedMessage(ServerThread* serverMainThread, ServerThread::ServerConnectionsThread* clientsHandlerThread) :
 				thread(serverMainThread),
 				cht(clientsHandlerThread)
 		{
@@ -107,27 +104,27 @@ private:
 		}
 	};
 
-	void HandleConnectionRemovedMessage(Server::ServerConnectionsThread* cht);
+	void HandleConnectionRemovedMessage(ServerThread::ServerConnectionsThread* cht);
 
 
 
 
 private:
 	class ServerConnectionsThread : public ConnectionsThread{
-		Server* const smt;
+		ServerThread* const smt;
 		
 	public:
 		//This data is controlled by Server Main Thread
 		unsigned numConnections;
 		//~
 
-		ServerConnectionsThread(Server *serverThread, unsigned maxConnections) :
+		ServerConnectionsThread(ServerThread *serverThread, unsigned maxConnections) :
 				ConnectionsThread(maxConnections),
 				smt(ASS(serverThread)),
 				numConnections(0)
 		{}
 
-		inline static ting::Ptr<ServerConnectionsThread> New(Server *serverThread, unsigned maxConnections){
+		inline static ting::Ptr<ServerConnectionsThread> New(ServerThread *serverThread, unsigned maxConnections){
 			return ting::Ptr<ServerConnectionsThread>(
 					new ServerConnectionsThread(serverThread,maxConnections)
 				);
@@ -143,7 +140,7 @@ private:
 			ASSERT(this->smt)
 			//send notification message to server main thread
 			this->smt->PushMessage(
-					ting::Ptr<ting::Message>(new Server::ConnectionRemovedMessage(this->smt, this))
+					ting::Ptr<ting::Message>(new ServerThread::ConnectionRemovedMessage(this->smt, this))
 				);
 
 			this->smt->OnClientDisconnected_ts(c);

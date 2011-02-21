@@ -18,7 +18,7 @@ namespace cliser{
 
 
 class ThreadsKillerThread : public ting::MsgThread{
-	friend class Server;
+	friend class ServerThread;
 
 
 private:

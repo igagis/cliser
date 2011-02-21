@@ -32,12 +32,13 @@ namespace cliser{
 
 
 //forward declarations
-class Server;
+class ServerThread;
 
 
 
 class ConnectionsThread : public ting::MsgThread{
-	friend class Server;
+	friend class ServerThread;
+	friend class ClientThread;
 	friend class Connection;
 
 	typedef std::list<ting::Ref<Connection> > T_ConnectionsList;

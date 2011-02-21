@@ -1,4 +1,4 @@
-#include "../src/cliser/srv/Server.hpp"
+#include "../src/cliser/srv/ServerThread.hpp"
 
 
 
@@ -38,10 +38,10 @@ public:
 
 
 
-class Server : public cliser::Server{
+class Server : public cliser::ServerThread{
 public:
 	Server() :
-			cliser::Server(13666, 2)
+			cliser::ServerThread(13666, 2)
 	{}
 
 	//override
