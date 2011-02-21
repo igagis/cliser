@@ -31,11 +31,14 @@ namespace cliser{
 //==============================================================================
 //==============================================================================
 class Server : public ting::MsgThread{
-	friend class ConnectionsThread;
+//	friend class ServerConnectionsThread;
 
 	ThreadsKillerThread threadsKillerThread;
 
-	typedef std::list<ting::Ptr<ConnectionsThread> > T_ThrList;
+	//forward declaration
+	class ServerConnectionsThread;
+
+	typedef std::list<ting::Ptr<ServerConnectionsThread> > T_ThrList;
 	typedef T_ThrList::iterator T_ThrIter;
 	T_ThrList clientsThreads;
 
@@ -73,7 +76,7 @@ public:
 	virtual void OnDataSent_ts(const ting::Ref<Connection>& c){}
 
 private:
-	ConnectionsThread* GetNotFullThread();
+	ServerConnectionsThread* GetNotFullThread();
 
 	void DisconnectClient(const ting::Ref<Connection>& c);
 
@@ -88,9 +91,9 @@ private:
 	//and the connection was closed. The player was removed from its handler thread.
 	class ConnectionRemovedMessage : public ting::Message{
 		Server *thread;//this mesage should hold reference to the thread this message is sent to
-		ConnectionsThread* cht;
+		Server::ServerConnectionsThread* cht;
 	  public:
-		ConnectionRemovedMessage(Server* serverMainThread, ConnectionsThread* clientsHandlerThread) :
+		ConnectionRemovedMessage(Server* serverMainThread, Server::ServerConnectionsThread* clientsHandlerThread) :
 				thread(serverMainThread),
 				cht(clientsHandlerThread)
 		{
@@ -104,7 +107,58 @@ private:
 		}
 	};
 
-	void HandleConnectionRemovedMessage(ConnectionsThread* cht);
+	void HandleConnectionRemovedMessage(Server::ServerConnectionsThread* cht);
+
+
+
+
+private:
+	class ServerConnectionsThread : public ConnectionsThread{
+		Server* const smt;
+		
+	public:
+		//This data is controlled by Server Main Thread
+		unsigned numConnections;
+		//~
+
+		ServerConnectionsThread(Server *serverThread, unsigned maxConnections) :
+				ConnectionsThread(maxConnections),
+				smt(ASS(serverThread)),
+				numConnections(0)
+		{}
+
+		inline static ting::Ptr<ServerConnectionsThread> New(Server *serverThread, unsigned maxConnections){
+			return ting::Ptr<ServerConnectionsThread>(
+					new ServerConnectionsThread(serverThread,maxConnections)
+				);
+		}
+
+		//override
+		virtual void OnClientConnected_ts(const ting::Ref<Connection>& c){
+			ASS(this->smt)->OnClientConnected_ts(c);
+		}
+
+		//override
+		virtual void OnClientDisconnected_ts(const ting::Ref<Connection>& c){
+			ASSERT(this->smt)
+			//send notification message to server main thread
+			this->smt->PushMessage(
+					ting::Ptr<ting::Message>(new Server::ConnectionRemovedMessage(this->smt, this))
+				);
+
+			this->smt->OnClientDisconnected_ts(c);
+		}
+
+		//override
+		virtual void OnDataReceived_ts(const ting::Ref<Connection>& c, const ting::Buffer<ting::u8>& d){
+			ASS(this->smt)->OnDataReceived_ts(c, d);
+		}
+
+		//override
+		virtual void OnDataSent_ts(const ting::Ref<Connection>& c){
+			ASS(this->smt)->OnDataSent_ts(c);
+		}
+	};
 };
 
 

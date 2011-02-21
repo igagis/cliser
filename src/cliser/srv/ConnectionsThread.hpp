@@ -40,19 +40,13 @@ class ConnectionsThread : public ting::MsgThread{
 	friend class Server;
 	friend class Connection;
 
-	Server* const smt;
-
 	typedef std::list<ting::Ref<Connection> > T_ConnectionsList;
 	typedef T_ConnectionsList::iterator T_ConnectionsIter;
 	T_ConnectionsList connections;
 	ting::WaitSet waitSet;
 
-	//This data is controlled by Server Main Thread
-	unsigned numConnections;
-	//~
-
 private:
-	ConnectionsThread(Server *serverMainThread);
+	ConnectionsThread(unsigned maxConnections);
 
 	//override
 	void Run();
@@ -65,6 +59,14 @@ public:
 		this->waitSet.Remove(&this->queue);
 		ASSERT(this->connections.size() == 0)
 	}
+
+	virtual void OnClientConnected_ts(const ting::Ref<Connection>& c) = 0;
+
+	virtual void OnClientDisconnected_ts(const ting::Ref<Connection>& c) = 0;
+
+	virtual void OnDataReceived_ts(const ting::Ref<Connection>& c, const ting::Buffer<ting::u8>& d) = 0;
+
+	virtual void OnDataSent_ts(const ting::Ref<Connection>& c){}
 
 private:
 	inline void AddSocketToSocketSet(ting::TCPSocket *sock){
