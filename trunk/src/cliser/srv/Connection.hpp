@@ -75,7 +75,7 @@ public:
 
 
 	static inline ting::Ref<cliser::Connection> New(){
-		return ting::Ref<cliser::Connection>(new cliser::Connection());
+		return ting::Ref<cliser::Connection>(ASS(new cliser::Connection()));
 	}
 };
 

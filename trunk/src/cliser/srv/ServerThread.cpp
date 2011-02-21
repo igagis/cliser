@@ -115,9 +115,6 @@ void ServerThread::HandleNewConnection(ting::TCPSocket socket){
 	conn->socket = socket;
 	ASSERT(conn->socket.IsValid())
 
-	//set Waitable pointer to connection
-	conn->socket.SetUserData(conn.operator->());
-
 	thr->PushMessage(
 			ting::Ptr<ting::Message>(
 					new ConnectionsThread::AddConnectionMessage(thr, conn)
