@@ -41,14 +41,6 @@ public:
 
 	virtual ting::Ref<cliser::Connection> CreateClientObject() = 0;
 
-//	virtual void OnClientConnected_ts(const ting::Ref<Connection>& c) = 0;
-//
-//	virtual void OnClientDisconnected_ts(const ting::Ref<Connection>& c) = 0;
-//
-//	virtual void OnDataReceived_ts(const ting::Ref<Connection>& c, const ting::Buffer<ting::u8>& d) = 0;
-//
-//	virtual void OnDataSent_ts(const ting::Ref<Connection>& c){}
-
 private:
 	class ConnectToServerMessage : public ting::Message{
 		ClientThread* ct;

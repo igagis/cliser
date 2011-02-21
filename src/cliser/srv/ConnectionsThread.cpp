@@ -57,9 +57,10 @@ void ConnectionsThread::Run(){
 			for(unsigned i = 0; i != numTriggered; ++i, ++p){
 				ASSERT(p != triggered.End())
 				ASSERT(*p)
+				ASSERT(*p != &this->queue)
 
 				ting::Ref<cliser::Connection> conn(
-						reinterpret_cast<cliser::Connection*>((*p)->GetUserData())
+						reinterpret_cast<cliser::Connection*>(ASS((*p)->GetUserData()))
 					);
 				ASSERT(conn)
 
@@ -74,7 +75,7 @@ void ConnectionsThread::Run(){
 
 	//disconnect all clients, removing sockets from wait set
 	for(T_ConnectionsIter i = this->connections.begin(); i != this->connections.end(); ++i){
-		ting::Ref<Connection> c(*i);
+		ting::Ref<Connection> c(ASS(*i));
 		
 		this->RemoveSocketFromSocketSet(&c->socket);
 		c->socket.Close();
@@ -152,6 +153,9 @@ void ConnectionsThread::HandleAddConnectionMessage(ting::Ref<Connection>& conn){
 	//set client's handler thread
 	conn->SetClientHandlerThread(this);
 
+	//set Waitable pointer to connection
+	conn->socket.SetUserData(conn.operator->());
+
 	//add socket to waitset
 	this->AddSocketToSocketSet(&conn->socket);
 
@@ -219,11 +223,14 @@ void ConnectionsThread::HandleSendDataMessage(ting::Ref<Connection>& conn, ting:
 			ASSERT(numBytesSent <= data.Size())
 
 			if(numBytesSent != data.Size()){
+				TRACE(<< "ConnectionsThread::HandleSendDataMessage(): adding data to send queue" << std::endl)
 				conn->dataSent = numBytesSent;
 				conn->packetQueue.push_back(data);
 
 				//Set WRITE wait flag
 				this->waitSet.Change(&conn->socket, ting::Waitable::READ_AND_WRITE);
+			}else{
+				this->OnDataSent_ts(conn);
 			}
 		}catch(ting::Socket::Exc& e){
 			conn->Disconnect_ts();

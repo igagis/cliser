@@ -4,16 +4,16 @@
     <df name="src" root="../src">
       <df name="cliser" kind="SOURCE_LOGICAL_FOLDER">
         <df name="clt" kind="SOURCE_LOGICAL_FOLDER">
-          <in>NetworkThread.cpp</in>
-          <in>NetworkThread.hpp</in>
+          <in>ClientThread.cpp</in>
+          <in>ClientThread.hpp</in>
         </df>
         <df name="srv" kind="SOURCE_LOGICAL_FOLDER">
           <in>Connection.cpp</in>
           <in>Connection.hpp</in>
           <in>ConnectionsThread.cpp</in>
           <in>ConnectionsThread.hpp</in>
-          <in>Server.cpp</in>
-          <in>Server.hpp</in>
+          <in>ServerThread.cpp</in>
+          <in>ServerThread.hpp</in>
           <in>ThreadsKillerThread.cpp</in>
           <in>ThreadsKillerThread.hpp</in>
         </df>
@@ -24,8 +24,10 @@
       </df>
     </df>
     <df name="test" root="../test">
+      <in>cliser_test</in>
       <in>main.cpp</in>
       <in>makefile</in>
+      <in>output.log</in>
     </df>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"

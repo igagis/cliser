@@ -21,7 +21,9 @@ using namespace cliser;
 
 ClientThread::ClientThread(unsigned maxConnections) :
 		ConnectionsThread(maxConnections)
-{}
+{
+	ASSERT(ting::SocketLib::IsCreated())
+}
 
 
 
@@ -51,7 +53,7 @@ void ClientThread::HandleConnectRequest(const ting::IPAddress& ip){
 
 		this->HandleAddConnectionMessage(conn);
 	}catch(ting::Socket::Exc &e){
-//		TRACE(<<"ConnectToServerMessage::Handle(): exception caught, e = " << e.What() << ", sending connect failed reply to main thread" << std::endl)
+		TRACE(<< "ConnectToServerMessage::Handle(): exception caught, e = " << e.What() << ", sending connect failed reply to main thread" << std::endl)
 		this->OnConnectFailure(ClientThread::SOME_ERROR);
 		return;
 	}

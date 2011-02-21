@@ -61,6 +61,10 @@ public:
 		ASSERT(this->connections.size() == 0)
 	}
 
+	inline unsigned MaxConnections()const{
+		return ASSCOND(this->waitSet.Size() - 1, > 0);
+	}
+
 	virtual void OnClientConnected_ts(const ting::Ref<Connection>& c) = 0;
 
 	virtual void OnClientDisconnected_ts(const ting::Ref<Connection>& c) = 0;
@@ -106,11 +110,11 @@ private:
 	void HandleAddConnectionMessage(ting::Ref<Connection>& conn);
 
 
-	
+
 	class RemoveConnectionMessage : public ting::Message{
 		ConnectionsThread* thread;
 		ting::Ref<Connection> conn;
-	  public:
+	public:
 		RemoveConnectionMessage(ConnectionsThread* t, ting::Ref<Connection>& c) :
 				thread(ASS(t)),
 				conn(ASS(c))
