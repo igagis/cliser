@@ -50,7 +50,7 @@ public:
 
 	//override
 	void OnClientConnected_ts(const ting::Ref<cliser::Connection>& c){
-		TRACE_ALWAYS(<< "Server: sending data" << std::endl)
+//		TRACE_ALWAYS(<< "Server: sending data" << std::endl)
 		c.StaticCast<Connection>()->SendPortion();
 	}
 
@@ -74,15 +74,16 @@ public:
 				++con->rcnt;
 			}
 		}
-		TRACE_ALWAYS(<< "Server: data received" << std::endl)
+		ting::Thread::Sleep(100);
+//		TRACE_ALWAYS(<< "Server: data received" << std::endl)
 	}
 
 	//override
 	void OnDataSent_ts(const ting::Ref<cliser::Connection>& c, unsigned numPacketsInQueue, bool addedToQueue){
-		if(addedToQueue && numPacketsInQueue >= 2)
+		if(numPacketsInQueue >= 2)
 			return;
 
-		TRACE_ALWAYS(<< "Server: sending data" << std::endl)
+//		TRACE_ALWAYS(<< "Server: sending data" << std::endl)
 		c.StaticCast<Connection>()->SendPortion();
 	}
 };
@@ -107,7 +108,7 @@ public:
 
 	//override
 	void OnClientConnected_ts(const ting::Ref<cliser::Connection>& c){
-		TRACE_ALWAYS(<< "Client: sending data" << std::endl)
+//		TRACE_ALWAYS(<< "Client: sending data" << std::endl)
 		c.StaticCast<Connection>()->SendPortion();
 	}
 
@@ -131,15 +132,15 @@ public:
 				++con->rcnt;
 			}
 		}
-		TRACE_ALWAYS(<< "Client: data received" << std::endl)
+//		TRACE_ALWAYS(<< "Client: data received" << std::endl)
 	}
 
 	//override
 	void OnDataSent_ts(const ting::Ref<cliser::Connection>& c, unsigned numPacketsInQueue, bool addedToQueue){
-		if(addedToQueue && numPacketsInQueue >= 2)
+		if(numPacketsInQueue >= 2)
 			return;
 		
-		TRACE_ALWAYS(<< "Client: sending data" << std::endl)
+//		TRACE_ALWAYS(<< "Client: sending data" << std::endl)
 		c.StaticCast<Connection>()->SendPortion();
 	}
 };
