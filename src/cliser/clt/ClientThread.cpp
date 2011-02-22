@@ -48,7 +48,7 @@ void ClientThread::Connect_ts(const ting::IPAddress& ip){
 
 void ClientThread::HandleConnectRequest(const ting::IPAddress& ip){
 	try{
-		ting::Ref<Connection> conn = this->CreateClientObject();
+		ting::Ref<Connection> conn = this->CreateConnectionObject();
 		conn->socket.Open(ip);
 
 		this->HandleAddConnectionMessage(conn);

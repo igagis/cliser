@@ -64,7 +64,7 @@ public:
 	//override
 	void Run();
 
-	virtual ting::Ref<cliser::Connection> CreateClientObject() = 0;
+	virtual ting::Ref<cliser::Connection> CreateConnectionObject() = 0;
 
 	virtual void OnClientConnected_ts(const ting::Ref<Connection>& c) = 0;
 

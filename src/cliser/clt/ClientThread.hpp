@@ -39,7 +39,7 @@ public:
 
 	virtual void OnConnectFailure(EConnectFailureReason failReason) = 0;
 
-	virtual ting::Ref<cliser::Connection> CreateClientObject() = 0;
+	virtual ting::Ref<cliser::Connection> CreateConnectionObject() = 0;
 
 private:
 	class ConnectToServerMessage : public ting::Message{

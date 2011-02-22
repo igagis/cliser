@@ -109,7 +109,7 @@ void ServerThread::HandleNewConnection(ting::TCPSocket socket){
 
 	ASSERT(thr)
 
-	ting::Ref<Connection> conn = this->CreateClientObject();
+	ting::Ref<Connection> conn = this->CreateConnectionObject();
 
 	//set client socket
 	conn->socket = socket;
