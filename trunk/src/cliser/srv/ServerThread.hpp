@@ -72,7 +72,7 @@ public:
 
 	virtual void OnDataReceived_ts(const ting::Ref<Connection>& c, const ting::Buffer<ting::u8>& d) = 0;
 
-	virtual void OnDataSent_ts(const ting::Ref<Connection>& c){}
+	virtual void OnDataSent_ts(const ting::Ref<Connection>& c, unsigned numPacketsInQueue, bool addedToQueue){}
 
 private:
 	ServerConnectionsThread* GetNotFullThread();
@@ -154,8 +154,8 @@ private:
 		}
 
 		//override
-		virtual void OnDataSent_ts(const ting::Ref<Connection>& c){
-			ASS(this->smt)->OnDataSent_ts(c);
+		virtual void OnDataSent_ts(const ting::Ref<Connection>& c, unsigned numPacketsInQueue, bool addedToQueue){
+			ASS(this->smt)->OnDataSent_ts(c, numPacketsInQueue, addedToQueue);
 		}
 	};
 };

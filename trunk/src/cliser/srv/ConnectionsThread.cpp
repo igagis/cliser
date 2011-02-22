@@ -95,7 +95,7 @@ void ConnectionsThread::Run(){
 
 void ConnectionsThread::HandleSocketActivity(const ting::Ref<Connection>& conn){
 	if(conn->socket.CanRead()){
-		ting::StaticBuffer<ting::u8, 0xfff> buffer;//4kb
+		ting::StaticBuffer<ting::u8, 0xfff * 2> buffer;//8kb
 
 		unsigned bytesReceived = conn->socket.Recv(buffer);
 		if(bytesReceived != 0){
@@ -121,7 +121,7 @@ void ConnectionsThread::HandleSocketActivity(const ting::Ref<Connection>& conn){
 				conn->packetQueue.pop_front();
 				conn->dataSent = 0;
 
-				this->OnDataSent_ts(conn);
+				this->OnDataSent_ts(conn, conn->packetQueue.size(), false);
 
 				if(conn->packetQueue.size() == 0){
 					//clear WRITE waiting flag, only READ wait flag remains.
@@ -210,12 +210,16 @@ void ConnectionsThread::HandleRemoveConnectionMessage(ting::Ref<Connection>& con
 void ConnectionsThread::HandleSendDataMessage(ting::Ref<Connection>& conn, ting::Array<ting::u8> data){
 //	TRACE(<<"SendNetworkDataToClientMessage::Handle(): enter"<<std::endl)
 	if(!conn->socket.IsValid()){
-		TRACE(<< "SendNetworkDataToClientMessage::Handle(): socket is disconnected, ignoring message" << std::endl)
+		//put data to queue and notify
+		conn->packetQueue.push_back(data);
+		this->OnDataSent_ts(conn, conn->packetQueue.size(), true);
+//		TRACE(<< "SendNetworkDataToClientMessage::Handle(): socket is disconnected, ignoring message" << std::endl)
 		return;
 	}
 
 	if(conn->packetQueue.size() != 0){
 		conn->packetQueue.push_back(data);
+		this->OnDataSent_ts(conn, conn->packetQueue.size(), true);
 		return;
 	}else{
 		try{
@@ -229,8 +233,12 @@ void ConnectionsThread::HandleSendDataMessage(ting::Ref<Connection>& conn, ting:
 
 				//Set WRITE wait flag
 				this->waitSet.Change(&conn->socket, ting::Waitable::READ_AND_WRITE);
+
+				ASSERT(conn->packetQueue.size() == 1)
+				this->OnDataSent_ts(conn, 1, true);
 			}else{
-				this->OnDataSent_ts(conn);
+				ASSERT(conn->packetQueue.size() == 0)
+				this->OnDataSent_ts(conn, 0, false);
 			}
 		}catch(ting::Socket::Exc& e){
 			conn->Disconnect_ts();

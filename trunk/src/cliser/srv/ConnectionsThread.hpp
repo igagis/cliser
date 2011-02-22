@@ -71,7 +71,7 @@ public:
 
 	virtual void OnDataReceived_ts(const ting::Ref<Connection>& c, const ting::Buffer<ting::u8>& d) = 0;
 
-	virtual void OnDataSent_ts(const ting::Ref<Connection>& c){}
+	virtual void OnDataSent_ts(const ting::Ref<Connection>& c, unsigned numPacketsInQueue, bool addedToQueue){}
 
 private:
 	inline void AddSocketToSocketSet(ting::TCPSocket *sock){
