@@ -44,7 +44,7 @@ public:
 	{}
 
 	//override
-	ting::Ref<cliser::Connection> CreateClientObject(){
+	ting::Ref<cliser::Connection> CreateConnectionObject(){
 		return Connection::New();
 	}
 
@@ -98,7 +98,7 @@ public:
 	{}
 
 	//override
-	ting::Ref<cliser::Connection> CreateClientObject(){
+	ting::Ref<cliser::Connection> CreateConnectionObject(){
 		return Connection::New();
 	}
 
