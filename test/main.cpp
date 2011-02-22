@@ -52,7 +52,6 @@ public:
 	void OnClientConnected_ts(const ting::Ref<cliser::Connection>& c){
 		TRACE_ALWAYS(<< "Server: sending data" << std::endl)
 		c.StaticCast<Connection>()->SendPortion();
-		//TODO: how to determine that 2 packets are in queue for sending???
 	}
 
 	//override
@@ -79,7 +78,10 @@ public:
 	}
 
 	//override
-	void OnDataSent_ts(const ting::Ref<cliser::Connection>& c){
+	void OnDataSent_ts(const ting::Ref<cliser::Connection>& c, unsigned numPacketsInQueue, bool addedToQueue){
+		if(addedToQueue && numPacketsInQueue >= 2)
+			return;
+
 		TRACE_ALWAYS(<< "Server: sending data" << std::endl)
 		c.StaticCast<Connection>()->SendPortion();
 	}
@@ -107,7 +109,6 @@ public:
 	void OnClientConnected_ts(const ting::Ref<cliser::Connection>& c){
 		TRACE_ALWAYS(<< "Client: sending data" << std::endl)
 		c.StaticCast<Connection>()->SendPortion();
-		//TODO: how to determine that 2 packets are in queue for sending???
 	}
 
 	//override
@@ -134,7 +135,10 @@ public:
 	}
 
 	//override
-	void OnDataSent_ts(const ting::Ref<cliser::Connection>& c){
+	void OnDataSent_ts(const ting::Ref<cliser::Connection>& c, unsigned numPacketsInQueue, bool addedToQueue){
+		if(addedToQueue && numPacketsInQueue >= 2)
+			return;
+		
 		TRACE_ALWAYS(<< "Client: sending data" << std::endl)
 		c.StaticCast<Connection>()->SendPortion();
 	}
