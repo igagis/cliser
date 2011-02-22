@@ -40,28 +40,30 @@ class Connection : public ting::RefCounted{
 	ting::TCPSocket socket;
 	
 	//NOTE: clientThread may be accessed from different threads, therefore, protect it with mutex
-	ConnectionsThread *clientThread;
+	ConnectionsThread *parentThread;
 	ting::Mutex mutex;
+
+	ting::Array<ting::u8> receivedData;//Should be protected with mutex
 
 	inline void SetClientHandlerThread(ConnectionsThread *thr){
 		ASSERT(thr)
 		ting::Mutex::Guard mutexGuard(this->mutex);
 		//Assert that client is not added to some thread already.
-		ASSERT_INFO(!this->clientThread, "client's handler thread is already set")
-		this->clientThread = thr;
+		ASSERT_INFO(!this->parentThread, "client's handler thread is already set")
+		this->parentThread = thr;
 	}
 
 	inline void ClearClientHandlerThread(){
 		ting::Mutex::Guard mutexGuard(this->mutex);
-		ASSERT(this->clientThread)
-		this->clientThread = 0;
+		ASSERT(this->parentThread)
+		this->parentThread = 0;
 	}
 
 protected:
 
 public:
 	inline Connection() :
-			clientThread(0)
+			parentThread(0)
 	{}
 
 	virtual ~Connection(){
@@ -73,6 +75,7 @@ public:
 	void Send_ts(ting::Array<ting::u8> data);
 	void SendCopy_ts(const ting::Buffer<ting::u8>& data);
 
+	ting::Array<ting::u8> GetReceivedData_ts();
 
 	static inline ting::Ref<cliser::Connection> New(){
 		return ting::Ref<cliser::Connection>(ASS(new cliser::Connection()));

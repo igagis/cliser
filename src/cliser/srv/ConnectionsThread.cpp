@@ -100,7 +100,19 @@ void ConnectionsThread::HandleSocketActivity(const ting::Ref<Connection>& conn){
 		unsigned bytesReceived = conn->socket.Recv(buffer);
 		if(bytesReceived != 0){
 			ting::Buffer<ting::u8> b(buffer.Begin(), bytesReceived);
-			this->OnDataReceived_ts(conn, b);
+			if(!this->OnDataReceived_ts(conn, b)){
+				ting::Mutex::Guard mutexGuard(conn->mutex);
+				ASSERT(!conn->receivedData)
+
+				conn->receivedData.Init(b);
+
+				//stop waiting for READ condition
+				ting::Waitable::EReadinessFlags flags = ting::Waitable::NOT_READY;
+				if(conn->packetQueue.size() > 0){
+					flags = ting::Waitable::EReadinessFlags(flags | ting::Waitable::WRITE);
+				}
+				this->waitSet.Change(&conn->socket, flags);
+			}
 		}else{
 			//connection closed
 			conn->Disconnect_ts();
@@ -189,7 +201,7 @@ void ConnectionsThread::HandleRemoveConnectionMessage(ting::Ref<Connection>& con
 				
 				conn->socket.Close();//close connection if it is opened
 
-				ASSERT(conn->clientThread == 0)
+				ASSERT(conn->parentThread == 0)
 
 				//clear packetQueue
 				conn->packetQueue.clear();
@@ -246,6 +258,22 @@ void ConnectionsThread::HandleSendDataMessage(ting::Ref<Connection>& conn, ting:
 			conn->Disconnect_ts();
 		}
 	}
+}
+
+
+
+void ConnectionsThread::HandleResumeListeningForReadMessage(ting::Ref<Connection>& conn){
+	if(conn->socket.IsNotValid())//if connection is closed
+		return;
+
+	ASSERT(!conn->receivedData)
+
+	ting::Waitable::EReadinessFlags flags = ting::Waitable::READ;
+	if(conn->packetQueue.size() > 0){
+		flags = ting::Waitable::EReadinessFlags(flags | ting::Waitable::WRITE);
+	}
+
+	this->waitSet.Change(&conn->socket, flags);
 }
 
 
