@@ -218,6 +218,7 @@ void ConnectionsThread::HandleSendDataMessage(ting::Ref<Connection>& conn, ting:
 	}
 
 	if(conn->packetQueue.size() != 0){
+//		TRACE(<< "ConnectionsThread::HandleSendDataMessage(): adding data to send queue" << std::endl)
 		conn->packetQueue.push_back(data);
 		this->OnDataSent_ts(conn, conn->packetQueue.size(), true);
 		return;
@@ -227,17 +228,18 @@ void ConnectionsThread::HandleSendDataMessage(ting::Ref<Connection>& conn, ting:
 			ASSERT(numBytesSent <= data.Size())
 
 			if(numBytesSent != data.Size()){
-				TRACE(<< "ConnectionsThread::HandleSendDataMessage(): adding data to send queue" << std::endl)
+//				TRACE(<< "ConnectionsThread::HandleSendDataMessage(): adding data to send queue" << std::endl)
 				conn->dataSent = numBytesSent;
 				conn->packetQueue.push_back(data);
 
 				//Set WRITE wait flag
 				this->waitSet.Change(&conn->socket, ting::Waitable::READ_AND_WRITE);
 
-				ASSERT(conn->packetQueue.size() == 1)
+				ASSERT_INFO(conn->packetQueue.size() == 1, conn->packetQueue.size())
 				this->OnDataSent_ts(conn, 1, true);
 			}else{
-				ASSERT(conn->packetQueue.size() == 0)
+//				TRACE(<< "ConnectionsThread::HandleSendDataMessage(): NOT adding data to send queue" << std::endl)
+				ASSERT_INFO(conn->packetQueue.size() == 0, conn->packetQueue.size())
 				this->OnDataSent_ts(conn, 0, false);
 			}
 		}catch(ting::Socket::Exc& e){

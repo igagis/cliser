@@ -21,9 +21,9 @@ using namespace cliser;
 
 //override
 void ServerThread::Run(){
-	TRACE(<<"Server::Run(): enter thread"<<std::endl)
+//	TRACE(<<"Server::Run(): enter thread"<<std::endl)
 	this->threadsKillerThread.Start();
-	TRACE(<<"Server::Run(): threads started"<<std::endl)
+//	TRACE(<<"Server::Run(): threads started"<<std::endl)
 
 	ting::TCPServerSocket sock(this->port);//create and open listening socket
 
