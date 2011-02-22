@@ -70,7 +70,7 @@ public:
 
 	virtual void OnClientDisconnected_ts(const ting::Ref<Connection>& c) = 0;
 
-	virtual void OnDataReceived_ts(const ting::Ref<Connection>& c, const ting::Buffer<ting::u8>& d) = 0;
+	virtual bool OnDataReceived_ts(const ting::Ref<Connection>& c, const ting::Buffer<ting::u8>& d) = 0;
 
 	virtual void OnDataSent_ts(const ting::Ref<Connection>& c, unsigned numPacketsInQueue, bool addedToQueue){}
 
@@ -149,8 +149,8 @@ private:
 		}
 
 		//override
-		virtual void OnDataReceived_ts(const ting::Ref<Connection>& c, const ting::Buffer<ting::u8>& d){
-			ASS(this->smt)->OnDataReceived_ts(c, d);
+		virtual bool OnDataReceived_ts(const ting::Ref<Connection>& c, const ting::Buffer<ting::u8>& d){
+			return ASS(this->smt)->OnDataReceived_ts(c, d);
 		}
 
 		//override

@@ -60,7 +60,7 @@ public:
 	}
 
 	//override
-	void OnDataReceived_ts(const ting::Ref<cliser::Connection>& c, const ting::Buffer<ting::u8>& d){
+	bool OnDataReceived_ts(const ting::Ref<cliser::Connection>& c, const ting::Buffer<ting::u8>& d){
 		ting::Ref<Connection> con = c.StaticCast<Connection>();
 
 		for(const ting::u8* p = d.Begin(); p != d.End(); ++p){
@@ -76,6 +76,7 @@ public:
 		}
 		ting::Thread::Sleep(100);
 //		TRACE_ALWAYS(<< "Server: data received" << std::endl)
+		return true;
 	}
 
 	//override
@@ -118,7 +119,7 @@ public:
 	}
 
 	//override
-	void OnDataReceived_ts(const ting::Ref<cliser::Connection>& c, const ting::Buffer<ting::u8>& d){
+	bool OnDataReceived_ts(const ting::Ref<cliser::Connection>& c, const ting::Buffer<ting::u8>& d){
 		ting::Ref<Connection> con = c.StaticCast<Connection>();
 
 		for(const ting::u8* p = d.Begin(); p != d.End(); ++p){
@@ -133,6 +134,7 @@ public:
 			}
 		}
 //		TRACE_ALWAYS(<< "Client: data received" << std::endl)
+		return true;
 	}
 
 	//override

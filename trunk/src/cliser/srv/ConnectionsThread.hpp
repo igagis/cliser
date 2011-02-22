@@ -69,7 +69,7 @@ public:
 
 	virtual void OnClientDisconnected_ts(const ting::Ref<Connection>& c) = 0;
 
-	virtual void OnDataReceived_ts(const ting::Ref<Connection>& c, const ting::Buffer<ting::u8>& d) = 0;
+	virtual bool OnDataReceived_ts(const ting::Ref<Connection>& c, const ting::Buffer<ting::u8>& d) = 0;
 
 	virtual void OnDataSent_ts(const ting::Ref<Connection>& c, unsigned numPacketsInQueue, bool addedToQueue){}
 
@@ -156,6 +156,24 @@ private:
 
 	void HandleSendDataMessage(ting::Ref<Connection>& conn, ting::Array<ting::u8> data);
 
+
+
+	class ResumeListeningForReadMessage : public ting::Message{
+		ConnectionsThread* thread;
+		ting::Ref<Connection> conn;
+	public:
+		ResumeListeningForReadMessage(ConnectionsThread* t, ting::Ref<Connection>& c) :
+				thread(ASS(t)),
+				conn(ASS(c))
+		{}
+
+		//override
+		void Handle(){
+			this->thread->HandleResumeListeningForReadMessage(this->conn);
+		}
+	};
+
+	void HandleResumeListeningForReadMessage(ting::Ref<Connection>& conn);
 };
 
 
