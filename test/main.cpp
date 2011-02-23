@@ -50,7 +50,7 @@ public:
 
 	//override
 	void OnConnected_ts(const ting::Ref<cliser::Connection>& c){
-//		TRACE_ALWAYS(<< "Server: sending data" << std::endl)
+		TRACE_ALWAYS(<< "Server: sending data" << std::endl)
 		c.StaticCast<Connection>()->SendPortion();
 	}
 
@@ -109,7 +109,7 @@ public:
 
 	//override
 	void OnConnected_ts(const ting::Ref<cliser::Connection>& c){
-//		TRACE_ALWAYS(<< "Client: sending data" << std::endl)
+		TRACE_ALWAYS(<< "Client: sending data" << std::endl)
 		c.StaticCast<Connection>()->SendPortion();
 	}
 
@@ -133,7 +133,7 @@ public:
 				++con->rcnt;
 			}
 		}
-//		TRACE_ALWAYS(<< "Client: data received" << std::endl)
+		TRACE_ALWAYS(<< "Client: data received" << std::endl)
 		return true;
 	}
 
