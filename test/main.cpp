@@ -30,6 +30,22 @@ public:
 	}
 
 
+	void HandleReceivedData(const ting::Buffer<ting::u8>& d){
+		for(const ting::u8* p = d.Begin(); p != d.End(); ++p){
+			this->rbuf[this->rbufBytes] = *p;
+			++this->rbufBytes;
+
+			if(this->rbufBytes == this->rbuf.Size()){
+				this->rbufBytes = 0;
+				ting::u32 num = ting::Deserialize32(this->rbuf.Begin());
+				ASSERT_INFO_ALWAYS(this->rcnt == num, num)
+				++this->rcnt;
+			}
+		}
+	}
+
+
+
 	static ting::Ref<Connection> New(){
 		return ting::Ref<Connection>(ASS(new Connection()));
 	}
@@ -63,18 +79,7 @@ public:
 	bool OnDataReceived_ts(const ting::Ref<cliser::Connection>& c, const ting::Buffer<ting::u8>& d){
 		ting::Ref<Connection> con = c.StaticCast<Connection>();
 
-		for(const ting::u8* p = d.Begin(); p != d.End(); ++p){
-			con->rbuf[con->rbufBytes] = *p;
-			++con->rbufBytes;
-
-			if(con->rbufBytes == con->rbuf.Size()){
-				con->rbufBytes = 0;
-				ting::u32 num = ting::Deserialize32(con->rbuf.Begin());
-				ASSERT_INFO_ALWAYS(con->rcnt == num, num)
-				++con->rcnt;
-			}
-		}
-		ting::Thread::Sleep(100);
+		con->HandleReceivedData(d);
 		TRACE_ALWAYS(<< "Server: data received" << std::endl)
 		return true;
 	}
@@ -120,21 +125,13 @@ public:
 
 	//override
 	bool OnDataReceived_ts(const ting::Ref<cliser::Connection>& c, const ting::Buffer<ting::u8>& d){
-		ting::Ref<Connection> con = c.StaticCast<Connection>();
+		return false;
 
-		for(const ting::u8* p = d.Begin(); p != d.End(); ++p){
-			con->rbuf[con->rbufBytes] = *p;
-			++con->rbufBytes;
-
-			if(con->rbufBytes == con->rbuf.Size()){
-				con->rbufBytes = 0;
-				ting::u32 num = ting::Deserialize32(con->rbuf.Begin());
-				ASSERT_INFO_ALWAYS(con->rcnt == num, num)
-				++con->rcnt;
-			}
-		}
-		TRACE_ALWAYS(<< "Client: data received" << std::endl)
-		return true;
+//		ting::Ref<Connection> con = c.StaticCast<Connection>();
+//
+//		con->HandleReceivedData(d);
+//		TRACE_ALWAYS(<< "Client: data received" << std::endl)
+//		return true;
 	}
 
 	//override
@@ -144,6 +141,10 @@ public:
 		
 		TRACE_ALWAYS(<< "Client: sending data" << std::endl)
 		c.StaticCast<Connection>()->SendPortion();
+
+		if(ting::Array<ting::u8> d = c->GetReceivedData_ts()){
+			c.StaticCast<Connection>()->HandleReceivedData(d);
+		}
 	}
 };
 
