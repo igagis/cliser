@@ -148,11 +148,6 @@ public:
 			);
 
 		return false;
-//		ting::Ref<Connection> con = c.StaticCast<Connection>();
-//
-//		con->HandleReceivedData(d);
-//		TRACE_ALWAYS(<< "Client: data received" << std::endl)
-//		return true;
 	}
 
 	//override
