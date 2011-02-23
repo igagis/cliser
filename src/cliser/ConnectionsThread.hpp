@@ -65,9 +65,9 @@ public:
 		return ASSCOND(this->waitSet.Size() - 1, > 0);
 	}
 
-	virtual void OnClientConnected_ts(const ting::Ref<Connection>& c) = 0;
+	virtual void OnConnected_ts(const ting::Ref<Connection>& c) = 0;
 
-	virtual void OnClientDisconnected_ts(const ting::Ref<Connection>& c) = 0;
+	virtual void OnDisconnected_ts(const ting::Ref<Connection>& c) = 0;
 
 	virtual bool OnDataReceived_ts(const ting::Ref<Connection>& c, const ting::Buffer<ting::u8>& d) = 0;
 

@@ -49,13 +49,13 @@ public:
 	}
 
 	//override
-	void OnClientConnected_ts(const ting::Ref<cliser::Connection>& c){
+	void OnConnected_ts(const ting::Ref<cliser::Connection>& c){
 //		TRACE_ALWAYS(<< "Server: sending data" << std::endl)
 		c.StaticCast<Connection>()->SendPortion();
 	}
 
 	//override
-	void OnClientDisconnected_ts(const ting::Ref<cliser::Connection>& c){
+	void OnDisconnected_ts(const ting::Ref<cliser::Connection>& c){
 		//do nothing
 	}
 
@@ -108,13 +108,13 @@ public:
 	}
 
 	//override
-	void OnClientConnected_ts(const ting::Ref<cliser::Connection>& c){
+	void OnConnected_ts(const ting::Ref<cliser::Connection>& c){
 //		TRACE_ALWAYS(<< "Client: sending data" << std::endl)
 		c.StaticCast<Connection>()->SendPortion();
 	}
 
 	//override
-	void OnClientDisconnected_ts(const ting::Ref<cliser::Connection>& c){
+	void OnDisconnected_ts(const ting::Ref<cliser::Connection>& c){
 		//do nothing
 	}
 
