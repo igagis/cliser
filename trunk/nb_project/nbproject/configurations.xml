@@ -1,33 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configurationDescriptor version="69">
   <logicalFolder name="root" displayName="root" projectFiles="true">
-    <df name="src" root="../src">
+    <df name="src" root="/home/ivan/prj/cliser/src">
       <df name="cliser" kind="SOURCE_LOGICAL_FOLDER">
-        <df name="clt" kind="SOURCE_LOGICAL_FOLDER">
-          <in>ClientThread.cpp</in>
-          <in>ClientThread.hpp</in>
-        </df>
-        <df name="srv" kind="SOURCE_LOGICAL_FOLDER">
-          <in>Connection.cpp</in>
-          <in>Connection.hpp</in>
-          <in>ConnectionsThread.cpp</in>
-          <in>ConnectionsThread.hpp</in>
-          <in>ServerThread.cpp</in>
-          <in>ServerThread.hpp</in>
-          <in>ThreadsKillerThread.cpp</in>
-          <in>ThreadsKillerThread.hpp</in>
-        </df>
-        <df name="util" kind="SOURCE_LOGICAL_FOLDER">
-          <in>util.cpp</in>
-          <in>util.hpp</in>
-        </df>
+        <in>ClientThread.cpp</in>
+        <in>ClientThread.hpp</in>
+        <in>Connection.cpp</in>
+        <in>Connection.hpp</in>
+        <in>ConnectionsThread.cpp</in>
+        <in>ConnectionsThread.hpp</in>
+        <in>ServerThread.cpp</in>
+        <in>ServerThread.hpp</in>
+        <in>ThreadsKillerThread.cpp</in>
+        <in>ThreadsKillerThread.hpp</in>
       </df>
     </df>
-    <df name="test" root="../test">
-      <in>cliser_test</in>
+    <df name="test" root="/home/ivan/prj/cliser/test">
       <in>main.cpp</in>
       <in>makefile</in>
-      <in>output.log</in>
     </df>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -57,13 +47,6 @@
           <executablePath></executablePath>
         </makeTool>
       </makefileType>
-      <folder path="src/cliser/srv">
-        <ccTool>
-          <incDir>
-            <pElem>../src/cliser/srv</pElem>
-          </incDir>
-        </ccTool>
-      </folder>
     </conf>
   </confs>
 </configurationDescriptor>

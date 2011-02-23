@@ -15,10 +15,14 @@
 #include <ting/Socket.hpp>
 #include <ting/WaitSet.hpp>
 
-#include "../srv/ConnectionsThread.hpp"
+#include "ConnectionsThread.hpp"
+
+
 
 //forward declarations
 //...
+
+
 
 namespace cliser{
 
@@ -33,6 +37,7 @@ public:
 	//send connection request message to the thread
 	void Connect_ts(const ting::IPAddress& ip);
 
+	//TODO: what other errors?
 	enum EConnectFailureReason{
 		SOME_ERROR
 	};

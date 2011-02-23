@@ -1,5 +1,5 @@
-#include "../src/cliser/srv/ServerThread.hpp"
-#include "../src/cliser/clt/ClientThread.hpp"
+#include "../src/cliser/ServerThread.hpp"
+#include "../src/cliser/ClientThread.hpp"
 
 
 

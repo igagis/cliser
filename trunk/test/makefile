@@ -8,12 +8,11 @@ endif
 
 
 srcs := main.cpp
-srcs += ../src/cliser/clt/ClientThread.cpp
-srcs += ../src/cliser/srv/Connection.cpp
-srcs += ../src/cliser/srv/ConnectionsThread.cpp
-srcs += ../src/cliser/srv/ServerThread.cpp
-srcs += ../src/cliser/srv/ThreadsKillerThread.cpp
-srcs += ../src/cliser/util/util.cpp
+srcs += ../src/cliser/ClientThread.cpp
+srcs += ../src/cliser/Connection.cpp
+srcs += ../src/cliser/ConnectionsThread.cpp
+srcs += ../src/cliser/ServerThread.cpp
+srcs += ../src/cliser/ThreadsKillerThread.cpp
 
 
 ifeq ($(platform),win32)
@@ -23,7 +22,6 @@ else
     libs := -lpthread -lrt
     remove := rm -rf
 endif
-
 
 
 #compiler flags
