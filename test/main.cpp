@@ -123,10 +123,31 @@ public:
 		//do nothing
 	}
 
+	class HandleDataMessage : public ting::Message{
+		ting::Ref<Connection> conn;
+	public:
+		HandleDataMessage(const ting::Ref<Connection>& conn) :
+				conn(conn)
+		{}
+
+		//override
+		void Handle(){
+			if(ting::Array<ting::u8> d = this->conn->GetReceivedData_ts()){
+				this->conn->HandleReceivedData(d);
+			}
+		}
+	};
+
+
 	//override
 	bool OnDataReceived_ts(const ting::Ref<cliser::Connection>& c, const ting::Buffer<ting::u8>& d){
-		return false;
+		this->PushMessage(
+				ting::Ptr<ting::Message>(
+						new HandleDataMessage(c.StaticCast<Connection>())
+					)
+			);
 
+		return false;
 //		ting::Ref<Connection> con = c.StaticCast<Connection>();
 //
 //		con->HandleReceivedData(d);
@@ -141,10 +162,6 @@ public:
 		
 		TRACE_ALWAYS(<< "Client: sending data" << std::endl)
 		c.StaticCast<Connection>()->SendPortion();
-
-		if(ting::Array<ting::u8> d = c->GetReceivedData_ts()){
-			c.StaticCast<Connection>()->HandleReceivedData(d);
-		}
 	}
 };
 
