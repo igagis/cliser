@@ -95,13 +95,14 @@ void ConnectionsThread::Run(){
 
 void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 	if(conn->socket.CanRead()){
-		ting::StaticBuffer<ting::u8, 0xfff * 2> buffer;//8kb
+		ting::StaticBuffer<ting::u8, 0x1000> buffer;//8kb
 
 		try{
 			unsigned bytesReceived = conn->socket.Recv(buffer);
 			if(bytesReceived != 0){
 				ting::Buffer<ting::u8> b(buffer.Begin(), bytesReceived);
 				if(!this->OnDataReceived_ts(conn, b)){
+					TRACE(<< "ConnectionsThread::HandleSocketActivity(): received data not handled!!!!!!!!!!!" << std::endl)
 					ting::Mutex::Guard mutexGuard(conn->mutex);
 					ASSERT(!conn->receivedData)
 
@@ -168,15 +169,6 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 
 
 
-//
-// M       M  EEEEEE   SSSS    SSSS    AAAA    GGGG   EEEEEE   SSSS
-// MM     MM  E       S       S       A    A  G    G  E       S
-// M M   M M  E       S       S       A    A  G       E       S
-// M  M M  M  EEEEEE   SSSS    SSSS   A    A  G  GG   EEEEEE   SSSS
-// M   M   M  E            S       S  AAAAAA  G    G  E            S
-// M       M  E            S       S  A    A  G    G  E            S
-// M       M  EEEEEE   SSSS    SSSS   A    A   GGGG   EEEEEE   SSSS
-//
 void ConnectionsThread::HandleAddConnectionMessage(ting::Ref<Connection>& conn){
 	M_SRV_CLIENTS_HANDLER_TRACE(<<"C_AddClientToThreadMessage::Handle(): enter"<<std::endl)
 
@@ -285,6 +277,8 @@ void ConnectionsThread::HandleSendDataMessage(ting::Ref<Connection>& conn, ting:
 void ConnectionsThread::HandleResumeListeningForReadMessage(ting::Ref<Connection>& conn){
 	if(conn->socket.IsNotValid())//if connection is closed
 		return;
+
+	TRACE(<< "ConnectionsThread::HandleResumeListeningForReadMessage(): resuming data receiving!!!!!!!!!!" << std::endl)
 
 	ASSERT(!conn->receivedData)
 
