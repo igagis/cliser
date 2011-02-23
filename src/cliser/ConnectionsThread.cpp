@@ -1,6 +1,5 @@
 // (c) Ivan Gagis
 // e-mail: igagis@gmail.com
-// Version: 1
 
 // Description:
 //
@@ -16,7 +15,6 @@
 #include "ServerThread.hpp"
 #include "Connection.hpp"
 #include "ConnectionsThread.hpp"
-#include "../util/util.hpp"
 
 
 
