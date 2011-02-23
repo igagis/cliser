@@ -52,12 +52,11 @@ private:
 	//override
 	void Run();
 
-	void HandleSocketActivity(const ting::Ref<Connection>& conn);
+	void HandleSocketActivity(ting::Ref<Connection>& conn);
 
 public:
 	~ConnectionsThread(){
 		M_SRV_CLIENTS_HANDLER_TRACE(<< "~TCPClientsHandlerThread(): invoked" << std::endl)
-		this->waitSet.Remove(&this->queue);
 		ASSERT(this->connections.size() == 0)
 	}
 
