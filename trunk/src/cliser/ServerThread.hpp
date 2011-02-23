@@ -30,8 +30,6 @@ namespace cliser{
 //==============================================================================
 //==============================================================================
 class ServerThread : public ting::MsgThread{
-//	friend class ServerConnectionsThread;
-
 	ThreadsKillerThread threadsKillerThread;
 
 	//forward declaration
@@ -66,9 +64,9 @@ public:
 
 	virtual ting::Ref<cliser::Connection> CreateConnectionObject() = 0;
 
-	virtual void OnClientConnected_ts(const ting::Ref<Connection>& c) = 0;
+	virtual void OnConnected_ts(const ting::Ref<Connection>& c) = 0;
 
-	virtual void OnClientDisconnected_ts(const ting::Ref<Connection>& c) = 0;
+	virtual void OnDisconnected_ts(const ting::Ref<Connection>& c) = 0;
 
 	virtual bool OnDataReceived_ts(const ting::Ref<Connection>& c, const ting::Buffer<ting::u8>& d) = 0;
 
@@ -76,8 +74,6 @@ public:
 
 private:
 	ServerConnectionsThread* GetNotFullThread();
-
-	void DisconnectClient(const ting::Ref<Connection>& c);
 
 
 
@@ -133,19 +129,19 @@ private:
 		}
 
 		//override
-		virtual void OnClientConnected_ts(const ting::Ref<Connection>& c){
-			ASS(this->smt)->OnClientConnected_ts(c);
+		virtual void OnConnected_ts(const ting::Ref<Connection>& c){
+			ASS(this->smt)->OnConnected_ts(c);
 		}
 
 		//override
-		virtual void OnClientDisconnected_ts(const ting::Ref<Connection>& c){
+		virtual void OnDisconnected_ts(const ting::Ref<Connection>& c){
 			ASSERT(this->smt)
 			//send notification message to server main thread
 			this->smt->PushMessage(
 					ting::Ptr<ting::Message>(new ServerThread::ConnectionRemovedMessage(this->smt, this))
 				);
 
-			this->smt->OnClientDisconnected_ts(c);
+			this->smt->OnDisconnected_ts(c);
 		}
 
 		//override

@@ -77,7 +77,7 @@ void ConnectionsThread::Run(){
 		
 		this->RemoveSocketFromSocketSet(&c->socket);
 		c->socket.Close();
-		c->ClearClientHandlerThread();
+		c->ClearHandlingThread();
 
 		//NOTE: Do not send notifications to server main thread because this thread is
 		//exiting, therefore it is not an active thread which can be used for adding
@@ -160,8 +160,8 @@ void ConnectionsThread::HandleAddConnectionMessage(ting::Ref<Connection>& conn){
 
 //    ASSERT(!this->thread->IsFull())
 	
-	//set client's handler thread
-	conn->SetClientHandlerThread(this);
+	//set client's handling thread
+	conn->SetHandlingThread(this);
 
 	//set Waitable pointer to connection
 	conn->socket.SetUserData(conn.operator->());
@@ -172,7 +172,7 @@ void ConnectionsThread::HandleAddConnectionMessage(ting::Ref<Connection>& conn){
 	this->connections.push_back(conn);
 
 	//notify new client connection
-	this->OnClientConnected_ts(conn);
+	this->OnConnected_ts(conn);
 
 	//ASSERT(this->thread->numPlayers <= this->thread->players.Size())
 	M_SRV_CLIENTS_HANDLER_TRACE(<< "C_AddClientToThreadMessage::Handle(): exit" << std::endl)
@@ -205,7 +205,7 @@ void ConnectionsThread::HandleRemoveConnectionMessage(ting::Ref<Connection>& con
 				conn->packetQueue.clear();
 
 				//notify client disconnection
-				this->OnClientDisconnected_ts(conn);
+				this->OnDisconnected_ts(conn);
 
 				break;
 			}

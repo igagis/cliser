@@ -43,7 +43,7 @@ class Connection : public ting::RefCounted{
 
 	ting::Array<ting::u8> receivedData;//Should be protected with mutex
 
-	inline void SetClientHandlerThread(ConnectionsThread *thr){
+	inline void SetHandlingThread(ConnectionsThread *thr){
 		ASSERT(thr)
 		ting::Mutex::Guard mutexGuard(this->mutex);
 		//Assert that client is not added to some thread already.
@@ -51,7 +51,7 @@ class Connection : public ting::RefCounted{
 		this->parentThread = thr;
 	}
 
-	inline void ClearClientHandlerThread(){
+	inline void ClearHandlingThread(){
 		ting::Mutex::Guard mutexGuard(this->mutex);
 		ASSERT(this->parentThread)
 		this->parentThread = 0;

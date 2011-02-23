@@ -28,8 +28,8 @@
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
-    <Elem>../src</Elem>
-    <Elem>../test</Elem>
+    <Elem>/home/ivan/prj/cliser/src</Elem>
+    <Elem>/home/ivan/prj/cliser/test</Elem>
   </sourceRootList>
   <projectmakefile>nb_project-Makefile.mk</projectmakefile>
   <confs>
