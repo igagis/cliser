@@ -133,12 +133,18 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 		ASSERT(conn->dataSent < conn->packetQueue.front().Size())
 
 		try{
+			TRACE(<< "ConnectionsThread::HandleSocketActivity(): Packet data left = " << (conn->packetQueue.front().Size() - conn->dataSent) << std::endl)
+			
 			conn->dataSent += conn->socket.Send(conn->packetQueue.front(), conn->dataSent);
 			ASSERT(conn->dataSent <= conn->packetQueue.front().Size())
+
+			TRACE(<< "ConnectionsThread::HandleSocketActivity(): Packet data left = " << (conn->packetQueue.front().Size() - conn->dataSent) << std::endl)
 
 			if(conn->dataSent == conn->packetQueue.front().Size()){
 				conn->packetQueue.pop_front();
 				conn->dataSent = 0;
+
+				TRACE(<< "ConnectionsThread::HandleSocketActivity(): Packet sent!!!!!!!!!!!!!!!!!!!!!" << std::endl)
 
 				this->OnDataSent_ts(conn, conn->packetQueue.size(), false);
 
