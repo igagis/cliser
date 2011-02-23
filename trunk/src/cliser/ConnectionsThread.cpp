@@ -26,8 +26,6 @@ ConnectionsThread::ConnectionsThread(unsigned maxConnections) :
 		waitSet(maxConnections + 1) //+1 for messages queue
 {
 	M_SRV_CLIENTS_HANDLER_TRACE(<<"TCPClientsHandlerThread::TCPClientsHandlerThread(): invoked"<<std::endl)
-
-	this->waitSet.Add(&this->queue, ting::Waitable::READ);
 }
 
 
@@ -35,6 +33,8 @@ ConnectionsThread::ConnectionsThread(unsigned maxConnections) :
 void ConnectionsThread::Run(){
 	M_SRV_CLIENTS_HANDLER_TRACE(<<"TCPClientsHandlerThread::Run(): new thread started"<<std::endl)
 
+	this->waitSet.Add(&this->queue, ting::Waitable::READ);
+	
 	ting::Array<ting::Waitable*> triggered(this->waitSet.Size());
 
 	while(!this->quitFlag){
@@ -85,40 +85,49 @@ void ConnectionsThread::Run(){
 	}
 	this->connections.clear();//clear clients list
 
+	this->waitSet.Remove(&this->queue);
+
 	ASSERT(this->connections.size() == 0)
 	M_SRV_CLIENTS_HANDLER_TRACE(<< "TCPClientsHandlerThread::Run(): exiting" << std::endl)
 }
 
 
 
-void ConnectionsThread::HandleSocketActivity(const ting::Ref<Connection>& conn){
+void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 	if(conn->socket.CanRead()){
 		ting::StaticBuffer<ting::u8, 0xfff * 2> buffer;//8kb
 
-		unsigned bytesReceived = conn->socket.Recv(buffer);
-		if(bytesReceived != 0){
-			ting::Buffer<ting::u8> b(buffer.Begin(), bytesReceived);
-			if(!this->OnDataReceived_ts(conn, b)){
-				ting::Mutex::Guard mutexGuard(conn->mutex);
-				ASSERT(!conn->receivedData)
+		try{
+			unsigned bytesReceived = conn->socket.Recv(buffer);
+			if(bytesReceived != 0){
+				ting::Buffer<ting::u8> b(buffer.Begin(), bytesReceived);
+				if(!this->OnDataReceived_ts(conn, b)){
+					ting::Mutex::Guard mutexGuard(conn->mutex);
+					ASSERT(!conn->receivedData)
 
-				conn->receivedData.Init(b);
+					conn->receivedData.Init(b);
 
-				//stop waiting for READ condition
-				ting::Waitable::EReadinessFlags flags = ting::Waitable::NOT_READY;
-				if(conn->packetQueue.size() > 0){
-					flags = ting::Waitable::EReadinessFlags(flags | ting::Waitable::WRITE);
+					//stop waiting for READ condition
+					ting::Waitable::EReadinessFlags flags = ting::Waitable::NOT_READY;
+					if(conn->packetQueue.size() > 0){
+						flags = ting::Waitable::EReadinessFlags(flags | ting::Waitable::WRITE);
+					}
+					this->waitSet.Change(&conn->socket, flags);
 				}
-				this->waitSet.Change(&conn->socket, flags);
+			}else{
+				//connection closed
+				this->HandleRemoveConnectionMessage(conn);
+				return;
 			}
-		}else{
-			//connection closed
-			conn->Disconnect_ts();
+		}catch(ting::Socket::Exc &e){
+			TRACE(<< "ConnectionsThread::HandleSocketActivity(): exception caught while reading: " << e.What() << std::endl)
+			this->HandleRemoveConnectionMessage(conn);
 			return;
 		}
 	}
 
 	if(conn->socket.CanWrite()){
+		TRACE(<< "ConnectionsThread::HandleSocketActivity(): CanWrite" << std::endl)
 		ASSERT(conn->packetQueue.size() != 0)
 
 		ASSERT(conn->dataSent < conn->packetQueue.front().Size())
@@ -134,12 +143,19 @@ void ConnectionsThread::HandleSocketActivity(const ting::Ref<Connection>& conn){
 				this->OnDataSent_ts(conn, conn->packetQueue.size(), false);
 
 				if(conn->packetQueue.size() == 0){
-					//clear WRITE waiting flag, only READ wait flag remains.
-					this->waitSet.Change(&conn->socket, ting::Waitable::READ);
+					//clear WRITE waiting flag.
+
+					ting::Waitable::EReadinessFlags flags = ting::Waitable::NOT_READY;
+					if(!conn->receivedData){
+						flags = ting::Waitable::EReadinessFlags(flags | ting::Waitable::READ);
+					}
+					this->waitSet.Change(&conn->socket, flags);
 				}
 			}
 		}catch(ting::Socket::Exc &e){
-			conn->Disconnect_ts();
+			TRACE(<< "ConnectionsThread::HandleSocketActivity(): exception caught while sending: " << e.What() << std::endl)
+			this->HandleRemoveConnectionMessage(conn);
+			return;
 		}
 	}
 }

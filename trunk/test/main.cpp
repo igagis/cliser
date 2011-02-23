@@ -75,7 +75,7 @@ public:
 			}
 		}
 		ting::Thread::Sleep(100);
-//		TRACE_ALWAYS(<< "Server: data received" << std::endl)
+		TRACE_ALWAYS(<< "Server: data received" << std::endl)
 		return true;
 	}
 
@@ -84,7 +84,7 @@ public:
 		if(numPacketsInQueue >= 2)
 			return;
 
-//		TRACE_ALWAYS(<< "Server: sending data" << std::endl)
+		TRACE_ALWAYS(<< "Server: sending data" << std::endl)
 		c.StaticCast<Connection>()->SendPortion();
 	}
 };
@@ -142,7 +142,7 @@ public:
 		if(numPacketsInQueue >= 2)
 			return;
 		
-//		TRACE_ALWAYS(<< "Client: sending data" << std::endl)
+		TRACE_ALWAYS(<< "Client: sending data" << std::endl)
 		c.StaticCast<Connection>()->SendPortion();
 	}
 };
