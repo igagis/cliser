@@ -15,7 +15,6 @@
 #include <ting/Socket.hpp>
 
 #include "ConnectionsThread.hpp"
-#include "ThreadsKillerThread.hpp"
 #include "Connection.hpp"
 
 
