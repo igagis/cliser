@@ -12,7 +12,6 @@ srcs += ../src/cliser/ClientThread.cpp
 srcs += ../src/cliser/Connection.cpp
 srcs += ../src/cliser/ConnectionsThread.cpp
 srcs += ../src/cliser/ServerThread.cpp
-srcs += ../src/cliser/ThreadsKillerThread.cpp
 
 
 ifeq ($(platform),win32)
