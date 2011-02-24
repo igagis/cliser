@@ -164,3 +164,20 @@ void ServerThread::HandleConnectionRemovedMessage(ServerThread::ServerConnection
 }
 
 
+
+
+void ServerThread::ThreadsKillerThread::Run(){
+    while(!this->quitFlag){
+//        TRACE(<<"ThreadsKillerThread::Run(): going to get message"<<std::endl)
+        this->queue.GetMsg()->Handle();
+    }
+}
+
+
+
+//override
+void ServerThread::ThreadsKillerThread::KillThreadMessage::Handle(){
+//	TRACE(<<"C_KillThreadMessage::Handle(): invoked"<<std::endl)
+
+	this->thr->Join();//wait for thread finish
+}
