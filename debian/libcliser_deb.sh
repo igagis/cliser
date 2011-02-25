@@ -20,8 +20,8 @@ ln -s /usr/lib/$libFileName.$soName $libDir/$libFileName
 #=======================================
 #=====Package name======================
 #=======================================
-#TODO: get arch
-packageFileName=${packageName}_0.0.1-1_i386.deb
+#TODO: get version
+packageFileName=${packageName}_0.0.1-1_$(dpkg-architecture -qDEB_BUILD_ARCH).deb
 
 
 #create dir where the output 'control' will be placed

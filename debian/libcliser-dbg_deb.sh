@@ -18,8 +18,8 @@ cp src/$libFileName.$soName $libDir
 #=======================================
 #=====Package name======================
 #=======================================
-#TODO: get arch
-packageFileName=${packageName}_0.0.1-1_i386.deb
+#TODO: get verison
+packageFileName=${packageName}_0.0.1-1_$(dpkg-architecture -qDEB_BUILD_ARCH).deb
 
 
 #create dir where the output 'control' will be placed
