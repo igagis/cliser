@@ -13,13 +13,9 @@
         <in>ServerThread.hpp</in>
       </df>
       <df name="obj">
-        <df name="1" kind="SOURCE_LOGICAL_FOLDER">
+        <df name="1">
           <df name="2" kind="SOURCE_LOGICAL_FOLDER">
             <df name="cliser" kind="SOURCE_LOGICAL_FOLDER">
-              <in>ClientThread.d</in>
-              <in>Connection.d</in>
-              <in>ConnectionsThread.d</in>
-              <in>ServerThread.d</in>
             </df>
           </df>
         </df>
