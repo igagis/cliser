@@ -1,12 +1,15 @@
 #!/usr/bin/make -f
 
 build:
-	$(MAKE) clean
 	$(MAKE)
 
 clean:
+	rm debian/files
 	rm -rf debian/out
 	$(MAKE) clean
 
 binary:
-	./create_maemo_deb.sh
+	./debian/libcliser_deb.sh
+	./debian/libcliser-dbg_deb.sh
+	./debian/libcliser-dev_deb.sh
+

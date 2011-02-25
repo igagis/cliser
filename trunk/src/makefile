@@ -148,8 +148,8 @@ compiler := g++
 #==============================================================================
 
 #==========================
-#=project (default) target=
-proj: create-obj-dir $(name)
+#=project default target=
+default: create-obj-dir $(name)
 
 create-obj-dir:
 ifeq ($(platform), win32)
@@ -202,6 +202,7 @@ ifeq ($(platform),win32)
 	@$(remove) $(remove_on_clean)
 else
 	@$(remove) $(name)
+	@$(remove) $(name).$(so_name)
 	@$(remove) -rf $(dir $(obj_dir))
 	@$(remove) -rf $(remove_on_clean)
 endif
