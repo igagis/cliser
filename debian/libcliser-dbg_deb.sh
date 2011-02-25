@@ -15,11 +15,6 @@ libFileName=libcliser.so
 
 cp src/$libFileName.$soName $libDir
 
-#=======================================
-#=====Package name======================
-#=======================================
-#TODO: get verison
-packageFileName=${packageName}_0.0.1-1_$(dpkg-architecture -qDEB_BUILD_ARCH).deb
 
 
 #create dir where the output 'control' will be placed
@@ -31,4 +26,5 @@ dpkg-shlibdeps $libDir/$libFileName.$soName
 #generate final control file
 dpkg-gencontrol -p$packageName -P$baseDir
 
-dpkg -b $baseDir ../$packageFileName
+dpkg -b $baseDir ../file.deb
+dpkg-name ../file.deb #rename file to proper debian format (package_version_arch.deb)
