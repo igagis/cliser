@@ -1,0 +1,14 @@
+Source: libcliser
+#Section: user/multimedia
+#Priority: extra
+Maintainer: Ivan Gagis <igagis@gmail.com>
+Build-Depends: libting-dev
+#libasound2-dev, libhildonmm-dev, libhildon-fmmm-dev, libosso-dev, pulseaudio-dev, maemo-optify
+Standards-Version: 3.7.2
+
+Package: libcliser0
+#Architecture: armel
+Depends: ${shlibs:Depends}
+Description: TCP client-server library in C++
+ libcliser is a library written in C++ which allows easy creation of
+ TCP-based network client-server systems.

@@ -1,0 +1,12 @@
+#!/usr/bin/make -f
+
+build:
+	$(MAKE) clean
+	$(MAKE)
+
+clean:
+	rm -rf debian/out
+	$(MAKE) clean
+
+binary:
+	./create_maemo_deb.sh
