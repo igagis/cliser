@@ -17,7 +17,7 @@ cp src/cliser/*.hpp $incDir
 mkdir -p $baseDir/DEBIAN
 
 #remove substvars
-rm debian/substvars
+rm -f debian/substvars
 
 #generate final control file
 dpkg-gencontrol -p$packageName -P$baseDir
