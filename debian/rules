@@ -4,7 +4,7 @@ build:
 	$(MAKE)
 
 clean:
-	rm debian/files
+	rm -f debian/files
 	rm -rf debian/out
 	$(MAKE) clean
 
