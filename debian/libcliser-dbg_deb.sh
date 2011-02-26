@@ -20,6 +20,9 @@ cp src/$libFileName.$soName $libDir
 #create dir where the output 'control' will be placed
 mkdir -p $baseDir/DEBIAN
 
+#remove substvars
+rm -f debian/substvars
+
 #calculate dependancies
 dpkg-shlibdeps $libDir/$libFileName.$soName
 
