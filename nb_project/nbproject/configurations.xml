@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configurationDescriptor version="69">
   <logicalFolder name="root" displayName="root" projectFiles="true">
-    <df name="src" root="/home/ivan/prj/cliser/src">
+    <df name="src" root="../src">
       <df name="cliser" kind="SOURCE_LOGICAL_FOLDER">
         <in>ClientThread.cpp</in>
         <in>ClientThread.hpp</in>
@@ -21,10 +21,6 @@
         </df>
       </df>
     </df>
-    <df name="test" root="/home/ivan/prj/cliser/test">
-      <in>main.cpp</in>
-      <in>makefile</in>
-    </df>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
                    projectFiles="false"
@@ -34,8 +30,8 @@
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
-    <Elem>/home/ivan/prj/cliser/src</Elem>
-    <Elem>/home/ivan/prj/cliser/test</Elem>
+    <Elem>../src</Elem>
+    <Elem>../test</Elem>
   </sourceRootList>
   <projectmakefile>nb_project-Makefile.mk</projectmakefile>
   <confs>
@@ -53,6 +49,13 @@
           <executablePath></executablePath>
         </makeTool>
       </makefileType>
+      <folder path="src/cliser/srv">
+        <ccTool>
+          <incDir>
+            <pElem>../src/cliser/srv</pElem>
+          </incDir>
+        </ccTool>
+      </folder>
     </conf>
   </confs>
 </configurationDescriptor>
