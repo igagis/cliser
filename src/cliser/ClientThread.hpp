@@ -28,6 +28,7 @@ namespace cliser{
 
 class ClientThread : public cliser::ConnectionsThread{
     friend class ConnectToServerMessage;
+
 	
 public:
     ClientThread(unsigned maxConnections);
@@ -35,14 +36,7 @@ public:
     virtual ~ClientThread();
 
 	//send connection request message to the thread
-	void Connect_ts(const ting::IPAddress& ip);
-
-	//TODO: what other errors?
-	enum EConnectFailureReason{
-		SOME_ERROR
-	};
-
-	virtual void OnConnectFailure(EConnectFailureReason failReason) = 0;
+	ting::Ref<cliser::Connection> Connect_ts(const ting::IPAddress& ip);
 
 	virtual ting::Ref<cliser::Connection> CreateConnectionObject() = 0;
 
@@ -50,20 +44,26 @@ private:
 	class ConnectToServerMessage : public ting::Message{
 		ClientThread* ct;
 		ting::IPAddress ip;
+		const ting::Ref<cliser::Connection> conn;
 	public:
-		ConnectToServerMessage(ClientThread* ct, const ting::IPAddress& ip) :
+		ConnectToServerMessage(
+				ClientThread* ct,
+				const ting::IPAddress& ip,
+				const ting::Ref<cliser::Connection>& conn
+			) :
 				ct(ASS(ct)),
-				ip(ip)
+				ip(ip),
+				conn(conn)
 		{}
 
 		//override
 		void Handle(){
 		//	TRACE(<<"ConnectToServerMessage::Handle(): host=" << reinterpret_cast<void*>(ip.host) << " port=" << (ip.port) << std::endl)
-			this->ct->HandleConnectRequest(this->ip);
+			this->ct->HandleConnectRequest(this->ip, this->conn);
 		}
 	};
 
-	void HandleConnectRequest(const ting::IPAddress& ip);
+	void HandleConnectRequest(const ting::IPAddress& ip, const ting::Ref<cliser::Connection>& conn);
 };
 
 

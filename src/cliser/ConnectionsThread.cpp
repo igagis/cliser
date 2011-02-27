@@ -94,7 +94,71 @@ void ConnectionsThread::Run(){
 
 
 void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
+	if(conn->socket.CanWrite()){
+		TRACE(<< "ConnectionsThread::HandleSocketActivity(): CanWrite" << std::endl)
+		if(conn->packetQueue.size() == 0){
+			//was waiting for connect
+
+			//clear WRITE waiting flag and set READ waiting flag
+			this->waitSet.Change(&conn->socket, ting::Waitable::READ);
+
+			//try writing 0 bytes to clear the write flag and to check if connection was successful
+			try{
+				ting::StaticBuffer<ting::u8, 0> buf;
+				conn->socket.Send(buf);
+
+				ASSERT(!conn->socket.CanRead())
+				ASSERT(!conn->socket.CanWrite())
+
+				conn->SetHandlingThread(this);
+				this->OnConnected_ts(conn);
+				TRACE(<< "ConnectionsThread::HandleSocketActivity(): connection was successful" << std::endl)
+			}catch(ting::Socket::Exc& e){
+				TRACE(<< "ConnectionsThread::HandleSocketActivity(): connection was unsuccessful: " << e.What() << std::endl)
+				this->HandleRemoveConnectionMessage(conn);
+				return;
+			}
+
+		}else{
+			ASSERT(conn->dataSent < conn->packetQueue.front().Size())
+
+			try{
+				TRACE(<< "ConnectionsThread::HandleSocketActivity(): Packet data left = " << (conn->packetQueue.front().Size() - conn->dataSent) << std::endl)
+
+				conn->dataSent += conn->socket.Send(conn->packetQueue.front(), conn->dataSent);
+				ASSERT(conn->dataSent <= conn->packetQueue.front().Size())
+
+				TRACE(<< "ConnectionsThread::HandleSocketActivity(): Packet data left = " << (conn->packetQueue.front().Size() - conn->dataSent) << std::endl)
+
+				if(conn->dataSent == conn->packetQueue.front().Size()){
+					conn->packetQueue.pop_front();
+					conn->dataSent = 0;
+
+					TRACE(<< "ConnectionsThread::HandleSocketActivity(): Packet sent!!!!!!!!!!!!!!!!!!!!!" << std::endl)
+
+					this->OnDataSent_ts(conn, conn->packetQueue.size(), false);
+
+					if(conn->packetQueue.size() == 0){
+						//clear WRITE waiting flag.
+
+						ting::Waitable::EReadinessFlags flags = ting::Waitable::NOT_READY;
+						if(!conn->receivedData){
+							flags = ting::Waitable::EReadinessFlags(flags | ting::Waitable::READ);
+						}
+						this->waitSet.Change(&conn->socket, flags);
+					}
+				}
+			}catch(ting::Socket::Exc &e){
+				TRACE(<< "ConnectionsThread::HandleSocketActivity(): exception caught while sending: " << e.What() << std::endl)
+				this->HandleRemoveConnectionMessage(conn);
+				return;
+			}
+		}
+	}
+
 	if(conn->socket.CanRead()){
+//		TRACE(<< "ConnectionsThread::HandleSocketActivity(): CanRead()" << std::endl)
+
 		ting::StaticBuffer<ting::u8, 0x1000> buffer;//8kb
 
 		try{
@@ -126,67 +190,47 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 			return;
 		}
 	}
-
-	if(conn->socket.CanWrite()){
-		TRACE(<< "ConnectionsThread::HandleSocketActivity(): CanWrite" << std::endl)
-		ASSERT(conn->packetQueue.size() != 0)
-
-		ASSERT(conn->dataSent < conn->packetQueue.front().Size())
-
-		try{
-			TRACE(<< "ConnectionsThread::HandleSocketActivity(): Packet data left = " << (conn->packetQueue.front().Size() - conn->dataSent) << std::endl)
-			
-			conn->dataSent += conn->socket.Send(conn->packetQueue.front(), conn->dataSent);
-			ASSERT(conn->dataSent <= conn->packetQueue.front().Size())
-
-			TRACE(<< "ConnectionsThread::HandleSocketActivity(): Packet data left = " << (conn->packetQueue.front().Size() - conn->dataSent) << std::endl)
-
-			if(conn->dataSent == conn->packetQueue.front().Size()){
-				conn->packetQueue.pop_front();
-				conn->dataSent = 0;
-
-				TRACE(<< "ConnectionsThread::HandleSocketActivity(): Packet sent!!!!!!!!!!!!!!!!!!!!!" << std::endl)
-
-				this->OnDataSent_ts(conn, conn->packetQueue.size(), false);
-
-				if(conn->packetQueue.size() == 0){
-					//clear WRITE waiting flag.
-
-					ting::Waitable::EReadinessFlags flags = ting::Waitable::NOT_READY;
-					if(!conn->receivedData){
-						flags = ting::Waitable::EReadinessFlags(flags | ting::Waitable::READ);
-					}
-					this->waitSet.Change(&conn->socket, flags);
-				}
-			}
-		}catch(ting::Socket::Exc &e){
-			TRACE(<< "ConnectionsThread::HandleSocketActivity(): exception caught while sending: " << e.What() << std::endl)
-			this->HandleRemoveConnectionMessage(conn);
-			return;
-		}
-	}
 }
 
 
 
-void ConnectionsThread::HandleAddConnectionMessage(ting::Ref<Connection>& conn){
+void ConnectionsThread::HandleAddConnectionMessage(const ting::Ref<Connection>& conn, bool isConnected){
 	M_SRV_CLIENTS_HANDLER_TRACE(<< "ConnectionsThread::HandleAddConnectionMessage(): enter" << std::endl)
 
 //    ASSERT(!this->thread->IsFull())
-	
-	//set client's handling thread
-	conn->SetHandlingThread(this);
 
 	//set Waitable pointer to connection
 	conn->socket.SetUserData(conn.operator->());
 
 	//add socket to waitset
-	this->AddSocketToSocketSet(&conn->socket);
+	try{
+		this->AddSocketToSocketSet(
+				&conn->socket,
+				//if not connected, will be waiting for WRITE, because WRITE indicates that connect request has finished.
+				isConnected ? ting::Waitable::READ : ting::Waitable::WRITE
+			);
+	}catch(ting::Exc& e){
+		TRACE(<< "ConnectionsThread::HandleAddConnectionMessage(): adding socket to waitset failed: " << e.What() << std::endl)
+		this->OnDisconnected_ts(conn);
+		return;
+	}
+
+	ASSERT(conn->packetQueue.size() == 0)
 
 	this->connections.push_back(conn);
 
 	//notify new client connection
-	this->OnConnected_ts(conn);
+	if(isConnected){
+		//set client's handling thread
+		conn->SetHandlingThread(this);
+
+		this->OnConnected_ts(conn);
+	}else{
+		ASSERT(!conn->parentThread)
+	}
+
+	ASSERT(!conn->socket.CanRead())
+	ASSERT(!conn->socket.CanWrite())
 
 	//ASSERT(this->thread->numPlayers <= this->thread->players.Size())
 	M_SRV_CLIENTS_HANDLER_TRACE(<< "ConnectionsThread::HandleAddConnectionMessage(): exit" << std::endl)
@@ -213,7 +257,7 @@ void ConnectionsThread::HandleRemoveConnectionMessage(ting::Ref<Connection>& con
 				
 				conn->socket.Close();//close connection if it is opened
 
-				ASSERT(conn->parentThread == 0)
+				conn->ClearHandlingThread();
 
 				//clear packetQueue
 				conn->packetQueue.clear();
