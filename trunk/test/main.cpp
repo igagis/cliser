@@ -13,6 +13,8 @@ public:
 
 	ting::Inited<ting::u32, 0> rcnt;
 
+	ting::Inited<bool, false> isConnected;
+
 	Connection(){
 
 	}
@@ -108,19 +110,25 @@ public:
 	}
 
 	//override
-	void OnConnectFailure(EConnectFailureReason failReason){
-		ASSERT_ALWAYS(false)
-	}
-
-	//override
 	void OnConnected_ts(const ting::Ref<cliser::Connection>& c){
+		ting::Ref<Connection> conn = c.StaticCast<Connection>();
+		ASSERT_ALWAYS(!conn->isConnected)
+		conn->isConnected = true;
+
 		TRACE_ALWAYS(<< "Client: sending data" << std::endl)
-		c.StaticCast<Connection>()->SendPortion();
+		conn->SendPortion();
 	}
 
 	//override
 	void OnDisconnected_ts(const ting::Ref<cliser::Connection>& c){
-		//do nothing
+		ting::Ref<Connection> conn = c.StaticCast<Connection>();
+		
+		if(conn->isConnected){
+			conn->isConnected = false;
+		}else{
+			//if we get here then it is a connect request failure
+			ASSERT_ALWAYS(conn->isConnected)
+		}
 	}
 
 	class HandleDataMessage : public ting::Message{
@@ -169,6 +177,8 @@ int main(int argc, char *argv[]){
 
 	Server server;
 	server.Start();
+
+	ting::Thread::Sleep(100);//give server thread some time to start waiting on the socket
 
 	Client client;
 	client.Start();

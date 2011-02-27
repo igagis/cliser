@@ -106,11 +106,11 @@ private:
 
 		//override
 		void Handle(){
-			ASS(this->thread)->HandleAddConnectionMessage(this->conn);
+			ASS(this->thread)->HandleAddConnectionMessage(this->conn, true);
 		}
 	};
 
-	void HandleAddConnectionMessage(ting::Ref<Connection>& conn);
+	void HandleAddConnectionMessage(const ting::Ref<Connection>& conn, bool isConnected);
 
 
 

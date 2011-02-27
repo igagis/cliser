@@ -53,7 +53,6 @@ class Connection : public ting::RefCounted{
 
 	inline void ClearHandlingThread(){
 		ting::Mutex::Guard mutexGuard(this->mutex);
-		ASSERT(this->parentThread)
 		this->parentThread = 0;
 	}
 
