@@ -25,7 +25,8 @@ void ServerThread::Run(){
 	this->threadsKillerThread.Start();
 //	TRACE(<<"Server::Run(): threads started"<<std::endl)
 
-	ting::TCPServerSocket sock(this->port);//create and open listening socket
+	ting::TCPServerSocket sock;
+	sock.Open(this->port);//open listening socket
 
 	ting::WaitSet waitSet(2);
 	waitSet.Add(&sock, ting::Waitable::READ);
