@@ -73,10 +73,14 @@ public:
 	virtual void OnDataSent_ts(const ting::Ref<Connection>& c, unsigned numPacketsInQueue, bool addedToQueue){}
 
 private:
-	inline void AddSocketToSocketSet(ting::TCPSocket *sock){
+	inline void AddSocketToSocketSet(
+			ting::TCPSocket *sock,
+			ting::Waitable::EReadinessFlags flagsToWaitFor = ting::Waitable::READ
+		)
+	{
 		this->waitSet.Add(
 				static_cast<ting::Waitable*>(sock),
-				ting::Waitable::READ
+				flagsToWaitFor
 			);
 	}
 

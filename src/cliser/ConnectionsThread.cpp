@@ -170,7 +170,7 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 
 
 void ConnectionsThread::HandleAddConnectionMessage(ting::Ref<Connection>& conn){
-	M_SRV_CLIENTS_HANDLER_TRACE(<<"C_AddClientToThreadMessage::Handle(): enter"<<std::endl)
+	M_SRV_CLIENTS_HANDLER_TRACE(<< "ConnectionsThread::HandleAddConnectionMessage(): enter" << std::endl)
 
 //    ASSERT(!this->thread->IsFull())
 	
@@ -189,7 +189,7 @@ void ConnectionsThread::HandleAddConnectionMessage(ting::Ref<Connection>& conn){
 	this->OnConnected_ts(conn);
 
 	//ASSERT(this->thread->numPlayers <= this->thread->players.Size())
-	M_SRV_CLIENTS_HANDLER_TRACE(<< "C_AddClientToThreadMessage::Handle(): exit" << std::endl)
+	M_SRV_CLIENTS_HANDLER_TRACE(<< "ConnectionsThread::HandleAddConnectionMessage(): exit" << std::endl)
 }
 
 

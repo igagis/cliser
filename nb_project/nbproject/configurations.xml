@@ -21,6 +21,12 @@
         </df>
       </df>
     </df>
+    <df name="test" root="../test">
+      <in>cliser_test</in>
+      <in>main.cpp</in>
+      <in>makefile</in>
+      <in>output.log</in>
+    </df>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
                    projectFiles="false"
@@ -47,15 +53,13 @@
           <buildCommand>${MAKE}</buildCommand>
           <cleanCommand>${MAKE} clean</cleanCommand>
           <executablePath></executablePath>
+          <ccTool>
+            <incDir>
+              <pElem>../src/cliser/srv</pElem>
+            </incDir>
+          </ccTool>
         </makeTool>
       </makefileType>
-      <folder path="src/cliser/srv">
-        <ccTool>
-          <incDir>
-            <pElem>../src/cliser/srv</pElem>
-          </incDir>
-        </ccTool>
-      </folder>
     </conf>
   </confs>
 </configurationDescriptor>
