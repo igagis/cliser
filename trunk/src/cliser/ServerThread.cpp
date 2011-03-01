@@ -58,18 +58,28 @@ void ServerThread::Run(){
 	waitSet.Remove(&this->queue);
 	waitSet.Remove(&sock);
 
-	TRACE(<<"Server::Run(): quiting thread"<<std::endl)
+	TRACE(<< "ServerThread::" << __func__ << "(): quiting thread" << std::endl)
+	
 	this->threadsKillerThread.PushQuitMessage();
 
 	//kill all client threads
-	for(T_ThrIter i = this->clientsThreads.begin(); i != this->clientsThreads.end(); ++i)
+	for(T_ThrIter i = this->clientsThreads.begin(); i != this->clientsThreads.end(); ++i){
 		(*i)->PushQuitMessage();
-	for(T_ThrIter i = this->clientsThreads.begin(); i != this->clientsThreads.end(); ++i)
+	}
+	
+	for(T_ThrIter i = this->clientsThreads.begin(); i != this->clientsThreads.end(); ++i){
+		TRACE(<< "ServerThread::" << __func__ << "(): joining thread" << std::endl)
 		(*i)->Join();
-
-	this->threadsKillerThread.Join();
+	}
+	TRACE(<< "ServerThread::" << __func__ << "(): connections threads joined" << std::endl)
 
 	this->clientsThreads.clear();
+	
+	TRACE(<< "ServerThread::" << __func__ << "(): waiting for killer thread to finish" << std::endl)
+	
+	this->threadsKillerThread.Join();
+	
+	TRACE(<< "ServerThread::" << __func__ << "(): exit" << std::endl)
 }
 
 
@@ -101,7 +111,7 @@ void ServerThread::HandleNewConnection(ting::TCPSocket socket){
 	try{
 		 thr = this->GetNotFullThread();
 	}catch(std::exception& e){
-		TRACE_AND_LOG(<< "Server::HandleNewConnection(): GetNotFullThread() failed: " << e.what() << std::endl)
+		TRACE_AND_LOG(<< "ServerThread::" << __func__ << "(): GetNotFullThread() failed: " << e.what() << std::endl)
 		//failed getting not full thread, possibly maximum threads limit set by system reached
 		//ignore connection
 		socket.Close();
@@ -147,13 +157,12 @@ void ServerThread::HandleConnectionRemovedMessage(ServerThread::ServerConnection
 		)
 	{
 		if((*i) == cht){
-			(*i)->PushQuitMessage();//initiate exiting process in the thread
 			//schedule thread for termination
 			this->threadsKillerThread.PushMessage(
 					ting::Ptr<ting::Message>(
 							new ThreadsKillerThread::KillThreadMessage(
 									&this->threadsKillerThread,
-									ting::Ptr<ting::MsgThread>(static_cast<ting::MsgThread*>((*i).Extract()))
+									(*i)
 								)
 						)
 				);
@@ -169,16 +178,18 @@ void ServerThread::HandleConnectionRemovedMessage(ServerThread::ServerConnection
 
 void ServerThread::ThreadsKillerThread::Run(){
     while(!this->quitFlag){
-//        TRACE(<<"ThreadsKillerThread::Run(): going to get message"<<std::endl)
+        TRACE(<< "ThreadsKillerThread::" << __func__ << "(): going to get message" << std::endl)
         this->queue.GetMsg()->Handle();
+		TRACE(<< "ThreadsKillerThread::" << __func__ << "(): message handled, qf = " << this->quitFlag << std::endl)
     }
+	TRACE(<< "ThreadsKillerThread::" << __func__ << "(): exit" << std::endl)
 }
 
 
 
 //override
 void ServerThread::ThreadsKillerThread::KillThreadMessage::Handle(){
-//	TRACE(<<"C_KillThreadMessage::Handle(): invoked"<<std::endl)
-
+	TRACE(<< "KillThreadMessage::" << __func__ << "(): enter" << std::endl)
 	this->thr->Join();//wait for thread finish
+	TRACE(<< "KillThreadMessage::" << __func__ << "(): exit" << std::endl)
 }
