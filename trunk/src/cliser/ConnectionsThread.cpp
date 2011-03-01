@@ -196,6 +196,7 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 
 void ConnectionsThread::HandleAddConnectionMessage(const ting::Ref<Connection>& conn, bool isConnected){
 	M_SRV_CLIENTS_HANDLER_TRACE(<< "ConnectionsThread::HandleAddConnectionMessage(): enter" << std::endl)
+//    TRACE (<< "ConnectionsThread::HandleAddConnectionMessage(): enter" << std::endl)
 
 //    ASSERT(!this->thread->IsFull())
 

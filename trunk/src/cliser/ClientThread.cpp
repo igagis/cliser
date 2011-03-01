@@ -33,6 +33,8 @@ ClientThread::~ClientThread(){
 
 
 ting::Ref<cliser::Connection> ClientThread::Connect_ts(const ting::IPAddress& ip){
+    TRACE(<< "ClientThread::" << __func__ << "(): enter" << std::endl)
+
 	ting::Ref<cliser::Connection> conn = this->CreateConnectionObject();
 	//send connect request to thread
 	this->PushMessage(
@@ -54,6 +56,7 @@ void ClientThread::HandleConnectRequest(
 		const ting::Ref<cliser::Connection>& conn
 	)
 {
+//    TRACE(<< "ConnectToServerMessage::" << __func__ << "(): enter" << std::endl)
 	ASSERT(conn)
 	try{
 		ASSERT(conn->socket.IsNotValid())
