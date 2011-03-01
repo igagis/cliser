@@ -79,8 +79,17 @@ ifeq ($(platform), maemo_linux)
 endif
 
 
+linker_flags := -shared
 
-linker_flags := -shared -Wl,-soname,$(name).$(so_name)
+ifeq ($(platform), linux)
+    linker_flags += -Wl,-soname,$(name).$(so_name)
+endif
+ifeq ($(platform), win32)
+    linker_flags +=
+endif
+ifeq ($(platform), win32cross)
+    linker_flags +=
+endif
 
 
 
@@ -94,10 +103,10 @@ ifeq ($(platform), linux)
     include_dirs := #-Ithird_party -Ithird_party/ogles2emu `pkg-config gstreamer-0.10 freetype2 QtGui QtCore QtDBus --cflags`
 endif
 ifeq ($(platform), win32)
-    include_dirs :=
+    include_dirs := -I../../ting/src
 endif
 ifeq ($(platform), win32cross)
-    include_dirs :=
+    include_dirs := -I../../ting/src
 endif
 
 
@@ -106,20 +115,16 @@ endif
 #  Libs and lib directories
 #============================
 ifeq ($(platform), maemo_linux)
-    libs:= #-lGLESv2 `pkg-config gstreamer-0.10 freetype2 libosso libpulse libpulse-simple QtGui QtDBus QtOpenGL --libs` -ljpeg
-    #libs += third_party/unzip/armel/*
+    libs := -lpthread -lrt
 endif
 ifeq ($(platform), linux)
-    libs:= -lpthread -lrt
-    #`pkg-config gstreamer-0.10 libpulse libpulse-simple freetype2 QtGui QtDBus QtOpenGL --libs`
-    #libs += -ljpeg -Lthird_party/ogles2emu -lEGL -lGLESv2
-    #libs += third_party/unzip/i386/*
+    libs := -lpthread -lrt
 endif
 ifeq ($(platform), win32)
-    libs:=
+    libs := -lws2_32
 endif
 ifeq ($(platform), win32cross)
-    libs:=
+    libs :=
 endif
 
 
@@ -153,7 +158,7 @@ default: create-obj-dir $(name)
 
 create-obj-dir:
 ifeq ($(platform), win32)
-	@if not exist $(obj_dir) mkdir $(obj_dir)
+	@if not exist $(obj_dir) mkdir $(subst /,\,$(obj_dir))
 else
 	@mkdir -p $(obj_dir)
 endif
@@ -161,15 +166,23 @@ endif
 #find all .cpp files and get an .o file name for it to get dependancies for this target
 $(name): $(addprefix $(obj_dir)/,$(patsubst %.cpp,%.o,$(srcs)))
 	@echo Linking $@...
+ifeq ($(platform), win32)
+	@$(compiler) $^ -o "$@" $(libs) $(linker_flags)
+else
 	@$(compiler) $^ -o "$@".$(so_name) $(libs) $(linker_flags)
 	@ln -f -s $@.$(so_name) $@
+endif
 
 
 #======================
 #=compile .cpp sources=
 $(obj_dir)/%.o:%.cpp
 	@echo Compiling $<...
+ifeq ($(platform), win32)
+	@if not exist $(dir $@) mkdir $(subst /,\,$(dir $@))
+else
 	@mkdir -p $(dir $@)
+endif
 # -MF option specifies dependency output file name
 	@$(compiler) -c -MF "$(patsubst %.o,%.d,$@)" -MD -o "$@" $(compiler_flags) $(defines) $(include_dirs) $<
 #workaround for gcc 4.2 compiler (it behaves differently than gcc 4.1 for some reason)
@@ -199,8 +212,7 @@ runtest:
 clean:
 ifeq ($(platform),win32)
 	@$(remove) $(name)
-	@$(remove) $(obj_dir)\*
-	@$(remove) $(remove_on_clean)
+	@rmdir /S /Q obj
 else
 	@$(remove) $(name)
 	@$(remove) $(name).$(so_name)

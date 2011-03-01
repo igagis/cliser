@@ -151,6 +151,7 @@ public:
 
 	//override
 	bool OnDataReceived_ts(const ting::Ref<cliser::Connection>& c, const ting::Buffer<ting::u8>& d){
+		TRACE_ALWAYS(<< "Client: sending data" << std::endl)
 		this->PushMessage(
 				ting::Ptr<ting::Message>(
 						new HandleDataMessage(c.StaticCast<Connection>())

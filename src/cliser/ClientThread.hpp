@@ -27,13 +27,18 @@
 namespace cliser{
 
 class ClientThread : public cliser::ConnectionsThread{
-    friend class ConnectToServerMessage;
+	friend class ConnectToServerMessage;
 
-	
+
 public:
-    ClientThread(unsigned maxConnections);
+	ClientThread(unsigned maxConnections) :
+			ConnectionsThread(maxConnections)
+	{
+		ASSERT(ting::SocketLib::IsCreated())
+	}
+
     
-    virtual ~ClientThread();
+	virtual ~ClientThread();
 
 	//send connection request message to the thread
 	ting::Ref<cliser::Connection> Connect_ts(const ting::IPAddress& ip);
