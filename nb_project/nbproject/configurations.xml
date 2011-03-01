@@ -21,12 +21,6 @@
         </df>
       </df>
     </df>
-    <df name="test" root="../test">
-      <in>cliser_test</in>
-      <in>main.cpp</in>
-      <in>makefile</in>
-      <in>output.log</in>
-    </df>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
                    projectFiles="false"

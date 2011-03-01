@@ -1,3 +1,5 @@
+#include <ting/debug.hpp>
+
 #include "../src/cliser/ServerThread.hpp"
 #include "../src/cliser/ClientThread.hpp"
 
@@ -171,7 +173,7 @@ public:
 
 
 int main(int argc, char *argv[]){
-//	TRACE_ALWAYS(<< "Socket test " << std::endl)
+	TRACE_ALWAYS(<< "Socket test" << std::endl)
 
 	ting::SocketLib socketsLib;
 
@@ -192,6 +194,9 @@ int main(int argc, char *argv[]){
 	while(true){
 		ting::Thread::Sleep(10000000);
 	}
+
+    client.PushQuitMessage();
+    client.Join();
 
 	server.PushQuitMessage();
 	server.Join();

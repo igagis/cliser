@@ -8,11 +8,8 @@ endif
 
 
 srcs := main.cpp
-srcs += ../src/cliser/ClientThread.cpp
-srcs += ../src/cliser/Connection.cpp
-srcs += ../src/cliser/ConnectionsThread.cpp
-srcs += ../src/cliser/ServerThread.cpp
 
+cliserlib := ../src/libcliser.so
 
 ifeq ($(platform),win32)
     libs := -lws2_32
@@ -29,12 +26,20 @@ cf += -DDEBUG
 
 
 default: $(binary_name)
-	@echo running $^...
-	@./$^
 
-$(binary_name): $(srcs)
+
+runtest: $(binary_name)
+	@echo running $^...
+	@LD_LIBRARY_PATH=../src ./$^
+
+
+$(cliserlib):
+	$(MAKE) -C ../src
+
+
+$(binary_name): $(srcs) $(cliserlib)
 	@echo Building $@...
-	@g++ -o $@ $(cf) $^ $(libs)
+	@g++ -o $@ $(cf) $(srcs) $(libs) -Wl,$(cliserlib)
 
 clean:
 	@$(remove) $(binary_name)

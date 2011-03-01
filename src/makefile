@@ -162,7 +162,7 @@ endif
 $(name): $(addprefix $(obj_dir)/,$(patsubst %.cpp,%.o,$(srcs)))
 	@echo Linking $@...
 	@$(compiler) $^ -o "$@".$(so_name) $(libs) $(linker_flags)
-	@ln -s $@.$(so_name) $@
+	@ln -f -s $@.$(so_name) $@
 
 
 #======================
@@ -188,6 +188,7 @@ include $(wildcard $(addsuffix /*.d,$(dir $(addprefix $(obj_dir)/,$(srcs)))))
 all: clean proj
 
 
+runtest:
 
 #==============
 #=clean target=
