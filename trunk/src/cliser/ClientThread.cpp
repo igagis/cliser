@@ -19,14 +19,6 @@ using namespace cliser;
 
 
 
-ClientThread::ClientThread(unsigned maxConnections) :
-		ConnectionsThread(maxConnections)
-{
-	ASSERT(ting::SocketLib::IsCreated())
-}
-
-
-
 ClientThread::~ClientThread(){
 }
 
