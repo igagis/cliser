@@ -151,7 +151,7 @@ public:
 
 	//override
 	bool OnDataReceived_ts(const ting::Ref<cliser::Connection>& c, const ting::Buffer<ting::u8>& d){
-		TRACE_ALWAYS(<< "Client: sending data" << std::endl)
+		TRACE_ALWAYS(<< "Client: data received" << std::endl)
 		this->PushMessage(
 				ting::Ptr<ting::Message>(
 						new HandleDataMessage(c.StaticCast<Connection>())
@@ -190,14 +190,14 @@ int main(int argc, char *argv[]){
 		client.Connect_ts(ting::IPAddress("127.0.0.1", 13666));
 	}
 
-
-
-	while(true){
-		ting::Thread::Sleep(10000000);
-	}
+	ting::Thread::Sleep(10000);
 
     client.PushQuitMessage();
     client.Join();
+
+//	ting::Thread::Sleep(1000);
+
+	TRACE(<< __func__ << "(): PPP" << std::endl)
 
 	server.PushQuitMessage();
 	server.Join();

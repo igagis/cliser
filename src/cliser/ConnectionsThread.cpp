@@ -25,26 +25,27 @@ using namespace cliser;
 ConnectionsThread::ConnectionsThread(unsigned maxConnections) :
 		waitSet(maxConnections + 1) //+1 for messages queue
 {
-	M_SRV_CLIENTS_HANDLER_TRACE(<<"TCPClientsHandlerThread::TCPClientsHandlerThread(): invoked"<<std::endl)
+	M_SRV_CLIENTS_HANDLER_TRACE(<< "TCPClientsHandlerThread::" << __func__ << "(): invoked" << std::endl)
 }
 
 
 
 void ConnectionsThread::Run(){
-	M_SRV_CLIENTS_HANDLER_TRACE(<<"TCPClientsHandlerThread::Run(): new thread started"<<std::endl)
+	M_SRV_CLIENTS_HANDLER_TRACE(<< "ConnectionsThread::" << __func__ << "(): new thread started" << std::endl)
 
 	this->waitSet.Add(&this->queue, ting::Waitable::READ);
 	
 	ting::Array<ting::Waitable*> triggered(this->waitSet.Size());
 
 	while(!this->quitFlag){
-		//NOTE: queue is added to wait set, so, wait infinitely
+//		TRACE(<< "ConnectionsThread::" << __func__ << "(): waiting..." << std::endl)
 		unsigned numTriggered = this->waitSet.Wait(&triggered);
+//		TRACE(<< "ConnectionsThread::" << __func__ << "(): triggered" << std::endl)
 		ASSERT(numTriggered > 0)
 
 		if(this->queue.CanRead()){
 			while(ting::Ptr<ting::Message> m = this->queue.PeekMsg()){
-				M_SRV_CLIENTS_HANDLER_TRACE(<<"TCPClientsHandlerThread::Run(): message got"<<std::endl)
+				M_SRV_CLIENTS_HANDLER_TRACE(<< "ConnectionsThread::" << __func__ << "(): message got" << std::endl)
 				m->Handle();
 			}
 			continue;
@@ -65,11 +66,12 @@ void ConnectionsThread::Run(){
 				this->HandleSocketActivity(conn);
 			}//~for()
 
-			M_SRV_CLIENTS_HANDLER_TRACE(<<"TCPClientsHandlerThread::Run(): active sockets found"<<std::endl)
-			//this->HandleSocketActivities();
+			M_SRV_CLIENTS_HANDLER_TRACE(<< "ConnectionsThread::" << __func__ << "(): active sockets found" << std::endl)
 		}
 //        M_SRV_CLIENTS_HANDLER_TRACE(<<"TCPClientsHandlerThread::Run(): cycle"<<std::endl)
 	}//~while(): main loop of the thread
+
+	TRACE(<< "ConnectionsThread::" << __func__ << "(): disconnect all clients" << std::endl)
 
 	//disconnect all clients, removing sockets from wait set
 	for(T_ConnectionsIter i = this->connections.begin(); i != this->connections.end(); ++i){
@@ -88,14 +90,15 @@ void ConnectionsThread::Run(){
 	this->waitSet.Remove(&this->queue);
 
 	ASSERT(this->connections.size() == 0)
-	M_SRV_CLIENTS_HANDLER_TRACE(<< "TCPClientsHandlerThread::Run(): exiting" << std::endl)
+	TRACE(<< "ConnectionsThread::" << __func__ << "(): exiting" << std::endl)
+	M_SRV_CLIENTS_HANDLER_TRACE(<< "ConnectionsThread::" << __func__ << "(): exiting" << std::endl)
 }
 
 
 
 void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 	if(conn->socket.CanWrite()){
-		TRACE(<< "ConnectionsThread::HandleSocketActivity(): CanWrite" << std::endl)
+//		TRACE(<< "ConnectionsThread::HandleSocketActivity(): CanWrite" << std::endl)
 		if(conn->packetQueue.size() == 0){
 			//was waiting for connect
 
@@ -124,18 +127,18 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 			ASSERT(conn->dataSent < conn->packetQueue.front().Size())
 
 			try{
-				TRACE(<< "ConnectionsThread::HandleSocketActivity(): Packet data left = " << (conn->packetQueue.front().Size() - conn->dataSent) << std::endl)
+//				TRACE(<< "ConnectionsThread::HandleSocketActivity(): Packet data left = " << (conn->packetQueue.front().Size() - conn->dataSent) << std::endl)
 
 				conn->dataSent += conn->socket.Send(conn->packetQueue.front(), conn->dataSent);
 				ASSERT(conn->dataSent <= conn->packetQueue.front().Size())
 
-				TRACE(<< "ConnectionsThread::HandleSocketActivity(): Packet data left = " << (conn->packetQueue.front().Size() - conn->dataSent) << std::endl)
+//				TRACE(<< "ConnectionsThread::HandleSocketActivity(): Packet data left = " << (conn->packetQueue.front().Size() - conn->dataSent) << std::endl)
 
 				if(conn->dataSent == conn->packetQueue.front().Size()){
 					conn->packetQueue.pop_front();
 					conn->dataSent = 0;
 
-					TRACE(<< "ConnectionsThread::HandleSocketActivity(): Packet sent!!!!!!!!!!!!!!!!!!!!!" << std::endl)
+//					TRACE(<< "ConnectionsThread::HandleSocketActivity(): Packet sent!!!!!!!!!!!!!!!!!!!!!" << std::endl)
 
 					this->OnDataSent_ts(conn, conn->packetQueue.size(), false);
 
@@ -167,7 +170,7 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 			if(bytesReceived != 0){
 				ting::Buffer<ting::u8> b(buffer.Begin(), bytesReceived);
 				if(!this->OnDataReceived_ts(conn, b)){
-					TRACE(<< "ConnectionsThread::HandleSocketActivity(): received data not handled!!!!!!!!!!!" << std::endl)
+//					TRACE(<< "ConnectionsThread::HandleSocketActivity(): received data not handled!!!!!!!!!!!" << std::endl)
 					ting::Mutex::Guard mutexGuard(conn->mutex);
 					ASSERT(!conn->receivedData)
 
@@ -278,17 +281,17 @@ void ConnectionsThread::HandleRemoveConnectionMessage(ting::Ref<Connection>& con
 
 
 void ConnectionsThread::HandleSendDataMessage(ting::Ref<Connection>& conn, ting::Array<ting::u8> data){
-//	TRACE(<<"SendNetworkDataToClientMessage::Handle(): enter"<<std::endl)
+	TRACE(<< "ConnectionsThread::" << __func__ << "(): enter" << std::endl)
 	if(!conn->socket.IsValid()){
 		//put data to queue and notify
 		conn->packetQueue.push_back(data);
 		this->OnDataSent_ts(conn, conn->packetQueue.size(), true);
-//		TRACE(<< "SendNetworkDataToClientMessage::Handle(): socket is disconnected, ignoring message" << std::endl)
+		TRACE(<< "ConnectionsThread::" << __func__ << "(): socket is disconnected, ignoring message" << std::endl)
 		return;
 	}
 
 	if(conn->packetQueue.size() != 0){
-//		TRACE(<< "ConnectionsThread::HandleSendDataMessage(): adding data to send queue" << std::endl)
+		TRACE(<< "ConnectionsThread::" << __func__ << "(): adding data to send queue right away" << std::endl)
 		conn->packetQueue.push_back(data);
 		this->OnDataSent_ts(conn, conn->packetQueue.size(), true);
 		return;
@@ -298,7 +301,7 @@ void ConnectionsThread::HandleSendDataMessage(ting::Ref<Connection>& conn, ting:
 			ASSERT(numBytesSent <= data.Size())
 
 			if(numBytesSent != data.Size()){
-//				TRACE(<< "ConnectionsThread::HandleSendDataMessage(): adding data to send queue" << std::endl)
+				TRACE(<< "ConnectionsThread::" << __func__ << "(): adding data to send queue" << std::endl)
 				conn->dataSent = numBytesSent;
 				conn->packetQueue.push_back(data);
 
@@ -308,14 +311,16 @@ void ConnectionsThread::HandleSendDataMessage(ting::Ref<Connection>& conn, ting:
 				ASSERT_INFO(conn->packetQueue.size() == 1, conn->packetQueue.size())
 				this->OnDataSent_ts(conn, 1, true);
 			}else{
-//				TRACE(<< "ConnectionsThread::HandleSendDataMessage(): NOT adding data to send queue" << std::endl)
+				TRACE(<< "ConnectionsThread::" << __func__ << "(): NOT adding data to send queue" << std::endl)
 				ASSERT_INFO(conn->packetQueue.size() == 0, conn->packetQueue.size())
 				this->OnDataSent_ts(conn, 0, false);
 			}
 		}catch(ting::Socket::Exc& e){
+			TRACE(<< "ConnectionsThread::" << __func__ << "(): exception caught" << e.What() << std::endl)
 			conn->Disconnect_ts();
 		}
 	}
+	TRACE(<< "ConnectionsThread::" << __func__ << "(): exit" << std::endl)
 }
 
 
@@ -324,7 +329,7 @@ void ConnectionsThread::HandleResumeListeningForReadMessage(ting::Ref<Connection
 	if(conn->socket.IsNotValid())//if connection is closed
 		return;
 
-	TRACE(<< "ConnectionsThread::HandleResumeListeningForReadMessage(): resuming data receiving!!!!!!!!!!" << std::endl)
+//	TRACE(<< "ConnectionsThread::HandleResumeListeningForReadMessage(): resuming data receiving!!!!!!!!!!" << std::endl)
 
 	ASSERT(!conn->receivedData)
 
