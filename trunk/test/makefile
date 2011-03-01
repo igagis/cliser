@@ -34,7 +34,7 @@ runtest: $(binary_name)
 
 
 $(cliserlib):
-	$(MAKE) -C ../src
+	$(MAKE) -C ../src build_config=debug
 
 
 $(binary_name): $(srcs) $(cliserlib)
