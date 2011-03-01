@@ -15,7 +15,7 @@ ifeq ($(platform),linux)
     cliserlib := $(cliserlib).so
 endif
 ifeq ($(platform),win32)
-    cliserlib := $(cliserlib).dll
+    cliserlib := $(cliserlib).a
 endif
 
 
@@ -24,11 +24,11 @@ cf := -Wall -I../src
 cf += -DDEBUG
 
 ifeq ($(platform),win32)
-    libs := -lws2_32
+    libs := $(cliserlib) -lws2_32
     cf += -I../../ting/src
     remove := del /Q /F 
 else
-    libs := -lpthread -lrt
+    libs := -lpthread -lrt -Wl,$(cliserlib)
     remove := rm -rf
 endif
 
@@ -39,7 +39,6 @@ default: $(binary_name)
 runtest: $(binary_name)
 	@echo running $^...
 ifeq ($(platform),win32)
-	@copy /Y $(subst /,\,$(cliserlib)) .
 	@./$^
 else
 	@LD_LIBRARY_PATH=../src ./$^
@@ -52,7 +51,7 @@ $(cliserlib):
 
 $(binary_name): $(srcs) $(cliserlib)
 	@echo Building $@...
-	@g++ -o $@ $(cf) $(srcs) $(libs) -Wl,$(cliserlib)
+	@g++ -o $@ $(cf) $(srcs) $(libs)
 
 clean:
 	@$(remove) $(binary_name)

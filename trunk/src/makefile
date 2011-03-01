@@ -27,10 +27,10 @@ ifeq ($(platform), linux)
     name := $(name).so
 endif
 ifeq ($(platform), win32)
-    name := $(name).dll
+    name := $(name).a
 endif
 ifeq ($(platform), win32cross)
-    name := $(name).dll
+    name := $(name).a
 endif
 
 
@@ -167,7 +167,7 @@ endif
 $(name): $(addprefix $(obj_dir)/,$(patsubst %.cpp,%.o,$(srcs)))
 	@echo Linking $@...
 ifeq ($(platform), win32)
-	@$(compiler) $^ -o "$@" $(libs) $(linker_flags)
+	@ar cr $@ $^
 else
 	@$(compiler) $^ -o "$@".$(so_name) $(libs) $(linker_flags)
 	@ln -f -s $@.$(so_name) $@
