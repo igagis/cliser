@@ -46,7 +46,7 @@ endif
 
 
 $(cliserlib):
-	$(MAKE) -C ../src build_config=debug
+	@$(MAKE) -C ../src build_config=debug
 
 
 $(binary_name): $(srcs) $(cliserlib)
