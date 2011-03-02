@@ -18,9 +18,12 @@ public:
 	ting::Inited<bool, false> isConnected;
 
 	Connection(){
-
+		TRACE(<< "Connection::" << __func__ << "(): invoked" << std::endl)
 	}
 
+	~Connection(){
+		TRACE(<< "Connection::" << __func__ << "(): invoked" << std::endl)
+	}
 
 	void SendPortion(){
 		ting::Array<ting::u8> buf(sizeof(ting::u32) * (0xfffff / 4));
@@ -51,7 +54,7 @@ public:
 
 
 	static ting::Ref<Connection> New(){
-		return ting::Ref<Connection>(ASS(new Connection()));
+		return ting::Ref<Connection>(new Connection());
 	}
 };
 
@@ -103,7 +106,7 @@ public:
 class Client : public cliser::ClientThread{
 public:
 	Client() :
-			cliser::ClientThread(1) //max connections
+			cliser::ClientThread(63) //max connections
 	{}
 
 	//override
@@ -194,10 +197,6 @@ int main(int argc, char *argv[]){
 
     client.PushQuitMessage();
     client.Join();
-
-//	ting::Thread::Sleep(1000);
-
-//	TRACE(<< __func__ << "(): PPP" << std::endl)
 
 	server.PushQuitMessage();
 	server.Join();
