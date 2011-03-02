@@ -23,6 +23,7 @@ endif
 cf := -Wall -I../src
 cf += -DDEBUG
 
+
 ifeq ($(platform),win32)
     libs := $(cliserlib) -lws2_32
     cf += -I../../ting/src
