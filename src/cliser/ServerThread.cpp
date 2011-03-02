@@ -19,6 +19,15 @@ using namespace cliser;
 
 
 
+ServerThread::ServerThread(ting::u16 port, unsigned maxClientsPerThread) :
+		port(port),
+		maxClientsPerThread(maxClientsPerThread)
+{
+	ASSERT(ting::SocketLib::IsCreated())
+}
+
+
+
 //override
 void ServerThread::Run(){
 //	TRACE(<<"Server::Run(): enter thread"<<std::endl)
