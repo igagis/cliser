@@ -103,7 +103,7 @@ public:
 class Client : public cliser::ClientThread{
 public:
 	Client() :
-			cliser::ClientThread(63) //max connections
+			cliser::ClientThread(1) //max connections
 	{}
 
 	//override
@@ -174,7 +174,7 @@ public:
 
 
 int main(int argc, char *argv[]){
-	TRACE_ALWAYS(<< "Socket test" << std::endl)
+	TRACE_ALWAYS(<< "Cliser test" << std::endl)
 
 	ting::SocketLib socketsLib;
 
@@ -197,7 +197,7 @@ int main(int argc, char *argv[]){
 
 //	ting::Thread::Sleep(1000);
 
-	TRACE(<< __func__ << "(): PPP" << std::endl)
+//	TRACE(<< __func__ << "(): PPP" << std::endl)
 
 	server.PushQuitMessage();
 	server.Join();

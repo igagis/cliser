@@ -71,13 +71,8 @@ public:
 		return this->maxClientsPerThread;
 	}
 
-	ServerThread(ting::u16 port, unsigned maxClientsPerThread) :
-			port(port),
-			maxClientsPerThread(maxClientsPerThread)
-	{
-		ASSERT(ting::SocketLib::IsCreated())
-	}
-
+	ServerThread(ting::u16 port, unsigned maxClientsPerThread);
+	
 	~ServerThread(){
 		ASSERT(this->clientsThreads.size() == 0)
 	}

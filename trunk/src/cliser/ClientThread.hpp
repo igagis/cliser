@@ -31,12 +31,7 @@ class ClientThread : public cliser::ConnectionsThread{
 
 
 public:
-	ClientThread(unsigned maxConnections) :
-			ConnectionsThread(maxConnections)
-	{
-		ASSERT(ting::SocketLib::IsCreated())
-	}
-
+	ClientThread(unsigned maxConnections);
     
 	virtual ~ClientThread();
 
