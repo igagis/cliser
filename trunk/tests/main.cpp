@@ -18,11 +18,11 @@ public:
 	ting::Inited<bool, false> isConnected;
 
 	Connection(){
-		TRACE(<< "Connection::" << __func__ << "(): invoked" << std::endl)
+//		TRACE(<< "Connection::" << __func__ << "(): invoked" << std::endl)
 	}
 
 	~Connection(){
-		TRACE(<< "Connection::" << __func__ << "(): invoked" << std::endl)
+//		TRACE(<< "Connection::" << __func__ << "(): invoked" << std::endl)
 	}
 
 	void SendPortion(){
