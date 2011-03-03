@@ -45,7 +45,7 @@ public:
 			if(this->rbufBytes == this->rbuf.Size()){
 				this->rbufBytes = 0;
 				ting::u32 num = ting::Deserialize32(this->rbuf.Begin());
-				ASSERT_INFO_ALWAYS(this->rcnt == num, num)
+				ASSERT_INFO_ALWAYS(this->rcnt == num, "num = " << num << " rcnt = " << this->rcnt)
 				++this->rcnt;
 			}
 		}
@@ -193,7 +193,7 @@ int main(int argc, char *argv[]){
 		client.Connect_ts(ting::IPAddress("127.0.0.1", 13666));
 	}
 
-	ting::Thread::Sleep(1000);
+	ting::Thread::Sleep(2500);
 
     client.PushQuitMessage();
     client.Join();

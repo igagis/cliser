@@ -46,6 +46,7 @@ else
 endif
 
 
+.PHONY: $(cliserlib)
 $(cliserlib):
 	@$(MAKE) -C ../src build_config=debug
 
