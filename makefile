@@ -1,11 +1,11 @@
 subdirs :=
 subdirs += src
-subdirs += test
+subdirs += tests
 
 
 
 
-default all clean runtest:
+default all clean test:
 	@$(MAKE) $(subdirs) target=$@
 
 .PHONY: $(subdirs)

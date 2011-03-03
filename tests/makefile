@@ -37,7 +37,7 @@ endif
 default: $(binary_name)
 
 
-runtest: $(binary_name)
+test: $(binary_name)
 	@echo running $^...
 ifeq ($(platform),win32)
 	@./$^

@@ -201,7 +201,7 @@ include $(wildcard $(addsuffix /*.d,$(dir $(addprefix $(obj_dir)/,$(srcs)))))
 all: clean proj
 
 
-runtest:
+test:
 
 #==============
 #=clean target=
