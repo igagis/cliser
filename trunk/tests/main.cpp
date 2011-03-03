@@ -193,7 +193,7 @@ int main(int argc, char *argv[]){
 		client.Connect_ts(ting::IPAddress("127.0.0.1", 13666));
 	}
 
-	ting::Thread::Sleep(10000);
+	ting::Thread::Sleep(1000);
 
     client.PushQuitMessage();
     client.Join();
