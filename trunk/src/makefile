@@ -17,7 +17,7 @@ platform := linux
 #build configuration:
 #    debug
 #    release
-build_config := debug
+build_config := release
 
 name := libcliser
 
