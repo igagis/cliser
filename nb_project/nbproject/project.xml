@@ -12,7 +12,7 @@
             <make-dep-projects/>
             <sourceRootList>
                 <sourceRootElem>/home/ivan/prj/cliser/src</sourceRootElem>
-                <sourceRootElem>../tests</sourceRootElem>
+                <sourceRootElem>/home/ivan/prj/cliser/tests</sourceRootElem>
             </sourceRootList>
             <confList>
                 <confElem>Default</confElem>

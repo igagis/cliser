@@ -39,7 +39,7 @@
   </logicalFolder>
   <sourceRootList>
     <Elem>/home/ivan/prj/cliser/src</Elem>
-    <Elem>../tests</Elem>
+    <Elem>/home/ivan/prj/cliser/tests</Elem>
   </sourceRootList>
   <projectmakefile>nb_project-Makefile.mk</projectmakefile>
   <confs>
