@@ -270,9 +270,10 @@ void ConnectionsThread::HandleRemoveConnectionMessage(ting::Ref<Connection>& con
 				//notify client disconnection
 				this->OnDisconnected_ts(conn);
 
-				break;
+				return;
 			}
 		}
+		ASSERT(false)
 	}catch(...){
 		ASSERT_INFO(false, "C_RemoveClientFromThreadMessage::Handle(): removing client failed, should send RemoveClientFailed message to main server thread, it is unimplemented yet")
 	}

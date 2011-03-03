@@ -68,26 +68,26 @@ void ServerThread::Run(){
 	waitSet.Remove(&sock);
 
 	TRACE(<< "ServerThread::" << __func__ << "(): quiting thread" << std::endl)
-	
+
 	this->threadsKillerThread.PushQuitMessage();
 
 	//kill all client threads
 	for(T_ThrIter i = this->clientsThreads.begin(); i != this->clientsThreads.end(); ++i){
 		(*i)->PushQuitMessage();
 	}
-	
+
 	for(T_ThrIter i = this->clientsThreads.begin(); i != this->clientsThreads.end(); ++i){
-		TRACE(<< "ServerThread::" << __func__ << "(): joining thread" << std::endl)
+//		TRACE(<< "ServerThread::" << __func__ << "(): joining thread" << std::endl)
 		(*i)->Join();
 	}
-	TRACE(<< "ServerThread::" << __func__ << "(): connections threads joined" << std::endl)
+//	TRACE(<< "ServerThread::" << __func__ << "(): connections threads joined" << std::endl)
 
 	this->clientsThreads.clear();
-	
-	TRACE(<< "ServerThread::" << __func__ << "(): waiting for killer thread to finish" << std::endl)
-	
+
+//	TRACE(<< "ServerThread::" << __func__ << "(): waiting for killer thread to finish" << std::endl)
+
 	this->threadsKillerThread.Join();
-	
+
 	TRACE(<< "ServerThread::" << __func__ << "(): exit" << std::endl)
 }
 
@@ -141,8 +141,6 @@ void ServerThread::HandleNewConnection(ting::TCPSocket socket){
 				)
 		);
 	++thr->numConnections;
-
-//	ASSERT( thr->numClients <= C_TCPClientsHandlerThread::maxClientsPerThread )
 }
 
 
@@ -159,7 +157,6 @@ void ServerThread::HandleConnectionRemovedMessage(ServerThread::ServerConnection
 	//if we get here then numClients is 0, remove the thread then:
 	//find it in the threads list and push to ThreadKillerThread
 
-	//TODO:store iterator
 	for(ServerThread::T_ThrIter i = this->clientsThreads.begin();
 			i != this->clientsThreads.end();
 			++i
@@ -177,20 +174,21 @@ void ServerThread::HandleConnectionRemovedMessage(ServerThread::ServerConnection
 				);
 			//remove thread from threads list
 			this->clientsThreads.erase(i);
-			break;
+			return;
 		}//~if
 	}//~for
+	ASSERT(false)
 }
 
 
 
 
 void ServerThread::ThreadsKillerThread::Run(){
-    while(!this->quitFlag){
-        TRACE(<< "ThreadsKillerThread::" << __func__ << "(): going to get message" << std::endl)
-        this->queue.GetMsg()->Handle();
-		TRACE(<< "ThreadsKillerThread::" << __func__ << "(): message handled, qf = " << this->quitFlag << std::endl)
-    }
+	while(!this->quitFlag){
+//		TRACE(<< "ThreadsKillerThread::" << __func__ << "(): going to get message" << std::endl)
+		this->queue.GetMsg()->Handle();
+//		TRACE(<< "ThreadsKillerThread::" << __func__ << "(): message handled, qf = " << this->quitFlag << std::endl)
+	}
 	TRACE(<< "ThreadsKillerThread::" << __func__ << "(): exit" << std::endl)
 }
 
@@ -198,7 +196,7 @@ void ServerThread::ThreadsKillerThread::Run(){
 
 //override
 void ServerThread::ThreadsKillerThread::KillThreadMessage::Handle(){
-	TRACE(<< "KillThreadMessage::" << __func__ << "(): enter" << std::endl)
+//	TRACE(<< "KillThreadMessage::" << __func__ << "(): enter" << std::endl)
 	this->thr->Join();//wait for thread finish
-	TRACE(<< "KillThreadMessage::" << __func__ << "(): exit" << std::endl)
+//	TRACE(<< "KillThreadMessage::" << __func__ << "(): exit" << std::endl)
 }

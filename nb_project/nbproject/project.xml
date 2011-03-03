@@ -11,8 +11,8 @@
             <sourceEncoding>UTF-8</sourceEncoding>
             <make-dep-projects/>
             <sourceRootList>
-                <sourceRootElem>/home/ivan/prj/cliser/src</sourceRootElem>
-                <sourceRootElem>/home/ivan/prj/cliser/tests</sourceRootElem>
+                <sourceRootElem>../tests</sourceRootElem>
+                <sourceRootElem>../src</sourceRootElem>
             </sourceRootList>
             <confList>
                 <confElem>Default</confElem>
