@@ -21,7 +21,7 @@ build_config := release
 
 name := libcliser
 
-so_name := 1
+so_name := 0
 
 ifeq ($(platform), linux)
     name := $(name).so
