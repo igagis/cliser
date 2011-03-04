@@ -2,6 +2,10 @@
 
 packageName=libcliser-dev
 
+soName=0
+
+libFileName=libcliser.so
+
 baseDir=debian/out/$packageName
 mkdir -p $baseDir
 
@@ -10,6 +14,12 @@ incDir=$baseDir/usr/include/cliser
 mkdir -p $incDir
 
 cp src/cliser/*.hpp $incDir
+
+
+libDir=$baseDir/usr/lib
+mkdir -p $libDir
+
+ln -s /usr/lib/$libFileName.$soName $libDir/$libFileName
 
 
 
