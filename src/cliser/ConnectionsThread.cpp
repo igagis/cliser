@@ -81,9 +81,7 @@ void ConnectionsThread::Run(){
 		c->socket.Close();
 		c->ClearHandlingThread();
 
-		//NOTE: Do not send notifications to server main thread because this thread is
-		//exiting, therefore it is not an active thread which can be used for adding
-		//new clients further.
+		this->OnDisconnected_ts(c);
 	}
 	this->connections.clear();//clear clients list
 
