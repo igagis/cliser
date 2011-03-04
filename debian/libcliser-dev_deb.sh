@@ -22,5 +22,5 @@ rm -f debian/substvars
 #generate final control file
 dpkg-gencontrol -p$packageName -P$baseDir
 
-dpkg -b $baseDir ../file.deb
-dpkg-name ../file.deb #rename file to proper debian format (package_version_arch.deb)
+dpkg -b $baseDir tmp-package.deb
+dpkg-name -o -s .. tmp-package.deb #rename file to proper debian format (package_version_arch.deb)
