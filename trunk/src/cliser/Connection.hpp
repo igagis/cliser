@@ -64,7 +64,7 @@ public:
 	{}
 
 	virtual ~Connection(){
-//		TRACE(<< "~cliser::Client(): invoked" << std::endl)
+//		TRACE(<< "Connection::" << __func__ << "(): invoked" << std::endl)
 	}
 
 	void Disconnect_ts();

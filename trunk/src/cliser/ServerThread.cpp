@@ -111,8 +111,8 @@ ServerThread::ServerConnectionsThread* ServerThread::GetNotFullThread(){
 
 
 void ServerThread::HandleNewConnection(ting::TCPSocket socket){
-	//LOG(<<"Server::HandleNewConnection(): enter"<<std::endl)
-//	TRACE(<< "Server::HandleNewConnection(): enter" << std::endl)
+//	LOG(<< "ServerThread::" << __func__ << "(): enter" << std::endl)
+//	TRACE(<< "ServerThread::" << __func__ << "(): enter" << std::endl)
 
 	ASSERT(socket.IsValid())
 
@@ -146,7 +146,7 @@ void ServerThread::HandleNewConnection(ting::TCPSocket socket){
 
 
 void ServerThread::HandleConnectionRemovedMessage(ServerThread::ServerConnectionsThread* cht){
-//    TRACE(<<"C_ClientRemovedFromThreadMessage::Handle(): enter"<<std::endl)
+//	TRACE(<< "ServerThread::" << __func__ << "(): enter" << std::endl)
 
 	ASSERT(cht->numConnections > 0)
 	--cht->numConnections;

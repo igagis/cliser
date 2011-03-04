@@ -21,7 +21,7 @@ void Connection::Send_ts(ting::Array<ting::u8> data){
 	ting::Mutex::Guard mutexGuard(this->mutex);//make sure that this->clientThread won't be zeroed out by other thread
 	if(!this->parentThread){
 		//client disconnected, do nothing
-		TRACE(<< "Connection::Send_ts(): client disconnected" << std::endl)
+		TRACE(<< "Connection::" << __func__ << "(): client disconnected" << std::endl)
 		return;
 	}
 	ASSERT(this->parentThread)
