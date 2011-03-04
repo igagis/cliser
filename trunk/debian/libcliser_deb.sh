@@ -1,8 +1,8 @@
 #!/bin/sh
 
-soName=1
+soName=0
 
-packageName=libcliser0
+packageName=libcliser$soName
 
 baseDir=debian/out/$packageName
 mkdir -p $baseDir
