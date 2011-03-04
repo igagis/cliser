@@ -15,7 +15,6 @@ libFileName=libcliser.so
 
 cp src/$libFileName.$soName $libDir
 strip -g $libDir/$libFileName.$soName
-ln -s /usr/lib/$libFileName.$soName $libDir/$libFileName
 
 
 
