@@ -43,19 +43,20 @@ void ConnectionsThread::Run(){
 //		TRACE(<< "ConnectionsThread::" << __func__ << "(): triggered" << std::endl)
 		ASSERT(numTriggered > 0)
 
-		if(this->queue.CanRead()){
-			while(ting::Ptr<ting::Message> m = this->queue.PeekMsg()){
-				M_SRV_CLIENTS_HANDLER_TRACE(<< "ConnectionsThread::" << __func__ << "(): message got" << std::endl)
-				m->Handle();
-			}
-			continue;
-		}else{
-			//Handle socket activities
+		ting::Waitable** p = triggered.Begin();
+		for(unsigned i = 0; i != numTriggered; ++i, ++p){
+			ASSERT(p != triggered.End())
+			ASSERT(*p)
 
-			ting::Waitable** p = triggered.Begin();
-			for(unsigned i = 0; i != numTriggered; ++i, ++p){
-				ASSERT(p != triggered.End())
-				ASSERT(*p)
+			if(*p == &this->queue){
+				//queue
+				ASSERT(this->queue.CanRead())
+				while(ting::Ptr<ting::Message> m = this->queue.PeekMsg()){
+					M_SRV_CLIENTS_HANDLER_TRACE(<< "ConnectionsThread::" << __func__ << "(): message got" << std::endl)
+					m->Handle();
+				}
+			}else{
+				//socket
 				ASSERT(*p != &this->queue)
 
 				ting::Ref<cliser::Connection> conn(
@@ -64,10 +65,9 @@ void ConnectionsThread::Run(){
 				ASSERT(conn)
 
 				this->HandleSocketActivity(conn);
-			}//~for()
+			}
+		}//~for()
 
-			M_SRV_CLIENTS_HANDLER_TRACE(<< "ConnectionsThread::" << __func__ << "(): active sockets found" << std::endl)
-		}
 //        M_SRV_CLIENTS_HANDLER_TRACE(<<"TCPClientsHandlerThread::Run(): cycle"<<std::endl)
 	}//~while(): main loop of the thread
 
