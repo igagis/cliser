@@ -62,7 +62,7 @@ void ClientThread::HandleConnectRequest(
 		ASSERT(conn->socket.IsNotValid())
 		conn->socket.Open(ip);
 	}catch(ting::Socket::Exc &e){
-		TRACE(<< "ConnectToServerMessage::Handle(): exception caught, e = " << e.What() << ", sending connect failed reply to main thread" << std::endl)
+		TRACE(<< "ConnectToServerMessage::" << __func__ << "(): exception caught, e = " << e.What() << ", sending connect failed reply to main thread" << std::endl)
 		this->OnDisconnected_ts(conn);
 		return;
 	}

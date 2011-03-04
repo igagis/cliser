@@ -56,7 +56,7 @@ private:
 
 public:
 	~ConnectionsThread(){
-		M_SRV_CLIENTS_HANDLER_TRACE(<< "~TCPClientsHandlerThread(): invoked" << std::endl)
+		M_SRV_CLIENTS_HANDLER_TRACE(<< "ConnectionsThread::" << __func__ << "(): invoked" << std::endl)
 		ASSERT(this->connections.size() == 0)
 	}
 
