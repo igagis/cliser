@@ -154,10 +154,15 @@ private:
 		//override
 		virtual void OnDisconnected_ts(const ting::Ref<Connection>& c){
 			ASSERT(this->smt)
-			//send notification message to server main thread
-			this->smt->PushMessage(
-					ting::Ptr<ting::Message>(new ServerThread::ConnectionRemovedMessage(this->smt, this))
-				);
+
+			//Disconnection may be because thread is exiting because server main thread
+			//is also exiting, in that case no need tonotify server main thread.
+			//Send notification message to server main thread only if thread is not exiting yet.
+			if(!this->quitFlag){
+				this->smt->PushMessage(
+						ting::Ptr<ting::Message>(new ServerThread::ConnectionRemovedMessage(this->smt, this))
+					);
+			}
 
 			this->smt->OnDisconnected_ts(c);
 		}
