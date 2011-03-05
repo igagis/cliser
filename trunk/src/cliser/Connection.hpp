@@ -53,12 +53,11 @@ class Connection : public ting::RefCounted{
 	}
 
 protected:
-
-public:
 	inline Connection() :
 			parentThread(0)
 	{}
 
+public:
 	virtual ~Connection(){
 //		TRACE(<< "Connection::" << __func__ << "(): invoked" << std::endl)
 	}
@@ -69,10 +68,6 @@ public:
 	void SendCopy_ts(const ting::Buffer<ting::u8>& data);
 
 	ting::Array<ting::u8> GetReceivedData_ts();
-
-	static inline ting::Ref<cliser::Connection> New(){
-		return ting::Ref<cliser::Connection>(new cliser::Connection());
-	}
 };
 
 }//~namespace
