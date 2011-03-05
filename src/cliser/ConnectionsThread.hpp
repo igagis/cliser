@@ -1,9 +1,5 @@
 // (c) Ivan Gagis
 // e-mail: igagis@gmail.com
-// Version: 1
-
-// Description:
-//          Clients Handler Thread class
 
 #pragma once
 
@@ -64,6 +60,7 @@ public:
 		return ASSCOND(this->waitSet.Size() - 1, > 0);
 	}
 
+private:
 	virtual void OnConnected_ts(const ting::Ref<Connection>& c) = 0;
 
 	virtual void OnDisconnected_ts(const ting::Ref<Connection>& c) = 0;

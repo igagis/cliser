@@ -1,9 +1,5 @@
 // (c) Ivan Gagis
 // e-mail: igagis@gmail.com
-// Version: 1
-
-// Description:
-//          Client class
 
 #include <ting/debug.hpp>
 #include <ting/Thread.hpp>

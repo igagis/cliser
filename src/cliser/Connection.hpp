@@ -1,9 +1,5 @@
 // (c) Ivan Gagis
 // e-mail: igagis@gmail.com
-// Version: 1
-
-// Description:
-//          Client class
 
 #pragma once
 
@@ -75,7 +71,7 @@ public:
 	ting::Array<ting::u8> GetReceivedData_ts();
 
 	static inline ting::Ref<cliser::Connection> New(){
-		return ting::Ref<cliser::Connection>(ASS(new cliser::Connection()));
+		return ting::Ref<cliser::Connection>(new cliser::Connection());
 	}
 };
 

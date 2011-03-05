@@ -9,6 +9,12 @@
         <in>Connection.hpp</in>
         <in>ConnectionsThread.cpp</in>
         <in>ConnectionsThread.hpp</in>
+        <in>PacketClientThread.cpp</in>
+        <in>PacketClientThread.hpp</in>
+        <in>PacketConnection.cpp</in>
+        <in>PacketConnection.hpp</in>
+        <in>PacketServerThread.cpp</in>
+        <in>PacketServerThread.hpp</in>
         <in>ServerThread.cpp</in>
         <in>ServerThread.hpp</in>
       </df>
@@ -23,7 +29,6 @@
     </df>
     <df name="tests" root="../tests">
       <in>cliser_test</in>
-      <in>main.cpp</in>
       <in>makefile</in>
     </df>
     <logicalFolder name="ExternalFiles"
@@ -34,6 +39,7 @@
       <itemPath>nb_project-Makefile.mk</itemPath>
     </logicalFolder>
   </logicalFolder>
+  <sourceFolderFilter>^(nbproject)$</sourceFolderFilter>
   <sourceRootList>
     <Elem>../src</Elem>
     <Elem>../tests</Elem>
