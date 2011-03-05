@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "ServerThread.hpp"
+#include "../ClientThread.hpp"
 
 
 
@@ -11,11 +11,10 @@ namespace cliser{
 
 
 
-class PacketServerThread : public ServerThread{
+class PacketClientThread : public ClientThread{
 public:
 
 	//TODO:
-
 };
 
 
