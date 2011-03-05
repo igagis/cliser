@@ -66,6 +66,7 @@ public:
 			cliser::ServerThread(13666, 2)
 	{}
 
+private:
 	//override
 	ting::Ref<cliser::Connection> CreateConnectionObject(){
 		return Connection::New();
@@ -109,6 +110,7 @@ public:
 			cliser::ClientThread(63) //max connections
 	{}
 
+private:
 	//override
 	ting::Ref<cliser::Connection> CreateConnectionObject(){
 		return Connection::New();

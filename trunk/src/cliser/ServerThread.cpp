@@ -1,9 +1,5 @@
 // (c) Ivan Gagis
 // e-mail: igagis@gmail.com
-// Version: 1
-
-// Description:
-//          Server main Thread class
 
 #include <exception>
 
@@ -24,6 +20,12 @@ ServerThread::ServerThread(ting::u16 port, unsigned maxClientsPerThread) :
 		maxClientsPerThread(maxClientsPerThread)
 {
 	ASSERT(ting::SocketLib::IsCreated())
+}
+
+
+
+ServerThread::~ServerThread(){
+	ASSERT(this->clientsThreads.size() == 0)
 }
 
 

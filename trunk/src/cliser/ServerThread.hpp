@@ -1,9 +1,6 @@
 // (c) Ivan Gagis
 // e-mail: igagis@gmail.com
 
-// Description:
-//          Server main Thread class
-
 #pragma once
 
 #include <list>
@@ -21,13 +18,8 @@
 
 namespace cliser{
 
-//forward declarations
 
 
-
-//==============================================================================
-//==============================================================================
-//==============================================================================
 class ServerThread : public ting::MsgThread{
 	
 	class ThreadsKillerThread : public ting::MsgThread{
@@ -73,13 +65,12 @@ public:
 
 	ServerThread(ting::u16 port, unsigned maxClientsPerThread);
 	
-	~ServerThread(){
-		ASSERT(this->clientsThreads.size() == 0)
-	}
+	virtual ~ServerThread();
 
 	//override
 	void Run();
 
+private:
 	virtual ting::Ref<cliser::Connection> CreateConnectionObject() = 0;
 
 	virtual void OnConnected_ts(const ting::Ref<Connection>& c) = 0;
@@ -146,6 +137,7 @@ private:
 				);
 		}
 
+	private:
 		//override
 		virtual void OnConnected_ts(const ting::Ref<Connection>& c){
 			ASS(this->smt)->OnConnected_ts(c);
