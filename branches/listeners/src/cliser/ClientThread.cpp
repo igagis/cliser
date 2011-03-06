@@ -1,9 +1,5 @@
 // (c) Ivan Gagis
 // e-mail: igagis@gmail.com
-// Version: 1
-
-// Description:
-//          Network Thread class
 
 #include <ting/Thread.hpp>
 #include <ting/math.hpp>
@@ -14,13 +10,13 @@
 
 #include "ClientThread.hpp"
 
-using namespace ting;
+
 using namespace cliser;
 
 
 
-ClientThread::ClientThread(unsigned maxConnections) :
-		ConnectionsThread(maxConnections)
+ClientThread::ClientThread(unsigned maxConnections, cliser::Listener* listener) :
+		ConnectionsThread(maxConnections, listener)
 {
 	ASSERT(ting::SocketLib::IsCreated())
 }
@@ -35,7 +31,7 @@ ClientThread::~ClientThread(){
 ting::Ref<cliser::Connection> ClientThread::Connect_ts(const ting::IPAddress& ip){
     TRACE(<< "ClientThread::" << __func__ << "(): enter" << std::endl)
 
-	ting::Ref<cliser::Connection> conn = this->CreateConnectionObject();
+	ting::Ref<cliser::Connection> conn = ASS(this->listener)->CreateConnectionObject();
 	//send connect request to thread
 	this->PushMessage(
 			ting::Ptr<ting::Message>(
@@ -63,7 +59,7 @@ void ClientThread::HandleConnectRequest(
 		conn->socket.Open(ip);
 	}catch(ting::Socket::Exc &e){
 		TRACE(<< "ConnectToServerMessage::" << __func__ << "(): exception caught, e = " << e.What() << ", sending connect failed reply to main thread" << std::endl)
-		this->OnDisconnected_ts(conn);
+		ASS(this->listener)->OnDisconnected_ts(conn);
 		return;
 	}
 

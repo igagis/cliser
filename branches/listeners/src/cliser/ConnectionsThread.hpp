@@ -42,8 +42,10 @@ class ConnectionsThread : public ting::MsgThread{
 	T_ConnectionsList connections;
 	ting::WaitSet waitSet;
 
+protected:
+	cliser::Listener* const listener;
 private:
-	ConnectionsThread(unsigned maxConnections);
+	ConnectionsThread(unsigned maxConnections, cliser::Listener* listener);
 
 	//override
 	void Run();
@@ -51,23 +53,11 @@ private:
 	void HandleSocketActivity(ting::Ref<Connection>& conn);
 
 public:
-	~ConnectionsThread(){
-		M_SRV_CLIENTS_HANDLER_TRACE(<< "ConnectionsThread::" << __func__ << "(): invoked" << std::endl)
-		ASSERT(this->connections.size() == 0)
-	}
+	~ConnectionsThread();
 
 	inline unsigned MaxConnections()const{
 		return ASSCOND(this->waitSet.Size() - 1, > 0);
 	}
-
-private:
-	virtual void OnConnected_ts(const ting::Ref<Connection>& c) = 0;
-
-	virtual void OnDisconnected_ts(const ting::Ref<Connection>& c) = 0;
-
-	virtual bool OnDataReceived_ts(const ting::Ref<Connection>& c, const ting::Buffer<ting::u8>& d) = 0;
-
-	virtual void OnDataSent_ts(const ting::Ref<Connection>& c, unsigned numPacketsInQueue, bool addedToQueue){}
 
 private:
 	inline void AddSocketToSocketSet(

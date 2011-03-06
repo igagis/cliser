@@ -10,7 +10,11 @@ using namespace cliser;
 
 
 //override
-bool PacketServerThread::OnDataReceived_ts(const ting::Ref<Connection>& c, const ting::Buffer<ting::u8>& d){
+bool PacketServerThread::OnDataReceived_ts(const ting::Ref<Connection>& conn, const ting::Buffer<ting::u8>& d){
+	ting::Ref<PacketConnection> c(
+				static_cast<PacketConnection*>(conn.operator->())
+			);
+	
 	//TODO:
 
 	return true;
