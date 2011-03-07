@@ -21,7 +21,7 @@ class ConnectionsThread;
 
 
 
-class Connection : public ting::RefCounted{
+class Connection : public virtual ting::RefCounted{
 	friend class ConnectionsThread;
 	friend class ServerThread;
 	friend class ClientThread;
@@ -69,5 +69,29 @@ public:
 
 	ting::Array<ting::u8> GetReceivedData_ts();
 };
+
+
+
+class Listener{
+	typedef ting::Inited<unsigned, 0> T_Unsigned;
+public:
+	DEBUG_CODE(T_Unsigned numTimesAdded;)
+	
+	virtual ting::Ref<cliser::Connection> CreateConnectionObject() = 0;
+
+	virtual void OnConnected_ts(const ting::Ref<Connection>& c) = 0;
+
+	virtual void OnDisconnected_ts(const ting::Ref<Connection>& c) = 0;
+
+	virtual bool OnDataReceived_ts(const ting::Ref<Connection>& c, const ting::Buffer<ting::u8>& d) = 0;
+
+	virtual void OnDataSent_ts(const ting::Ref<Connection>& c, unsigned numPacketsInQueue, bool addedToQueue){}
+
+	virtual ~Listener(){
+		ASSERT(this->numTimesAdded == 0)
+	}
+};
+
+
 
 }//~namespace

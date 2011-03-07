@@ -58,28 +58,23 @@ class ServerThread : public ting::MsgThread{
 
 	unsigned maxClientsPerThread;
 
+	cliser::Listener* const listener;
+	
 public:
 	inline unsigned MaxClientsPerThread()const{
 		return this->maxClientsPerThread;
 	}
 
-	ServerThread(ting::u16 port, unsigned maxClientsPerThread);
+	ServerThread(
+			ting::u16 port,
+			unsigned maxClientsPerThread,
+			cliser::Listener* listener
+		);
 	
 	virtual ~ServerThread();
 
 	//override
 	void Run();
-
-private:
-	virtual ting::Ref<cliser::Connection> CreateConnectionObject() = 0;
-
-	virtual void OnConnected_ts(const ting::Ref<Connection>& c) = 0;
-
-	virtual void OnDisconnected_ts(const ting::Ref<Connection>& c) = 0;
-
-	virtual bool OnDataReceived_ts(const ting::Ref<Connection>& c, const ting::Buffer<ting::u8>& d) = 0;
-
-	virtual void OnDataSent_ts(const ting::Ref<Connection>& c, unsigned numPacketsInQueue, bool addedToQueue){}
 
 private:
 	ServerConnectionsThread* GetNotFullThread();
@@ -117,56 +112,70 @@ private:
 
 
 private:
-	class ServerConnectionsThread : public ConnectionsThread{
-		ServerThread* const smt;
-		
+	class ServerConnectionsThread : private cliser::Listener, public ConnectionsThread{
+		ServerThread* const serverThread;
 	public:
-		//This data is controlled by Server Main Thread
-		unsigned numConnections;
+		//This data is controlled by ServerThread
+		ting::Inited<unsigned, 0> numConnections;
 		//~
 
-		ServerConnectionsThread(ServerThread *serverThread, unsigned maxConnections) :
-				ConnectionsThread(maxConnections),
-				smt(ASS(serverThread)),
-				numConnections(0)
+		ServerConnectionsThread(
+				ServerThread* serverThread,
+				unsigned maxConnections
+			) :
+				ConnectionsThread(maxConnections, this),
+				serverThread(ASS(serverThread))
 		{}
 
-		inline static ting::Ptr<ServerConnectionsThread> New(ServerThread *serverThread, unsigned maxConnections){
-			return ting::Ptr<ServerConnectionsThread>(
-					new ServerConnectionsThread(serverThread,maxConnections)
-				);
-		}
-
-	private:
 		//override
-		virtual void OnConnected_ts(const ting::Ref<Connection>& c){
-			ASS(this->smt)->OnConnected_ts(c);
+		virtual ting::Ref<cliser::Connection> CreateConnectionObject(){
+			//this function will not be ever called.
+			ASSERT(false);
+			return ting::Ref<cliser::Connection>();
 		}
 
 		//override
-		virtual void OnDisconnected_ts(const ting::Ref<Connection>& c){
-			ASSERT(this->smt)
+		void OnConnected_ts(const ting::Ref<Connection>& c){
+			ASS(this->serverThread)->listener->OnConnected_ts(c);
+		}
 
+		//override
+		void OnDisconnected_ts(const ting::Ref<Connection>& c){
 			//Disconnection may be because thread is exiting because server main thread
-			//is also exiting, in that case no need tonotify server main thread.
+			//is also exiting, in that case no need to notify server main thread.
 			//Send notification message to server main thread only if thread is not exiting yet.
 			if(!this->quitFlag){
-				this->smt->PushMessage(
-						ting::Ptr<ting::Message>(new ServerThread::ConnectionRemovedMessage(this->smt, this))
+				this->serverThread->PushMessage(
+						ting::Ptr<ting::Message>(
+								new ServerThread::ConnectionRemovedMessage(this->serverThread, this)
+							)
 					);
 			}
 
-			this->smt->OnDisconnected_ts(c);
+			ASS(this->serverThread)->listener->OnDisconnected_ts(c);
 		}
 
 		//override
-		virtual bool OnDataReceived_ts(const ting::Ref<Connection>& c, const ting::Buffer<ting::u8>& d){
-			return ASS(this->smt)->OnDataReceived_ts(c, d);
+		bool OnDataReceived_ts(const ting::Ref<Connection>& c, const ting::Buffer<ting::u8>& d){
+			return ASS(this->serverThread)->listener->OnDataReceived_ts(c, d);
 		}
 
 		//override
-		virtual void OnDataSent_ts(const ting::Ref<Connection>& c, unsigned numPacketsInQueue, bool addedToQueue){
-			ASS(this->smt)->OnDataSent_ts(c, numPacketsInQueue, addedToQueue);
+		void OnDataSent_ts(const ting::Ref<Connection>& c, unsigned numPacketsInQueue, bool addedToQueue){
+			ASS(this->serverThread)->listener->OnDataSent_ts(c, numPacketsInQueue, addedToQueue);
+		}
+
+		inline static ting::Ptr<ServerConnectionsThread> New(
+				ServerThread* serverThread,
+				unsigned maxConnections
+			)
+		{
+			return ting::Ptr<ServerConnectionsThread>(
+					new ServerConnectionsThread(
+							serverThread,
+							maxConnections
+						)
+				);
 		}
 	};
 };

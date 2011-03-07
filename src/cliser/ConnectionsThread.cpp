@@ -22,10 +22,21 @@ using namespace cliser;
 
 
 
-ConnectionsThread::ConnectionsThread(unsigned maxConnections) :
-		waitSet(maxConnections + 1) //+1 for messages queue
+ConnectionsThread::ConnectionsThread(unsigned maxConnections, cliser::Listener* listener) :
+		waitSet(maxConnections + 1), //+1 for messages queue
+		listener(ASS(listener))
 {
 	M_SRV_CLIENTS_HANDLER_TRACE(<< "TCPClientsHandlerThread::" << __func__ << "(): invoked" << std::endl)
+	DEBUG_CODE(++this->listener->numTimesAdded;)
+}
+
+
+
+ConnectionsThread::~ConnectionsThread(){
+	M_SRV_CLIENTS_HANDLER_TRACE(<< "ConnectionsThread::" << __func__ << "(): invoked" << std::endl)
+	ASSERT(this->connections.size() == 0)
+	ASSERT(this->listener)
+	DEBUG_CODE(--this->listener->numTimesAdded;)
 }
 
 
@@ -81,7 +92,7 @@ void ConnectionsThread::Run(){
 		c->socket.Close();
 		c->ClearHandlingThread();
 
-		this->OnDisconnected_ts(c);
+		ASS(this->listener)->OnDisconnected_ts(c);
 	}
 	this->connections.clear();//clear clients list
 
@@ -108,12 +119,12 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 				ting::StaticBuffer<ting::u8, 0> buf;
 				conn->socket.Send(buf);
 
-				//under win32 the CanRead() assertion fails sometimes...
+				//under win32 the CanRead() assertion fails sometimes... //TODO: why?
 //				ASSERT(!conn->socket.CanRead())
 //				ASSERT(!conn->socket.CanWrite())
 
 				conn->SetHandlingThread(this);
-				this->OnConnected_ts(conn);
+				ASS(this->listener)->OnConnected_ts(conn);
 				TRACE(<< "ConnectionsThread::" << __func__ << "(): connection was successful" << std::endl)
 			}catch(ting::Socket::Exc& e){
 				TRACE(<< "ConnectionsThread::" << __func__ << "(): connection was unsuccessful: " << e.What() << std::endl)
@@ -138,7 +149,7 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 
 //					TRACE(<< "ConnectionsThread::" << __func__ << "(): Packet sent!!!!!!!!!!!!!!!!!!!!!" << std::endl)
 
-					this->OnDataSent_ts(conn, conn->packetQueue.size(), false);
+					ASS(this->listener)->OnDataSent_ts(conn, conn->packetQueue.size(), false);
 
 					if(conn->packetQueue.size() == 0){
 						//clear WRITE waiting flag.
@@ -167,7 +178,7 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 			unsigned bytesReceived = conn->socket.Recv(buffer);
 			if(bytesReceived != 0){
 				ting::Buffer<ting::u8> b(buffer.Begin(), bytesReceived);
-				if(!this->OnDataReceived_ts(conn, b)){
+				if(!ASS(this->listener)->OnDataReceived_ts(conn, b)){
 //					TRACE(<< "ConnectionsThread::HandleSocketActivity(): received data not handled!!!!!!!!!!!" << std::endl)
 					ting::Mutex::Guard mutexGuard(conn->mutex);
 					ASSERT(!conn->receivedData)
@@ -214,7 +225,7 @@ void ConnectionsThread::HandleAddConnectionMessage(const ting::Ref<Connection>& 
 			);
 	}catch(ting::Exc& e){
 		TRACE(<< "ConnectionsThread::" << __func__ << "(): adding socket to waitset failed: " << e.What() << std::endl)
-		this->OnDisconnected_ts(conn);
+		ASS(this->listener)->OnDisconnected_ts(conn);
 		return;
 	}
 
@@ -227,7 +238,7 @@ void ConnectionsThread::HandleAddConnectionMessage(const ting::Ref<Connection>& 
 		//set client's handling thread
 		conn->SetHandlingThread(this);
 
-		this->OnConnected_ts(conn);
+		ASS(this->listener)->OnConnected_ts(conn);
 	}else{
 		ASSERT(!conn->parentThread)
 	}
@@ -265,7 +276,7 @@ void ConnectionsThread::HandleRemoveConnectionMessage(ting::Ref<Connection>& con
 			conn->packetQueue.clear();
 
 			//notify client disconnection
-			this->OnDisconnected_ts(conn);
+			ASS(this->listener)->OnDisconnected_ts(conn);
 
 			return;
 		}
@@ -280,7 +291,7 @@ void ConnectionsThread::HandleSendDataMessage(ting::Ref<Connection>& conn, ting:
 	if(!conn->socket.IsValid()){
 		//put data to queue and notify
 		conn->packetQueue.push_back(data);
-		this->OnDataSent_ts(conn, conn->packetQueue.size(), true);
+		ASS(this->listener)->OnDataSent_ts(conn, conn->packetQueue.size(), true);
 		TRACE(<< "ConnectionsThread::" << __func__ << "(): socket is disconnected, ignoring message" << std::endl)
 		return;
 	}
@@ -288,7 +299,7 @@ void ConnectionsThread::HandleSendDataMessage(ting::Ref<Connection>& conn, ting:
 	if(conn->packetQueue.size() != 0){
 		TRACE(<< "ConnectionsThread::" << __func__ << "(): adding data to send queue right away" << std::endl)
 		conn->packetQueue.push_back(data);
-		this->OnDataSent_ts(conn, conn->packetQueue.size(), true);
+		ASS(this->listener)->OnDataSent_ts(conn, conn->packetQueue.size(), true);
 		return;
 	}else{
 		try{
@@ -304,11 +315,11 @@ void ConnectionsThread::HandleSendDataMessage(ting::Ref<Connection>& conn, ting:
 				this->waitSet.Change(&conn->socket, ting::Waitable::READ_AND_WRITE);
 
 				ASSERT_INFO(conn->packetQueue.size() == 1, conn->packetQueue.size())
-				this->OnDataSent_ts(conn, 1, true);
+				ASS(this->listener)->OnDataSent_ts(conn, 1, true);
 			}else{
 				TRACE(<< "ConnectionsThread::" << __func__ << "(): NOT adding data to send queue" << std::endl)
 				ASSERT_INFO(conn->packetQueue.size() == 0, conn->packetQueue.size())
-				this->OnDataSent_ts(conn, 0, false);
+				ASS(this->listener)->OnDataSent_ts(conn, 0, false);
 			}
 		}catch(ting::Socket::Exc& e){
 			TRACE(<< "ConnectionsThread::" << __func__ << "(): exception caught" << e.What() << std::endl)
