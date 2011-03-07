@@ -39,8 +39,8 @@ class ServerThread : public ting::MsgThread{
 			{
 				ASSERT(this->thread)
 				ASSERT(this->thr.IsValid())
-				this->thr->PushQuitMessage();//post a quit message to the thread before message is sent to threads kiler thread
-			};
+				this->thr->PushQuitMessage();//post a quit message to the thread before message is sent to threads killer thread
+			}
 
 			//override
 			void Handle();
@@ -123,6 +123,7 @@ private:
 				ServerThread* serverThread,
 				unsigned maxConnections
 			) :
+				cliser::Listener(),
 				ConnectionsThread(maxConnections, this),
 				serverThread(ASS(serverThread))
 		{}

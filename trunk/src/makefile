@@ -172,6 +172,7 @@ $(name): $(addprefix $(obj_dir)/,$(patsubst %.cpp,%.o,$(srcs)))
 ifeq ($(platform), win32)
 	@ar cr $@ $^
 else
+	@ar cr $(patsubst %.so,%.a,$@) $^
 	@$(compiler) $^ -o "$@".$(so_name) $(libs) $(linker_flags)
 	@ln -f -s $@.$(so_name) $@
 endif

@@ -287,17 +287,17 @@ void ConnectionsThread::HandleRemoveConnectionMessage(ting::Ref<Connection>& con
 
 
 void ConnectionsThread::HandleSendDataMessage(ting::Ref<Connection>& conn, ting::Array<ting::u8> data){
-	TRACE(<< "ConnectionsThread::" << __func__ << "(): enter" << std::endl)
+//	TRACE(<< "ConnectionsThread::" << __func__ << "(): enter" << std::endl)
 	if(!conn->socket.IsValid()){
 		//put data to queue and notify
 		conn->packetQueue.push_back(data);
 		ASS(this->listener)->OnDataSent_ts(conn, conn->packetQueue.size(), true);
-		TRACE(<< "ConnectionsThread::" << __func__ << "(): socket is disconnected, ignoring message" << std::endl)
+//		TRACE(<< "ConnectionsThread::" << __func__ << "(): socket is disconnected, ignoring message" << std::endl)
 		return;
 	}
 
 	if(conn->packetQueue.size() != 0){
-		TRACE(<< "ConnectionsThread::" << __func__ << "(): adding data to send queue right away" << std::endl)
+//		TRACE(<< "ConnectionsThread::" << __func__ << "(): adding data to send queue right away" << std::endl)
 		conn->packetQueue.push_back(data);
 		ASS(this->listener)->OnDataSent_ts(conn, conn->packetQueue.size(), true);
 		return;
@@ -307,7 +307,7 @@ void ConnectionsThread::HandleSendDataMessage(ting::Ref<Connection>& conn, ting:
 			ASSERT(numBytesSent <= data.Size())
 
 			if(numBytesSent != data.Size()){
-				TRACE(<< "ConnectionsThread::" << __func__ << "(): adding data to send queue" << std::endl)
+//				TRACE(<< "ConnectionsThread::" << __func__ << "(): adding data to send queue" << std::endl)
 				conn->dataSent = numBytesSent;
 				conn->packetQueue.push_back(data);
 
@@ -317,7 +317,7 @@ void ConnectionsThread::HandleSendDataMessage(ting::Ref<Connection>& conn, ting:
 				ASSERT_INFO(conn->packetQueue.size() == 1, conn->packetQueue.size())
 				ASS(this->listener)->OnDataSent_ts(conn, 1, true);
 			}else{
-				TRACE(<< "ConnectionsThread::" << __func__ << "(): NOT adding data to send queue" << std::endl)
+//				TRACE(<< "ConnectionsThread::" << __func__ << "(): NOT adding data to send queue" << std::endl)
 				ASSERT_INFO(conn->packetQueue.size() == 0, conn->packetQueue.size())
 				ASS(this->listener)->OnDataSent_ts(conn, 0, false);
 			}
@@ -326,7 +326,7 @@ void ConnectionsThread::HandleSendDataMessage(ting::Ref<Connection>& conn, ting:
 			conn->Disconnect_ts();
 		}
 	}
-	TRACE(<< "ConnectionsThread::" << __func__ << "(): exit" << std::endl)
+//	TRACE(<< "ConnectionsThread::" << __func__ << "(): exit" << std::endl)
 }
 
 
