@@ -63,6 +63,7 @@ public:
 class Server : private cliser::Listener, public cliser::ServerThread{
 public:
 	Server() :
+			cliser::Listener(),
 			cliser::ServerThread(13666, 2, this)
 	{}
 
@@ -107,6 +108,7 @@ private:
 class Client : private cliser::Listener, public cliser::ClientThread{
 public:
 	Client() :
+			cliser::Listener(),
 			cliser::ClientThread(63, this) //max connections
 	{}
 

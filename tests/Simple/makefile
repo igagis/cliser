@@ -34,6 +34,9 @@ else
 endif
 
 
+compiler := g++
+
+
 default: $(binary_name)
 
 
@@ -53,7 +56,7 @@ $(cliserlib):
 
 $(binary_name): $(srcs) $(cliserlib)
 	@echo Building $@...
-	@g++ -o $@ $(cf) $(srcs) $(libs)
+	@$(compiler) -o $@ $(cf) $(srcs) $(libs)
 
 clean:
 	@$(remove) $(binary_name)
