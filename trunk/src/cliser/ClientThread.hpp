@@ -31,7 +31,7 @@ class ClientThread : public cliser::ConnectionsThread{
 
 
 public:
-	ClientThread(unsigned maxConnections);
+	ClientThread(unsigned maxConnections, cliser::Listener* listener);
     
 	virtual ~ClientThread();
 

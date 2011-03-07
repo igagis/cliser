@@ -15,17 +15,26 @@ using namespace cliser;
 
 
 
-ServerThread::ServerThread(ting::u16 port, unsigned maxClientsPerThread) :
+ServerThread::ServerThread(
+		ting::u16 port,
+		unsigned maxClientsPerThread,
+		cliser::Listener* listener
+	) :
 		port(port),
-		maxClientsPerThread(maxClientsPerThread)
+		maxClientsPerThread(maxClientsPerThread),
+		listener(listener)
 {
 	ASSERT(ting::SocketLib::IsCreated())
+
+	DEBUG_CODE(++this->listener->numTimesAdded;)
 }
 
 
 
 ServerThread::~ServerThread(){
 	ASSERT(this->clientsThreads.size() == 0)
+
+	DEBUG_CODE(--this->listener->numTimesAdded;)
 }
 
 
@@ -131,7 +140,7 @@ void ServerThread::HandleNewConnection(ting::TCPSocket socket){
 
 	ASSERT(thr)
 
-	ting::Ref<Connection> conn = this->CreateConnectionObject();
+	ting::Ref<Connection> conn = ASS(this->listener)->CreateConnectionObject();
 
 	//set client socket
 	conn->socket = socket;

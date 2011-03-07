@@ -12,8 +12,8 @@ class Packet;
 
 
 
-//TODO: make inheritance private?
-class PacketConnection : public Connection{
+class PacketConnection : private Connection, public virtual ting::RefCounted{
+	friend class PacketServerThread;
 public:
 
 	void Send_ts(Packet packet);
