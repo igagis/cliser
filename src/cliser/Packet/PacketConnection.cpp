@@ -44,3 +44,23 @@ void PacketConnection::SendCopy_ts(const ting::Buffer<ting::u8>& packet){
 	memcpy(p.Begin(), packet.Begin(), p.Size());
 	this->Send_ts(p);
 }
+
+
+
+ting::Array<ting::u8> PacketConnection::GetReceivedPacket_ts(){
+	//TODO:
+}
+
+
+
+//override
+bool PacketListener::InternalListener::OnDataReceived_ts(
+		const ting::Ref<Connection>& c,
+		const ting::Buffer<ting::u8>& d
+	)
+{
+	ting::Ref<PacketConnection> conn(static_cast<PacketConnection*>(c.operator->()));
+
+	
+	//TODO:
+}
