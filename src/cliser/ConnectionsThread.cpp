@@ -178,9 +178,9 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 			unsigned bytesReceived = conn->socket.Recv(buffer);
 			if(bytesReceived != 0){
 				ting::Buffer<ting::u8> b(buffer.Begin(), bytesReceived);
+				ting::Mutex::Guard mutexGuard(conn->mutex);
 				if(!ASS(this->listener)->OnDataReceived_ts(conn, b)){
 //					TRACE(<< "ConnectionsThread::HandleSocketActivity(): received data not handled!!!!!!!!!!!" << std::endl)
-					ting::Mutex::Guard mutexGuard(conn->mutex);
 					ASSERT(!conn->receivedData)
 
 					conn->receivedData.Init(b);
