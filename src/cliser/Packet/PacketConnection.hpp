@@ -53,7 +53,7 @@ public:
 	}
 
 private:
-	ting::Array<ting::u8> HandleIncomingData_ts(const ting::Buffer<ting::u8>& data, PacketListener *listener);
+	ting::u16 HandleIncomingData_ts(const ting::Buffer<ting::u8>& data);
 };
 
 
