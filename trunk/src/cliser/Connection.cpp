@@ -14,7 +14,7 @@ using namespace cliser;
 
 
 void Connection::Send_ts(ting::Array<ting::u8> data){
-	ting::Mutex::Guard mutexGuard(this->mutex);//make sure that this->clientThread won't be zeroed out by other thread
+	ting::Mutex::Guard mutexGuard(this->parentThreadMutex);//make sure that this->clientThread won't be zeroed out by other thread
 	if(!this->parentThread){
 		//client disconnected, do nothing
 		TRACE(<< "Connection::" << __func__ << "(): client disconnected" << std::endl)
@@ -41,7 +41,7 @@ void Connection::SendCopy_ts(const ting::Buffer<ting::u8>& data){
 
 
 void Connection::Disconnect_ts(){
-	ting::Mutex::Guard mutexGuard(this->mutex);
+	ting::Mutex::Guard mutexGuard(this->parentThreadMutex);
 	if(!this->parentThread){
 		//client disconnected, do nothing
 		return;
@@ -60,7 +60,7 @@ void Connection::Disconnect_ts(){
 
 
 ting::Array<ting::u8> Connection::GetReceivedData_ts(){
-	ting::Mutex::Guard mutexGuard(this->mutex);
+	ting::Mutex::Guard mutexGuard(this->receivedDataMutex);
 
 	//Send the message to parent thread only if
 	//there was received data stored, which means
