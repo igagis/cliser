@@ -58,7 +58,7 @@ private:
 
 		//override
 		void Handle(){
-		//	TRACE(<< "ConnectToServerMessage::" << __func__ << "(): host=" << reinterpret_cast<void*>(ip.host) << " port=" << (ip.port) << std::endl)
+//			TRACE(<< "ConnectToServerMessage::" << __func__ << "(): host=" << reinterpret_cast<void*>(ip.host) << " port=" << (ip.port) << std::endl)
 			this->ct->HandleConnectRequest(this->ip, this->conn);
 		}
 	};

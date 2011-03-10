@@ -41,9 +41,6 @@ srcs += cliser/ClientThread.cpp
 srcs += cliser/Connection.cpp
 srcs += cliser/ConnectionsThread.cpp
 srcs += cliser/ServerThread.cpp
-#srcs += cliser/Packet/PacketConnection.cpp
-#srcs += cliser/Packet/PacketClientThread.cpp
-#srcs += cliser/Packet/PacketServerThread.cpp
 
 
 
