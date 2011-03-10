@@ -29,7 +29,7 @@ ClientThread::~ClientThread(){
 
 
 ting::Ref<cliser::Connection> ClientThread::Connect_ts(const ting::IPAddress& ip){
-    TRACE(<< "ClientThread::" << __func__ << "(): enter" << std::endl)
+//    TRACE(<< "ClientThread::" << __func__ << "(): enter" << std::endl)
 
 	ting::Ref<cliser::Connection> conn = ASS(this->listener)->CreateConnectionObject();
 	//send connect request to thread
@@ -58,7 +58,7 @@ void ClientThread::HandleConnectRequest(
 		ASSERT(conn->socket.IsNotValid())
 		conn->socket.Open(ip);
 	}catch(ting::Socket::Exc &e){
-		TRACE(<< "ConnectToServerMessage::" << __func__ << "(): exception caught, e = " << e.What() << ", sending connect failed reply to main thread" << std::endl)
+//		TRACE(<< "ConnectToServerMessage::" << __func__ << "(): exception caught, e = " << e.What() << ", sending connect failed reply to main thread" << std::endl)
 		ASS(this->listener)->OnDisconnected_ts(conn);
 		return;
 	}

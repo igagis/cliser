@@ -78,7 +78,7 @@ void ServerThread::Run(){
 	waitSet.Remove(&this->queue);
 	waitSet.Remove(&sock);
 
-	TRACE(<< "ServerThread::" << __func__ << "(): quiting thread" << std::endl)
+//	TRACE(<< "ServerThread::" << __func__ << "(): quiting thread" << std::endl)
 
 	this->threadsKillerThread.PushQuitMessage();
 
@@ -99,7 +99,7 @@ void ServerThread::Run(){
 
 	this->threadsKillerThread.Join();
 
-	TRACE(<< "ServerThread::" << __func__ << "(): exit" << std::endl)
+//	TRACE(<< "ServerThread::" << __func__ << "(): exit" << std::endl)
 }
 
 
@@ -131,7 +131,7 @@ void ServerThread::HandleNewConnection(ting::TCPSocket socket){
 	try{
 		 thr = this->GetNotFullThread();
 	}catch(std::exception& e){
-		TRACE_AND_LOG(<< "ServerThread::" << __func__ << "(): GetNotFullThread() failed: " << e.what() << std::endl)
+//		TRACE_AND_LOG(<< "ServerThread::" << __func__ << "(): GetNotFullThread() failed: " << e.what() << std::endl)
 		//failed getting not full thread, possibly maximum threads limit set by system reached
 		//ignore connection
 		socket.Close();
@@ -200,7 +200,7 @@ void ServerThread::ThreadsKillerThread::Run(){
 		this->queue.GetMsg()->Handle();
 //		TRACE(<< "ThreadsKillerThread::" << __func__ << "(): message handled, qf = " << this->quitFlag << std::endl)
 	}
-	TRACE(<< "ThreadsKillerThread::" << __func__ << "(): exit" << std::endl)
+//	TRACE(<< "ThreadsKillerThread::" << __func__ << "(): exit" << std::endl)
 }
 
 

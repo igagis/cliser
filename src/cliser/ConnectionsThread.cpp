@@ -82,7 +82,7 @@ void ConnectionsThread::Run(){
 //		M_SRV_CLIENTS_HANDLER_TRACE(<<"TCPClientsHandlerThread::Run(): cycle"<<std::endl)
 	}//~while(): main loop of the thread
 
-	TRACE(<< "ConnectionsThread::" << __func__ << "(): disconnect all clients" << std::endl)
+//	TRACE(<< "ConnectionsThread::" << __func__ << "(): disconnect all clients" << std::endl)
 
 	//disconnect all clients, removing sockets from wait set
 	for(T_ConnectionsIter i = this->connections.begin(); i != this->connections.end(); ++i){
@@ -99,7 +99,7 @@ void ConnectionsThread::Run(){
 	this->waitSet.Remove(&this->queue);
 
 	ASSERT(this->connections.size() == 0)
-	TRACE(<< "ConnectionsThread::" << __func__ << "(): exiting" << std::endl)
+//	TRACE(<< "ConnectionsThread::" << __func__ << "(): exiting" << std::endl)
 	M_SRV_CLIENTS_HANDLER_TRACE(<< "ConnectionsThread::" << __func__ << "(): exiting" << std::endl)
 }
 
@@ -125,9 +125,9 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 
 				conn->SetHandlingThread(this);
 				ASS(this->listener)->OnConnected_ts(conn);
-				TRACE(<< "ConnectionsThread::" << __func__ << "(): connection was successful" << std::endl)
+//				TRACE(<< "ConnectionsThread::" << __func__ << "(): connection was successful" << std::endl)
 			}catch(ting::Socket::Exc& e){
-				TRACE(<< "ConnectionsThread::" << __func__ << "(): connection was unsuccessful: " << e.What() << std::endl)
+//				TRACE(<< "ConnectionsThread::" << __func__ << "(): connection was unsuccessful: " << e.What() << std::endl)
 				this->HandleRemoveConnectionMessage(conn);
 				return;
 			}
@@ -162,7 +162,7 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 					}
 				}
 			}catch(ting::Socket::Exc &e){
-				TRACE(<< "ConnectionsThread::" << __func__ << "(): exception caught while sending: " << e.What() << std::endl)
+//				TRACE(<< "ConnectionsThread::" << __func__ << "(): exception caught while sending: " << e.What() << std::endl)
 				this->HandleRemoveConnectionMessage(conn);
 				return;
 			}
@@ -198,7 +198,7 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 				return;
 			}
 		}catch(ting::Socket::Exc &e){
-			TRACE(<< "ConnectionsThread::" << __func__ << "(): exception caught while reading: " << e.What() << std::endl)
+//			TRACE(<< "ConnectionsThread::" << __func__ << "(): exception caught while reading: " << e.What() << std::endl)
 			this->HandleRemoveConnectionMessage(conn);
 			return;
 		}
@@ -224,7 +224,7 @@ void ConnectionsThread::HandleAddConnectionMessage(const ting::Ref<Connection>& 
 				isConnected ? ting::Waitable::READ : ting::Waitable::WRITE
 			);
 	}catch(ting::Exc& e){
-		TRACE(<< "ConnectionsThread::" << __func__ << "(): adding socket to waitset failed: " << e.What() << std::endl)
+//		TRACE(<< "ConnectionsThread::" << __func__ << "(): adding socket to waitset failed: " << e.What() << std::endl)
 		ASS(this->listener)->OnDisconnected_ts(conn);
 		return;
 	}
@@ -288,6 +288,11 @@ void ConnectionsThread::HandleRemoveConnectionMessage(ting::Ref<Connection>& con
 
 void ConnectionsThread::HandleSendDataMessage(ting::Ref<Connection>& conn, ting::Array<ting::u8> data){
 //	TRACE(<< "ConnectionsThread::" << __func__ << "(): enter" << std::endl)
+	
+	//It is possible that data is send to a connection which is not yet estabilished.
+	//This may happen when on client side afterrequesting the Connect_ts()
+	//client tries to send the data immediately. But since connect is an
+	//asynchronous operation socket may be invalid before connect operation is completed.
 	if(!conn->socket.IsValid()){
 		//put data to queue and notify
 		conn->packetQueue.push_back(data);
@@ -322,7 +327,7 @@ void ConnectionsThread::HandleSendDataMessage(ting::Ref<Connection>& conn, ting:
 				ASS(this->listener)->OnDataSent_ts(conn, 0, false);
 			}
 		}catch(ting::Socket::Exc& e){
-			TRACE(<< "ConnectionsThread::" << __func__ << "(): exception caught" << e.What() << std::endl)
+//			TRACE(<< "ConnectionsThread::" << __func__ << "(): exception caught" << e.What() << std::endl)
 			conn->Disconnect_ts();
 		}
 	}
