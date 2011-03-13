@@ -1,5 +1,6 @@
 subdirs :=
 subdirs += Simple
+subdirs += ConnectDisconnect
 
 
 
