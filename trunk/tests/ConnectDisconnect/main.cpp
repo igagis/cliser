@@ -214,6 +214,14 @@ private:
 int main(int argc, char *argv[]){
 	TRACE_ALWAYS(<< "Cliser test" << std::endl)
 
+	unsigned msec = 20000;
+
+	if(argc >= 2){
+		if(std::string("0") == argv[1]){
+			msec = 0;
+		}
+	}
+
 	ting::SocketLib socketsLib;
 
 	Server server;
@@ -228,7 +236,13 @@ int main(int argc, char *argv[]){
 		client.Connect_ts(ting::IPAddress(DIpAddress, DPort));
 	}
 
-	ting::Thread::Sleep(20000);
+	if(msec == 0){
+		while(true){
+			ting::Thread::Sleep(1000000);
+		}
+	}else{
+		ting::Thread::Sleep(20000);
+	}
 
     client.PushQuitMessage();
     client.Join();
