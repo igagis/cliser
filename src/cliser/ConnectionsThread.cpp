@@ -70,8 +70,10 @@ void ConnectionsThread::Run(){
 				//socket
 				ASSERT(*p != &this->queue)
 
+				ASSERT((*p)->GetUserData())
+
 				ting::Ref<cliser::Connection> conn(
-						reinterpret_cast<cliser::Connection*>(ASS((*p)->GetUserData()))
+						reinterpret_cast<cliser::Connection*>((*p)->GetUserData())
 					);
 				ASSERT(conn)
 
@@ -220,12 +222,16 @@ void ConnectionsThread::HandleAddConnectionMessage(const ting::Ref<Connection>& 
 //    ASSERT(!this->thread->IsFull())
 
 	//set Waitable pointer to connection
-	conn->socket.SetUserData(conn.operator->());
+	conn->socket.SetUserData(
+			reinterpret_cast<void*>(
+					static_cast<cliser::Connection*>(conn.operator->())//NOTE: static cast just to make sure we have cliser::Connection*
+				)
+		);
 
 	//add socket to waitset
 	try{
 		this->AddSocketToSocketSet(
-				&conn->socket,
+				&(conn->socket),
 				//if not connected, will be waiting for WRITE, because WRITE indicates that connect request has finished.
 				isConnected ? ting::Waitable::READ : ting::Waitable::WRITE
 			);
