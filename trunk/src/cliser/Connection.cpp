@@ -62,13 +62,17 @@ void Connection::Disconnect_ts(){
 ting::Array<ting::u8> Connection::GetReceivedData_ts(){
 	ting::Mutex::Guard mutexGuard(this->receivedDataMutex);
 
+	ting::Array<ting::u8> ret;
+
 	//Send the message to parent thread only if
 	//there was received data stored, which means
 	//that socket is not listened for READ condition.
 	if(this->receivedData && this->parentThread){
 		ting::Ref<Connection> c(this);
 		ASSERT(c)
-		
+
+		ret = this->receivedData;
+
 		//send message to parentHandler thread
 		ASS(this->parentThread)->PushMessage(
 				ting::Ptr<ting::Message>(
@@ -77,7 +81,7 @@ ting::Array<ting::u8> Connection::GetReceivedData_ts(){
 			);
 	}
 
-	return this->receivedData;
+	return ret;
 }
 
 

@@ -281,7 +281,11 @@ void ConnectionsThread::HandleRemoveConnectionMessage(ting::Ref<Connection>& con
 			return;
 		}
 	}
-	ASSERT(false)
+
+	//NOTE: it is possible that disconnection request message is posted to the threads message queue
+	//      and before it is handled the connection is disconnected by peer. Thus, we will not find the
+	//      connection in the list of connections here, so, do not ASSERT(false).
+	//ASSERT(false)
 }
 
 

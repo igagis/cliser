@@ -3,14 +3,6 @@
   <logicalFolder name="root" displayName="root" projectFiles="true">
     <df name="src" root="../src">
       <df name="cliser" kind="SOURCE_LOGICAL_FOLDER">
-        <df name="Packet">
-          <in>PacketClientThread.cpp</in>
-          <in>PacketClientThread.hpp</in>
-          <in>PacketConnection.cpp</in>
-          <in>PacketConnection.hpp</in>
-          <in>PacketServerThread.cpp</in>
-          <in>PacketServerThread.hpp</in>
-        </df>
         <in>ClientThread.cpp</in>
         <in>ClientThread.hpp</in>
         <in>Connection.cpp</in>
@@ -24,8 +16,6 @@
         <df name="1">
           <df name="2" kind="SOURCE_LOGICAL_FOLDER">
             <df name="cliser" kind="SOURCE_LOGICAL_FOLDER">
-              <df name="Packet" kind="SOURCE_LOGICAL_FOLDER">
-              </df>
             </df>
           </df>
         </df>
@@ -34,9 +24,7 @@
     <df name="tests" root="../tests">
       <df name="Simple">
         <in>main.cpp</in>
-        <in>makefile</in>
       </df>
-      <in>makefile</in>
     </df>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
