@@ -120,8 +120,8 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 				conn->socket.Send(buf);
 
 				//under win32 the CanRead() assertion fails sometimes... //TODO: why?
-//				ASSERT(!conn->socket.CanRead())
-//				ASSERT(!conn->socket.CanWrite())
+//				ASSERT(!conn->socket.CanRead())//TODO: remove?
+				ASSERT(!conn->socket.CanWrite())
 
 				conn->SetHandlingThread(this);
 				ASS(this->listener)->OnConnected_ts(conn);
@@ -176,9 +176,11 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 
 		try{
 			unsigned bytesReceived = conn->socket.Recv(buffer);
+			ASSERT(!conn->socket.CanRead())
 			if(bytesReceived != 0){
 				ting::Buffer<ting::u8> b(buffer.Begin(), bytesReceived);
 				ting::Mutex::Guard mutexGuard(conn->receivedDataMutex);
+				ASSERT(!conn->receivedData)
 				if(!ASS(this->listener)->OnDataReceived_ts(conn, b)){
 //					TRACE(<< "ConnectionsThread::HandleSocketActivity(): received data not handled!!!!!!!!!!!" << std::endl)
 					ASSERT(!conn->receivedData)
@@ -202,6 +204,10 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 			this->HandleRemoveConnectionMessage(conn);
 			return;
 		}
+	}
+
+	if(conn->socket.ErrorCondition()){
+		this->HandleRemoveConnectionMessage(conn);
 	}
 }
 
