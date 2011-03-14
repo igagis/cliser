@@ -75,9 +75,15 @@ public:
 
 
 class Listener{
-	typedef ting::Inited<unsigned, 0> T_Unsigned;
+
+	//NOTE: this numTimesAdded variable is only needed to check that
+	//      the listener object has not been deleted before its owner
+	//      (the object which does notifications through this listener).
+	friend class cliser::ConnectionsThread;
+	friend class ServerThread;
+	ting::Inited<unsigned, 0> numTimesAdded;
+
 public:
-	DEBUG_CODE(T_Unsigned numTimesAdded;)
 	
 	virtual ting::Ref<cliser::Connection> CreateConnectionObject() = 0;
 
