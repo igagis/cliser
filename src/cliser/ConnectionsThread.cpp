@@ -27,7 +27,7 @@ ConnectionsThread::ConnectionsThread(unsigned maxConnections, cliser::Listener* 
 		listener(ASS(listener))
 {
 	M_SRV_CLIENTS_HANDLER_TRACE(<< "TCPClientsHandlerThread::" << __func__ << "(): invoked" << std::endl)
-	DEBUG_CODE(++this->listener->numTimesAdded;)
+	++this->listener->numTimesAdded;
 }
 
 
@@ -36,7 +36,7 @@ ConnectionsThread::~ConnectionsThread(){
 	M_SRV_CLIENTS_HANDLER_TRACE(<< "ConnectionsThread::" << __func__ << "(): invoked" << std::endl)
 	ASSERT(this->connections.size() == 0)
 	ASSERT(this->listener)
-	DEBUG_CODE(--this->listener->numTimesAdded;)
+	--this->listener->numTimesAdded;
 }
 
 

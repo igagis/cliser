@@ -26,7 +26,7 @@ ServerThread::ServerThread(
 {
 	ASSERT(ting::SocketLib::IsCreated())
 
-	DEBUG_CODE(++this->listener->numTimesAdded;)
+	++this->listener->numTimesAdded;
 }
 
 
@@ -34,7 +34,7 @@ ServerThread::ServerThread(
 ServerThread::~ServerThread(){
 	ASSERT(this->clientsThreads.size() == 0)
 
-	DEBUG_CODE(--this->listener->numTimesAdded;)
+	--this->listener->numTimesAdded;
 }
 
 
