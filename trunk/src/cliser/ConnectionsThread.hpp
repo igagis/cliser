@@ -29,15 +29,16 @@ namespace cliser{
 
 //forward declarations
 class ServerThread;
+class ClientThread;
 
 
 
 class ConnectionsThread : public ting::MsgThread{
-	friend class ServerThread;
-	friend class ClientThread;
-	friend class Connection;
+	friend class cliser::ServerThread;
+	friend class cliser::ClientThread;
+	friend class cliser::Connection;
 
-	typedef std::list<ting::Ref<Connection> > T_ConnectionsList;
+	typedef std::list<ting::Ref<cliser::Connection> > T_ConnectionsList;
 	typedef T_ConnectionsList::iterator T_ConnectionsIter;
 	T_ConnectionsList connections;
 	ting::WaitSet waitSet;
@@ -50,7 +51,7 @@ private:
 	//override
 	void Run();
 
-	void HandleSocketActivity(ting::Ref<Connection>& conn);
+	void HandleSocketActivity(ting::Ref<cliser::Connection>& conn);
 
 public:
 	~ConnectionsThread();
