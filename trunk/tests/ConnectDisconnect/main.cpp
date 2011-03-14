@@ -184,7 +184,7 @@ private:
 			conn->isConnected = false;
 		}else{
 			//if we get here then it is a connect request failure
-			ASSERT_ALWAYS(false)
+			ASSERT_INFO_ALWAYS(false, "Connection failed")
 		}
 
 		this->Connect_ts(ting::IPAddress(DIpAddress, DPort));
