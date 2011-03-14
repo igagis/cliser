@@ -60,12 +60,11 @@ void ConnectionsThread::Run(){
 			ASSERT(*p)
 
 			if(*p == &this->queue){
-				//queue
-				ASSERT(this->queue.CanRead())
-				while(ting::Ptr<ting::Message> m = this->queue.PeekMsg()){
-					M_SRV_CLIENTS_HANDLER_TRACE(<< "ConnectionsThread::" << __func__ << "(): message got" << std::endl)
-					m->Handle();
-				}
+				//Do not handle messages here, first handle all activities from sockets.
+				//Check if there are messages and handle them only after all sockets are
+				//handled. This is because connection can be removed as a result of handling some message while
+				//pointer to the waitable will still be in the buffer of triggered waitables, thus
+				//this pointer to waitable will be invalid.
 			}else{
 				//socket
 				ASSERT(*p != &this->queue)
@@ -80,6 +79,15 @@ void ConnectionsThread::Run(){
 				this->HandleSocketActivity(conn);
 			}
 		}//~for()
+
+		//At this point we have handled all the socket activities and now we can proceed with
+		//handling messages if there are any.
+		if(this->queue.CanRead()){
+			while(ting::Ptr<ting::Message> m = this->queue.PeekMsg()){
+				M_SRV_CLIENTS_HANDLER_TRACE(<< "ConnectionsThread::" << __func__ << "(): message got" << std::endl)
+				m->Handle();
+			}
+		}
 
 //		M_SRV_CLIENTS_HANDLER_TRACE(<<"TCPClientsHandlerThread::Run(): cycle"<<std::endl)
 	}//~while(): main loop of the thread
@@ -217,9 +225,8 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 
 void ConnectionsThread::HandleAddConnectionMessage(const ting::Ref<Connection>& conn, bool isConnected){
 	M_SRV_CLIENTS_HANDLER_TRACE(<< "ConnectionsThread::" << __func__ << "(): enter" << std::endl)
-//    TRACE (<< "ConnectionsThread::HandleAddConnectionMessage(): enter" << std::endl)
 
-//    ASSERT(!this->thread->IsFull())
+	ASSERT(conn)
 
 	//set Waitable pointer to connection
 	conn->socket.SetUserData(
@@ -227,6 +234,7 @@ void ConnectionsThread::HandleAddConnectionMessage(const ting::Ref<Connection>& 
 					static_cast<cliser::Connection*>(conn.operator->())//NOTE: static cast just to make sure we have cliser::Connection*
 				)
 		);
+	ASSERT(reinterpret_cast<cliser::Connection*>(conn->socket.GetUserData()) == conn.operator->())
 
 	//add socket to waitset
 	try{
@@ -258,14 +266,13 @@ void ConnectionsThread::HandleAddConnectionMessage(const ting::Ref<Connection>& 
 	ASSERT(!conn->socket.CanRead())
 	ASSERT(!conn->socket.CanWrite())
 
-	//ASSERT(this->thread->numPlayers <= this->thread->players.Size())
 	M_SRV_CLIENTS_HANDLER_TRACE(<< "ConnectionsThread::" << __func__ << "(): exit" << std::endl)
 }
 
 
 
 //removing client means disconnect as well
-void ConnectionsThread::HandleRemoveConnectionMessage(ting::Ref<Connection>& conn){
+void ConnectionsThread::HandleRemoveConnectionMessage(ting::Ref<cliser::Connection>& conn){
 	M_SRV_CLIENTS_HANDLER_TRACE(<< "ConnectionsThread::" << __func__ << "(): enter" << std::endl)
 
 	ASSERT(conn.IsValid())
@@ -276,9 +283,10 @@ void ConnectionsThread::HandleRemoveConnectionMessage(ting::Ref<Connection>& con
 		)
 	{
 		if((*i) == conn){
-			this->connections.erase(i);//remove client from list
+			ASSERT((*i) == conn)
+			ASSERT((*i).operator->() == conn.operator->())
 
-			this->RemoveSocketFromSocketSet(&(*i)->socket);
+			this->RemoveSocketFromSocketSet(&(conn->socket));
 
 			conn->socket.Close();//close connection if it is opened
 
@@ -289,6 +297,8 @@ void ConnectionsThread::HandleRemoveConnectionMessage(ting::Ref<Connection>& con
 
 			//notify client disconnection
 			ASS(this->listener)->OnDisconnected_ts(conn);
+
+			this->connections.erase(i);//remove client from list
 
 			return;
 		}
