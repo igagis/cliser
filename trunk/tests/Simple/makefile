@@ -20,8 +20,12 @@ endif
 
 
 #compiler flags
-cf := -Wall -I../../src
-cf += -DDEBUG
+ecf := -DDEBUG
+
+cf := $(ecf)
+cf += -Wall
+cf += -g
+cf += -I../../src
 
 
 ifeq ($(platform),win32)
