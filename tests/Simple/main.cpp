@@ -136,7 +136,7 @@ private:
 			conn->isConnected = false;
 		}else{
 			//if we get here then it is a connect request failure
-			ASSERT_ALWAYS(conn->isConnected)
+			ASSERT_INFO_ALWAYS(conn->isConnected, "Connect request failure")
 		}
 	}
 

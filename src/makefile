@@ -139,9 +139,9 @@ remove_on_clean:=
 
 #remove program
 ifeq ($(platform),win32)
-    remove:=del /F /Q
+    remove := del /Q /F
 else
-    remove:=rm -f
+    remove := rm -f
 endif
 
 obj_dir := obj/1/2

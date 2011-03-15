@@ -165,8 +165,11 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 						//clear WRITE waiting flag.
 
 						ting::Waitable::EReadinessFlags flags = ting::Waitable::NOT_READY;
-						if(!conn->receivedData){
-							flags = ting::Waitable::EReadinessFlags(flags | ting::Waitable::READ);
+						{
+							ting::Mutex::Guard mutexGuard(conn->receivedDataMutex);
+							if(!conn->receivedData){
+								flags = ting::Waitable::EReadinessFlags(flags | ting::Waitable::READ);
+							}
 						}
 						this->waitSet.Change(&conn->socket, flags);
 					}
@@ -343,7 +346,14 @@ void ConnectionsThread::HandleSendDataMessage(ting::Ref<Connection>& conn, ting:
 				conn->packetQueue.push_back(data);
 
 				//Set WRITE wait flag
-				this->waitSet.Change(&conn->socket, ting::Waitable::READ_AND_WRITE);
+				ting::Waitable::EReadinessFlags flags = ting::Waitable::WRITE;
+				{
+					ting::Mutex::Guard mutexGuard(conn->receivedDataMutex);
+					if(!conn->receivedData){
+						flags = ting::Waitable::EReadinessFlags(flags | ting::Waitable::READ);
+					}
+				}
+				this->waitSet.Change(&conn->socket, flags);
 
 				ASSERT_INFO(conn->packetQueue.size() == 1, conn->packetQueue.size())
 				ASS(this->listener)->OnDataSent_ts(conn, 1, true);
