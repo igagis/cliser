@@ -46,9 +46,11 @@ public:
 			return;
 		}
 
-		ting::Array<ting::u8> buf(sizeof(ting::u32) * ( (std::min)(ting::u32(0xfffff / 4), DMaxCnt - this->cnt)) );
+		ting::Array<ting::u8> buf(sizeof(ting::u32) * ( (std::min)(ting::u32((0xffff + 1) / sizeof(ting::u32)), DMaxCnt - this->cnt)) );
 
 		ASSERT(buf.Size() > 0)
+
+		ASSERT_INFO((buf.Size() % sizeof(ting::u32)) == 0, "buf.Size() = " << buf.Size() << " (buf.Size() % sizeof(ting::u32)) = " << (buf.Size() % sizeof(ting::u32)))
 
 		for(ting::u8* p = buf.Begin(); p != buf.End(); p += sizeof(ting::u32)){
 			ting::Serialize32(this->cnt, p);
@@ -244,8 +246,8 @@ int main(int argc, char *argv[]){
 		ting::Thread::Sleep(20000);
 	}
 
-    client.PushQuitMessage();
-    client.Join();
+	client.PushQuitMessage();
+	client.Join();
 
 	server.PushQuitMessage();
 	server.Join();
