@@ -62,7 +62,7 @@ void ServerThread::Run(){
 
 		//TRACE(<<"C_TCPAcceptorThread::Run(): going to get message"<<std::endl)
 		if(this->queue.CanRead()){
-			while(ting::Ptr<ting::Message> m = this->queue.PeekMsg()){
+			if(ting::Ptr<ting::Message> m = this->queue.PeekMsg()){
 				m->Handle();
 			}
 		}
@@ -70,7 +70,7 @@ void ServerThread::Run(){
 		if(sock.CanRead()){
 			ting::TCPSocket newSock;
 			try{
-				while((newSock = sock.Accept()).IsValid()){
+				if((newSock = sock.Accept()).IsValid()){
 					this->HandleNewConnection(newSock);
 				}
 			}catch(ting::Socket::Exc& e){
