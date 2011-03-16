@@ -94,7 +94,7 @@ class Server : private cliser::Listener, public cliser::ServerThread{
 public:
 	Server() :
 			cliser::Listener(),
-			cliser::ServerThread(DPort, 2, this)
+			cliser::ServerThread(DPort, 2, this, true, 100)
 	{}
 
 private:
