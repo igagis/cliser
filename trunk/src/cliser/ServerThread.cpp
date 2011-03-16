@@ -120,6 +120,9 @@ ServerThread::ServerConnectionsThread* ServerThread::GetNotFullThread(){
 			this,
 			this->MaxClientsPerThread())
 		);
+
+//	TRACE(<< "ServerThread::" << __func__ << "(): num threads = " << this->clientsThreads.size() << std::endl)
+
 	this->clientsThreads.back()->Start();//start new thread
 	return this->clientsThreads.back().operator->();
 }

@@ -64,7 +64,7 @@ class Server : private cliser::Listener, public cliser::ServerThread{
 public:
 	Server() :
 			cliser::Listener(),
-			cliser::ServerThread(13666, 2, this)
+			cliser::ServerThread(13666, 2, this, false, 100)
 	{}
 
 private:

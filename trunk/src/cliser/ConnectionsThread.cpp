@@ -52,7 +52,7 @@ void ConnectionsThread::Run(){
 //		TRACE(<< "ConnectionsThread::" << __func__ << "(): waiting..." << std::endl)
 		unsigned numTriggered = this->waitSet.Wait(&triggered);
 //		TRACE(<< "ConnectionsThread::" << __func__ << "(): triggered" << std::endl)
-		ASSERT(numTriggered > 0)
+//		ASSERT(numTriggered > 0)
 
 		ting::Waitable** p = triggered.Begin();
 		for(unsigned i = 0; i != numTriggered; ++i, ++p){
