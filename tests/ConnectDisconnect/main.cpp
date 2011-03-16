@@ -9,6 +9,8 @@
 
 
 namespace{
+const unsigned DMaxConnections = 63;
+
 const ting::u32 DMaxCnt = 16384;
 const ting::u16 DPort = 13666;
 const char* DIpAddress = "127.0.0.1";
@@ -99,7 +101,12 @@ public:
 			cliser::ServerThread(DPort, 2, this, true, 100)
 	{}
 
+	~Server(){
+		ASSERT_INFO_ALWAYS(this->numConnections == 0, "this->numConnections = " << this->numConnections)
+	}
 private:
+	ting::Inited<unsigned, 0> numConnections;
+	
 	//override
 	ting::Ref<cliser::Connection> CreateConnectionObject(){
 		return Connection::New();
@@ -107,13 +114,21 @@ private:
 
 	//override
 	void OnConnected_ts(const ting::Ref<cliser::Connection>& c){
+		TRACE_ALWAYS(<< "Server::OnDisconnected_ts(): CONNECTED!!!" << std::endl)
+
+		++(this->numConnections);
+		ASSERT_INFO_ALWAYS(this->numConnections <= DMaxConnections, "this->numConnections = " << this->numConnections)
+		
 		TRACE_ALWAYS(<< "Server: sending data" << std::endl)
 		c.StaticCast<Connection>()->SendPortion();
 	}
 
 	//override
 	void OnDisconnected_ts(const ting::Ref<cliser::Connection>& c){
-		//do nothing
+		TRACE_ALWAYS(<< "Server::OnDisconnected_ts(): DISCONNECTED!!!" << std::endl)
+
+		--(this->numConnections);
+		ASSERT_INFO_ALWAYS(this->numConnections <= DMaxConnections, "this->numConnections = " << this->numConnections)
 	}
 
 	class HandleDataMessage : public ting::Message{
@@ -133,7 +148,7 @@ private:
 
 	//override
 	bool OnDataReceived_ts(const ting::Ref<cliser::Connection>& c, const ting::Buffer<ting::u8>& d){
-		TRACE_ALWAYS(<< "Client: data received" << std::endl)
+		TRACE_ALWAYS(<< "Server: data received" << std::endl)
 		this->PushMessage(
 				ting::Ptr<ting::Message>(
 						new HandleDataMessage(c.StaticCast<Connection>())
@@ -159,10 +174,16 @@ class Client : private cliser::Listener, public cliser::ClientThread{
 public:
 	Client() :
 			cliser::Listener(),
-			cliser::ClientThread(63, this) //max connections
+			cliser::ClientThread(DMaxConnections, this) //max connections
 	{}
 
+	~Client(){
+		ASSERT_INFO_ALWAYS(this->numConnections == 0, "this->numConnections = " << this->numConnections)
+	}
+
 private:
+	ting::Inited<unsigned, 0> numConnections;
+
 	//override
 	ting::Ref<cliser::Connection> CreateConnectionObject(){
 		return Connection::New();
@@ -170,6 +191,11 @@ private:
 
 	//override
 	void OnConnected_ts(const ting::Ref<cliser::Connection>& c){
+		TRACE_ALWAYS(<< "Client::OnConnected_ts(): CONNECTED!!!" << std::endl)
+
+		++(this->numConnections);
+		ASSERT_INFO_ALWAYS(this->numConnections <= DMaxConnections, "this->numConnections = " << this->numConnections)
+
 		ting::Ref<Connection> conn = c.StaticCast<Connection>();
 		ASSERT_ALWAYS(!conn->isConnected)
 		conn->isConnected = true;
@@ -183,7 +209,12 @@ private:
 		ting::Ref<Connection> conn = c.StaticCast<Connection>();
 		
 		if(conn->isConnected){
+			TRACE_ALWAYS(<< "Client::OnDisconnected_ts(): DISCONNECTED!!!" << std::endl)
+
 			conn->isConnected = false;
+
+			--(this->numConnections);
+			ASSERT_INFO_ALWAYS(this->numConnections <= DMaxConnections, "this->numConnections = " << this->numConnections)
 		}else{
 			//if we get here then it is a connect request failure
 			ASSERT_INFO_ALWAYS(false, "Connection failed")
@@ -197,7 +228,7 @@ private:
 		ting::Ref<Connection> con = c.StaticCast<Connection>();
 
 		con->HandleReceivedData(d);
-		TRACE_ALWAYS(<< "Server: data received" << std::endl)
+		TRACE_ALWAYS(<< "Client: data received" << std::endl)
 		return true;
 	}
 

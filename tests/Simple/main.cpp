@@ -5,6 +5,15 @@
 
 
 
+namespace{
+const unsigned DMaxConnections = 63;
+
+const ting::u16 DPort = 13666;
+const char* DIpAddress = "127.0.0.1";
+}
+
+
+
 class Connection : public cliser::Connection{
 public:
 
@@ -65,10 +74,15 @@ class Server : private cliser::Listener, public cliser::ServerThread{
 public:
 	Server() :
 			cliser::Listener(),
-			cliser::ServerThread(13666, 2, this, false, 100)
+			cliser::ServerThread(DPort, 2, this, false, 100)
 	{}
 
+	~Server(){
+		ASSERT_INFO_ALWAYS(this->numConnections == 0, "this->numConnections = " << this->numConnections)
+	}
 private:
+	ting::Inited<unsigned, 0> numConnections;
+	
 	//override
 	ting::Ref<cliser::Connection> CreateConnectionObject(){
 		return Connection::New();
@@ -76,13 +90,17 @@ private:
 
 	//override
 	void OnConnected_ts(const ting::Ref<cliser::Connection>& c){
+		++(this->numConnections);
+		ASSERT_INFO_ALWAYS(this->numConnections <= DMaxConnections, "this->numConnections = " << this->numConnections)
+
 		TRACE_ALWAYS(<< "Server: sending data" << std::endl)
 		c.StaticCast<Connection>()->SendPortion();
 	}
 
 	//override
 	void OnDisconnected_ts(const ting::Ref<cliser::Connection>& c){
-		//do nothing
+		--(this->numConnections);
+		ASSERT_INFO_ALWAYS(this->numConnections <= DMaxConnections, "this->numConnections = " << this->numConnections)
 	}
 
 	//override
@@ -110,10 +128,15 @@ class Client : private cliser::Listener, public cliser::ClientThread{
 public:
 	Client() :
 			cliser::Listener(),
-			cliser::ClientThread(63, this) //max connections
+			cliser::ClientThread(DMaxConnections, this) //max connections
 	{}
 
+	~Client(){
+		ASSERT_INFO_ALWAYS(this->numConnections == 0, "this->numConnections = " << this->numConnections)
+	}
 private:
+	ting::Inited<unsigned, 0> numConnections;
+	
 	//override
 	ting::Ref<cliser::Connection> CreateConnectionObject(){
 		return Connection::New();
@@ -121,6 +144,9 @@ private:
 
 	//override
 	void OnConnected_ts(const ting::Ref<cliser::Connection>& c){
+		++(this->numConnections);
+		ASSERT_INFO_ALWAYS(this->numConnections <= DMaxConnections, "this->numConnections = " << this->numConnections)
+
 		ting::Ref<Connection> conn = c.StaticCast<Connection>();
 		ASSERT_ALWAYS(!conn->isConnected)
 		conn->isConnected = true;
@@ -135,6 +161,9 @@ private:
 		
 		if(conn->isConnected){
 			conn->isConnected = false;
+
+			--(this->numConnections);
+			ASSERT_INFO_ALWAYS(this->numConnections <= DMaxConnections, "this->numConnections = " << this->numConnections)
 		}else{
 			//if we get here then it is a connect request failure
 			ASSERT_INFO_ALWAYS(conn->isConnected, "Connect request failure")
@@ -203,7 +232,7 @@ int main(int argc, char *argv[]){
 	client.Start();
 
 	for(unsigned i = 0; i < client.MaxConnections(); ++i){
-		client.Connect_ts(ting::IPAddress("127.0.0.1", 13666));
+		client.Connect_ts(ting::IPAddress(DIpAddress, DPort));
 	}
 
 	if(msec == 0){
@@ -211,7 +240,7 @@ int main(int argc, char *argv[]){
 			ting::Thread::Sleep(1000000);
 		}
 	}else{
-		ting::Thread::Sleep(20000);
+		ting::Thread::Sleep(msec);
 	}
 
 	client.PushQuitMessage();

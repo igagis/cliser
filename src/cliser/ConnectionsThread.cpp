@@ -83,9 +83,30 @@ void ConnectionsThread::Run(){
 		//At this point we have handled all the socket activities and now we can proceed with
 		//handling messages if there are any.
 		if(this->queue.CanRead()){
-			while(ting::Ptr<ting::Message> m = this->queue.PeekMsg()){
-				M_SRV_CLIENTS_HANDLER_TRACE(<< "ConnectionsThread::" << __func__ << "(): message got" << std::endl)
-				m->Handle();
+			//NOTE: here we will handle only limited number of messages from queue,
+			//      no aim to handle all of them. This is because as a result of
+			//      handling some message it is possible that a new message will be posted
+			//      to the queue, thus possibly causing a deadlock. Thus, handle some
+			//      predefined number of messages. I think good duess is 1 message per connection
+			//      plus one (in order to handle at least one if there are no connections).
+			//      Number of connections may change during messages handling, thus, save
+			//      the number in local variable.
+			unsigned numMsgsToHandle = this->connections.size() + 1;
+
+			//Paranoic check: if we have so many connections that its number is a
+			//maximum what unsigned in can hold, then adding 1 will turn it to zero.
+			//Do a paranoic check to handle that case.
+			if(numMsgsToHandle == 0){
+				numMsgsToHandle = 1;
+			}
+
+			for(unsigned i = 0; i < numMsgsToHandle; ++i){
+				if(ting::Ptr<ting::Message> m = this->queue.PeekMsg()){
+					M_SRV_CLIENTS_HANDLER_TRACE(<< "ConnectionsThread::" << __func__ << "(): message got" << std::endl)
+					m->Handle();
+				}else{
+					break;
+				}
 			}
 		}
 
