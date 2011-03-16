@@ -59,6 +59,10 @@ class ServerThread : public ting::MsgThread{
 	unsigned maxClientsPerThread;
 
 	cliser::Listener* const listener;
+
+	bool disableNaggle;
+	
+	ting::u16 queueLength;
 	
 public:
 	inline unsigned MaxClientsPerThread()const{
@@ -68,7 +72,9 @@ public:
 	ServerThread(
 			ting::u16 port,
 			unsigned maxClientsPerThread,
-			cliser::Listener* listener
+			cliser::Listener* listener,
+			bool disableNaggle = false,
+			ting::u16 acceptQueueLength = 50
 		);
 	
 	virtual ~ServerThread();

@@ -18,11 +18,15 @@ using namespace cliser;
 ServerThread::ServerThread(
 		ting::u16 port,
 		unsigned maxClientsPerThread,
-		cliser::Listener* listener
+		cliser::Listener* listener,
+		bool disableNaggle,
+		ting::u16 queueLength
 	) :
 		port(port),
 		maxClientsPerThread(maxClientsPerThread),
-		listener(listener)
+		listener(listener),
+		disableNaggle(disableNaggle),
+		queueLength(queueLength)
 {
 	ASSERT(ting::SocketLib::IsCreated())
 
@@ -45,8 +49,9 @@ void ServerThread::Run(){
 	this->threadsKillerThread.Start();
 //	TRACE(<<"Server::Run(): threads started"<<std::endl)
 
+	//open listening socket
 	ting::TCPServerSocket sock;
-	sock.Open(this->port);//open listening socket
+	sock.Open(this->port, this->disableNaggle, this->queueLength);
 
 	ting::WaitSet waitSet(2);
 	waitSet.Add(&sock, ting::Waitable::READ);
