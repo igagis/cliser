@@ -339,14 +339,7 @@ void ConnectionsThread::HandleRemoveConnectionMessage(ting::Ref<cliser::Connecti
 void ConnectionsThread::HandleSendDataMessage(ting::Ref<Connection>& conn, ting::Array<ting::u8> data){
 //	TRACE(<< "ConnectionsThread::" << __func__ << "(): enter" << std::endl)
 	
-	//It is possible that data is send to a connection which is not yet estabilished.
-	//This may happen when on client side afterrequesting the Connect_ts()
-	//client tries to send the data immediately. But since connect is an
-	//asynchronous operation socket may be invalid before connect operation is completed.
 	if(!conn->socket.IsValid()){
-		//put data to queue and notify
-		conn->packetQueue.push_back(data);
-		ASS(this->listener)->OnDataSent_ts(conn, conn->packetQueue.size(), true);
 //		TRACE(<< "ConnectionsThread::" << __func__ << "(): socket is disconnected, ignoring message" << std::endl)
 		return;
 	}
