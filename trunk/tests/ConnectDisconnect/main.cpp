@@ -105,6 +105,7 @@ public:
 		ASSERT_INFO_ALWAYS(this->numConnections == 0, "this->numConnections = " << this->numConnections)
 	}
 private:
+	ting::Mutex numConsMut;
 	ting::Inited<unsigned, 0> numConnections;
 	
 	//override
@@ -116,8 +117,15 @@ private:
 	void OnConnected_ts(const ting::Ref<cliser::Connection>& c){
 		TRACE_ALWAYS(<< "Server::OnDisconnected_ts(): CONNECTED!!!" << std::endl)
 
-		++(this->numConnections);
-		ASSERT_INFO_ALWAYS(this->numConnections <= DMaxConnections, "this->numConnections = " << this->numConnections)
+		ting::Ref<Connection> conn = c.StaticCast<Connection>();
+		ASSERT_ALWAYS(!conn->isConnected)
+		conn->isConnected = true;
+
+		{
+			ting::Mutex::Guard mutexGuard(this->numConsMut);
+			++(this->numConnections);
+			ASSERT_INFO_ALWAYS(this->numConnections <= 2 * DMaxConnections, "this->numConnections = " << this->numConnections)
+		}
 		
 		TRACE_ALWAYS(<< "Server: sending data" << std::endl)
 		c.StaticCast<Connection>()->SendPortion();
@@ -127,8 +135,15 @@ private:
 	void OnDisconnected_ts(const ting::Ref<cliser::Connection>& c){
 		TRACE_ALWAYS(<< "Server::OnDisconnected_ts(): DISCONNECTED!!!" << std::endl)
 
-		--(this->numConnections);
-		ASSERT_INFO_ALWAYS(this->numConnections <= DMaxConnections, "this->numConnections = " << this->numConnections)
+		ting::Ref<Connection> conn = c.StaticCast<Connection>();
+		ASSERT_INFO_ALWAYS(conn->isConnected, "Server: disconnected non-connected connection")
+		conn->isConnected = false;
+
+		{
+			ting::Mutex::Guard mutexGuard(this->numConsMut);
+			--(this->numConnections);
+			ASSERT_INFO_ALWAYS(this->numConnections <= 2 * DMaxConnections, "this->numConnections = " << this->numConnections)
+		}
 	}
 
 	class HandleDataMessage : public ting::Message{
@@ -182,6 +197,7 @@ public:
 	}
 
 private:
+	ting::Mutex numConsMut;
 	ting::Inited<unsigned, 0> numConnections;
 
 	//override
@@ -193,8 +209,11 @@ private:
 	void OnConnected_ts(const ting::Ref<cliser::Connection>& c){
 		TRACE_ALWAYS(<< "Client::OnConnected_ts(): CONNECTED!!!" << std::endl)
 
-		++(this->numConnections);
-		ASSERT_INFO_ALWAYS(this->numConnections <= DMaxConnections, "this->numConnections = " << this->numConnections)
+		{
+			ting::Mutex::Guard mutexGuard(this->numConsMut);
+			++(this->numConnections);
+			ASSERT_INFO_ALWAYS(this->numConnections <= DMaxConnections, "this->numConnections = " << this->numConnections)
+		}
 
 		ting::Ref<Connection> conn = c.StaticCast<Connection>();
 		ASSERT_ALWAYS(!conn->isConnected)
@@ -213,8 +232,11 @@ private:
 
 			conn->isConnected = false;
 
-			--(this->numConnections);
-			ASSERT_INFO_ALWAYS(this->numConnections <= DMaxConnections, "this->numConnections = " << this->numConnections)
+			{
+				ting::Mutex::Guard mutexGuard(this->numConsMut);
+				--(this->numConnections);
+				ASSERT_INFO_ALWAYS(this->numConnections <= DMaxConnections, "this->numConnections = " << this->numConnections)
+			}
 		}else{
 			//if we get here then it is a connect request failure
 			ASSERT_INFO_ALWAYS(false, "Connection failed")
