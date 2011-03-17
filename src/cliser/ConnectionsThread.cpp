@@ -83,11 +83,12 @@ void ConnectionsThread::Run(){
 		//At this point we have handled all the socket activities and now we can proceed with
 		//handling messages if there are any.
 		if(this->queue.CanRead()){
-			//NOTE: here we will handle only limited number of messages from queue,
-			//      no aim to handle all of them. This is because as a result of
+			//NOTE: here we will handle only limited number of messages from queue.
+			//      This is because as a result of
 			//      handling some message it is possible that a new message will be posted
-			//      to the queue, thus possibly causing a deadlock. Thus, handle some
-			//      predefined number of messages. I think good duess is 1 message per connection
+			//      to the queue, which, in turn, when handled posts another one and so on,
+			//      thus possibly causing a kind of a deadlock. Hence, handle some
+			//      predefined number of messages. I think good guess is 1 message per connection
 			//      plus one (in order to handle at least one if there are no connections).
 			//      Number of connections may change during messages handling, thus, save
 			//      the number in local variable.
