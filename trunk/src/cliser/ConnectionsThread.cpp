@@ -159,7 +159,7 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 				ASS(this->listener)->OnConnected_ts(conn);
 //				TRACE(<< "ConnectionsThread::" << __func__ << "(): connection was successful" << std::endl)
 			}catch(ting::Socket::Exc& e){
-//				TRACE(<< "ConnectionsThread::" << __func__ << "(): connection was unsuccessful: " << e.What() << std::endl)
+				TRACE(<< "ConnectionsThread::" << __func__ << "(): connection was unsuccessful: " << e.What() << std::endl)
 				this->HandleRemoveConnectionMessage(conn);
 				return;
 			}
