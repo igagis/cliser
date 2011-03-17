@@ -64,7 +64,9 @@ public:
 				ting::u32 num = ting::Deserialize32(this->rbuf.Begin());
 				ASSERT_INFO_ALWAYS(
 						this->rcnt == num,
-						"num = " << num << " rcnt = " << this->rcnt << " rbuf = "
+						"num = " << num << " rcnt = " << this->rcnt 
+								<< " rcnt - num = " << (this->rcnt - num)
+								<< " rbuf = "
 								<< unsigned(rbuf[0]) << ", "
 								<< unsigned(rbuf[1]) << ", "
 								<< unsigned(rbuf[2]) << ", "
