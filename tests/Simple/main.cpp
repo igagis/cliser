@@ -1,4 +1,5 @@
 #include <ting/debug.hpp>
+#include <ting/Buffer.hpp>
 
 #include "../src/cliser/ServerThread.hpp"
 #include "../src/cliser/ClientThread.hpp"
@@ -36,12 +37,16 @@ public:
 
 	void SendPortion(){
 		ting::Array<ting::u8> buf(0xffff + 1);
-		ASSERT_INFO((buf.Size() % sizeof(ting::u32)) == 0, "buf.Size() = " << buf.Size() << " (buf.Size() % sizeof(ting::u32)) = " << (buf.Size() % sizeof(ting::u32)))
+		STATIC_ASSERT(sizeof(ting::u32) == 4)
+		ASSERT_INFO_ALWAYS((buf.Size() % sizeof(ting::u32)) == 0, "buf.Size() = " << buf.Size() << " (buf.Size() % sizeof(ting::u32)) = " << (buf.Size() % sizeof(ting::u32)))
 
-		for(ting::u8* p = buf.Begin(); p != buf.End(); p += sizeof(ting::u32)){
+		ting::u8* p = buf.Begin();
+		for(; p != buf.End(); p += sizeof(ting::u32)){
+			ASSERT_INFO_ALWAYS(p < (buf.End() - (sizeof(ting::u32) - 1)), "p = " << p << " buf.End() = " << buf.End())
 			ting::Serialize32(this->cnt, p);
 			++this->cnt;
 		}
+		ASSERT_ALWAYS(p == buf.End())
 
 		this->Send_ts(buf);
 	}
@@ -52,10 +57,19 @@ public:
 			this->rbuf[this->rbufBytes] = *p;
 			++this->rbufBytes;
 
+			ASSERT_ALWAYS(this->rbufBytes <= this->rbuf.Size())
+
 			if(this->rbufBytes == this->rbuf.Size()){
 				this->rbufBytes = 0;
 				ting::u32 num = ting::Deserialize32(this->rbuf.Begin());
-				ASSERT_INFO_ALWAYS(this->rcnt == num, "num = " << num << " rcnt = " << this->rcnt)
+				ASSERT_INFO_ALWAYS(
+						this->rcnt == num,
+						"num = " << num << " rcnt = " << this->rcnt << " rbuf = "
+								<< unsigned(rbuf[0]) << ", "
+								<< unsigned(rbuf[1]) << ", "
+								<< unsigned(rbuf[2]) << ", "
+								<< unsigned(rbuf[3])
+					)
 				++this->rcnt;
 			}
 		}
@@ -181,6 +195,8 @@ private:
 		void Handle(){
 			if(ting::Array<ting::u8> d = this->conn->GetReceivedData_ts()){
 				this->conn->HandleReceivedData(d);
+			}else{
+				ASSERT_ALWAYS(false)
 			}
 		}
 	};
