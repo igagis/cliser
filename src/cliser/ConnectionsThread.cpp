@@ -206,7 +206,7 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 	if(conn->socket.CanRead()){
 //		TRACE(<< "ConnectionsThread::HandleSocketActivity(): CanRead()" << std::endl)
 
-		ting::StaticBuffer<ting::u8, 0x1000> buffer;//8kb
+		ting::StaticBuffer<ting::u8, 0x2000> buffer;//8kb
 
 		try{
 			unsigned bytesReceived = conn->socket.Recv(buffer);
