@@ -214,6 +214,13 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 			ASSERT(!conn->socket.CanRead())
 			if(bytesReceived != 0){
 				ting::Buffer<ting::u8> b(buffer.Begin(), bytesReceived);
+//				TRACE(<< "ConnectionsThread::" << __func__ << "(): bytesReceived = " << bytesReceived << " b.Size() = " << b.Size() << std::endl)
+//				TRACE(<< "ConnectionsThread::" << __func__ << "(): b[...] = "
+//						<< unsigned(b[0]) << " "
+//						<< unsigned(b[1]) << " "
+//						<< unsigned(b[2]) << " "
+//						<< unsigned(b[3]) << std::endl
+//					)
 				ting::Mutex::Guard mutexGuard(conn->receivedDataMutex);
 				ASSERT(!conn->receivedData)
 				if(!ASS(this->listener)->OnDataReceived_ts(conn, b)){
