@@ -115,7 +115,7 @@ private:
 
 	//override
 	void OnConnected_ts(const ting::Ref<cliser::Connection>& c){
-		TRACE_ALWAYS(<< "Server::OnDisconnected_ts(): CONNECTED!!!" << std::endl)
+		TRACE_ALWAYS(<< "Server::" << __func__ << "(): CONNECTED!!!" << std::endl)
 
 		ting::Ref<Connection> conn = c.StaticCast<Connection>();
 		ASSERT_ALWAYS(!conn->isConnected)
@@ -133,7 +133,7 @@ private:
 
 	//override
 	void OnDisconnected_ts(const ting::Ref<cliser::Connection>& c){
-		TRACE_ALWAYS(<< "Server::OnDisconnected_ts(): DISCONNECTED!!!" << std::endl)
+		TRACE_ALWAYS(<< "Server::" << __func__ << "(): DISCONNECTED!!!" << std::endl)
 
 		ting::Ref<Connection> conn = c.StaticCast<Connection>();
 		ASSERT_INFO_ALWAYS(conn->isConnected, "Server: disconnected non-connected connection")
@@ -207,7 +207,7 @@ private:
 
 	//override
 	void OnConnected_ts(const ting::Ref<cliser::Connection>& c){
-		TRACE_ALWAYS(<< "Client::OnConnected_ts(): CONNECTED!!!" << std::endl)
+		TRACE_ALWAYS(<< "Client::" << __func__ << "(): CONNECTED!!!" << std::endl)
 
 		{
 			ting::Mutex::Guard mutexGuard(this->numConsMut);
@@ -228,7 +228,7 @@ private:
 		ting::Ref<Connection> conn = c.StaticCast<Connection>();
 		
 		if(conn->isConnected){
-			TRACE_ALWAYS(<< "Client::OnDisconnected_ts(): DISCONNECTED!!!" << std::endl)
+			TRACE_ALWAYS(<< "Client::" << __func__ << "(): DISCONNECTED!!!" << std::endl)
 
 			conn->isConnected = false;
 
