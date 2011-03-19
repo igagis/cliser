@@ -33,6 +33,7 @@ class ClientThread;
 
 
 
+#ifndef M_DOXYGEN_DONT_EXTRACT
 class ConnectionsThread : public ting::MsgThread{
 	friend class cliser::ServerThread;
 	friend class cliser::ClientThread;
@@ -165,7 +166,8 @@ private:
 	};
 
 	void HandleResumeListeningForReadMessage(ting::Ref<Connection>& conn);
-};
+};//~class
+#endif //~doxygen
 
 
 
