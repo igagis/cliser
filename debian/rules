@@ -9,7 +9,8 @@ clean:
 	$(MAKE) clean
 
 binary:
-	./debian/libcliser_deb.sh
-	./debian/libcliser-dbg_deb.sh
-	./debian/libcliser-dev_deb.sh
+	./debian/libcliser.sh
+	./debian/libcliser-dbg.sh
+	./debian/libcliser-dev.sh
+	./debian/libcliser-doc.sh
 
