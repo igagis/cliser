@@ -137,7 +137,9 @@ private:
 
 		ting::Ref<Connection> conn = c.StaticCast<Connection>();
 		ASSERT_INFO_ALWAYS(conn->isConnected, "Server: disconnected non-connected connection")
-		conn->isConnected = false;
+
+		//do not clear the flag to catch second connection of the same Connection object if any
+//		conn->isConnected = false;
 
 		{
 			ting::Mutex::Guard mutexGuard(this->numConsMut);
@@ -196,6 +198,7 @@ public:
 		ASSERT_INFO_ALWAYS(this->numConnections == 0, "this->numConnections = " << this->numConnections)
 	}
 
+	ting::Inited<bool, 0> quitMessagePosted;
 private:
 	ting::Mutex numConsMut;
 	ting::Inited<unsigned, 0> numConnections;
@@ -230,7 +233,8 @@ private:
 		if(conn->isConnected){
 			TRACE_ALWAYS(<< "Client::" << __func__ << "(): DISCONNECTED!!!" << std::endl)
 
-			conn->isConnected = false;
+			//do not clear the flag to catch second connection of the same Connection object if any
+//			conn->isConnected = false;
 
 			{
 				ting::Mutex::Guard mutexGuard(this->numConsMut);
@@ -238,8 +242,12 @@ private:
 				ASSERT_INFO_ALWAYS(this->numConnections <= DMaxConnections, "this->numConnections = " << this->numConnections)
 			}
 		}else{
-			//if we get here then it is a connect request failure
-			ASSERT_INFO_ALWAYS(false, "Connection failed")
+			if(!this->quitMessagePosted){
+				//if we get here then it is a connect request failure
+				ASSERT_INFO_ALWAYS(false, "Connection failed")
+			}else{
+				TRACE_ALWAYS(<< "Client::" << __func__ << "(): connection failed on thread exit" << std::endl)
+			}
 		}
 
 		this->Connect_ts(ting::IPAddress(DIpAddress, DPort));
@@ -299,6 +307,12 @@ int main(int argc, char *argv[]){
 		ting::Thread::Sleep(20000);
 	}
 
+	//set the flag to indicate that the thread is exiting
+	//and thus, if we get a connection failure, then it must be because
+	//there was a pending connection request and since the thread is exiting,
+	//it will be reported as the connection has failed. So, no need to assert in that case.
+	client.quitMessagePosted = true;
+	
 	client.PushQuitMessage();
 	client.Join();
 
