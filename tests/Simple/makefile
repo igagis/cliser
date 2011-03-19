@@ -64,3 +64,6 @@ $(binary_name): $(srcs) $(cliserlib)
 
 clean:
 	@$(remove) $(binary_name)
+
+
+include ../../targets.mk

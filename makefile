@@ -4,8 +4,9 @@ subdirs += tests
 
 
 
+include ./targets.mk
 
-default all clean test:
+$(possible_targets_list):
 	@$(MAKE) $(subdirs) target=$@
 
 .PHONY: $(subdirs)

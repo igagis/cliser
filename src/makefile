@@ -220,3 +220,5 @@ else
 	@$(remove) -rf $(dir $(obj_dir))
 	@$(remove) -rf $(remove_on_clean)
 endif
+
+include ../targets.mk

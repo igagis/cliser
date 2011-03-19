@@ -4,7 +4,9 @@ subdirs += ConnectDisconnect
 
 
 
-default all clean test:
+include ../targets.mk
+
+$(possible_targets_list):
 	@$(MAKE) $(subdirs) target=$@
 
 .PHONY: $(subdirs)
