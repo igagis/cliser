@@ -124,7 +124,7 @@ private:
 		{
 			ting::Mutex::Guard mutexGuard(this->numConsMut);
 			++(this->numConnections);
-			ASSERT_INFO_ALWAYS(this->numConnections <= 2 * DMaxConnections, "this->numConnections = " << this->numConnections)
+//			ASSERT_INFO_ALWAYS(this->numConnections <= 2 * DMaxConnections, "this->numConnections = " << this->numConnections)
 		}
 		
 		TRACE_ALWAYS(<< "Server: sending data" << std::endl)
@@ -144,7 +144,7 @@ private:
 		{
 			ting::Mutex::Guard mutexGuard(this->numConsMut);
 			--(this->numConnections);
-			ASSERT_INFO_ALWAYS(this->numConnections <= 2 * DMaxConnections, "this->numConnections = " << this->numConnections)
+//			ASSERT_INFO_ALWAYS(this->numConnections <= 2 * DMaxConnections, "this->numConnections = " << this->numConnections)
 		}
 	}
 
