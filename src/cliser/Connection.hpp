@@ -69,6 +69,7 @@ class Connection : public virtual ting::RefCounted{
 	//~
 
 	ting::TCPSocket socket;
+	ting::Waitable::EReadinessFlags currentFlags;
 
 	//NOTE: clientThread may be accessed from different threads, therefore, protect it with mutex
 	ConnectionsThread *parentThread;
