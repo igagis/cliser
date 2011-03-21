@@ -50,19 +50,35 @@ THE SOFTWARE. */
 
 namespace cliser{
 
+
+/**
+ * @brief Thread which handles network connections on client side.
+ */
 class ClientThread : public cliser::ConnectionsThread{
 	friend class ConnectToServerMessage;
 
 
 public:
+	/**
+	 * @brief Constructor.
+	 * @param maxConnections - muximum number of connections this thread can handle.
+	 * @param listener - pointer to listener object. Note, that it does not take ownership of the object.
+	 */
 	ClientThread(unsigned maxConnections, cliser::Listener* listener);
-    
+
 	virtual ~ClientThread();
 
+	/**
+	 * @brief Request connection.
+	 * @param ip - the IP address to connect to.
+	 * @return - a newly created connection object. Initially it is not connected, as the connection
+	 *           is an asynchronous operation. Completion of the connection operation is
+	 *           notified through cliser::Listener::OnConnected_ts() method in case of
+	 *           successful connection of through cliser::Listener::OnDisconnected_ts() in case
+	 *           of unsuccessful result.
+	 */
 	//send connection request message to the thread
 	ting::Ref<cliser::Connection> Connect_ts(const ting::IPAddress& ip);
-
-	virtual ting::Ref<cliser::Connection> CreateConnectionObject() = 0;
 
 private:
 	class ConnectToServerMessage : public ting::Message{
