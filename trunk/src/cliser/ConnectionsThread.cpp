@@ -268,7 +268,11 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 
 	if(conn->socket.ErrorCondition()){
 		this->HandleRemoveConnectionMessage(conn);
+		return;
 	}
+
+	ASSERT(!conn->socket.CanRead())
+	ASSERT(!conn->socket.CanWrite())
 }
 
 
@@ -418,7 +422,12 @@ void ConnectionsThread::HandleResumeListeningForReadMessage(ting::Ref<Connection
 
 //	TRACE(<< "ConnectionsThread::" << __func__ << "(): resuming data receiving!!!!!!!!!!" << std::endl)
 
-	ASSERT(!conn->receivedData)
+#ifdef DEBUG
+	{
+//		ting::Mutex::Guard mutexGuard(conn->receivedDataMutex);
+		ASSERT(!conn->receivedData)
+	}
+#endif
 
 	ting::Waitable::EReadinessFlags flags = ting::Waitable::READ;
 	if(conn->packetQueue.size() > 0){
