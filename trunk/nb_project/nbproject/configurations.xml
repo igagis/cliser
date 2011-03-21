@@ -22,6 +22,9 @@
       </df>
     </df>
     <df name="tests" root="../tests">
+      <df name="ConnectDisconnect">
+        <in>main.cpp</in>
+      </df>
       <df name="Simple">
         <in>main.cpp</in>
       </df>
