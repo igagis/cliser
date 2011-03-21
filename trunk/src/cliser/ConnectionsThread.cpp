@@ -236,10 +236,10 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 //						<< unsigned(b[3]) << std::endl
 //					)
 
-				//TODO: why do we need to lock the mutex before calling the OnDataReceived_ts()???
-				ting::Mutex::Guard mutexGuard(conn->receivedDataMutex);
 				ASSERT(!conn->receivedData)
 				if(!ASS(this->listener)->OnDataReceived_ts(conn, b)){
+					ting::Mutex::Guard mutexGuard(conn->receivedDataMutex);
+					
 //					TRACE(<< "ConnectionsThread::HandleSocketActivity(): received data not handled!!!!!!!!!!!" << std::endl)
 					ASSERT(!conn->receivedData)
 

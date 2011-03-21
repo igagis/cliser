@@ -90,7 +90,7 @@ class Connection : public virtual ting::RefCounted{
 		this->parentThread = 0;
 	}
 
-	ting::Mutex receivedDataMutex;
+	ting::Mutex receivedDataMutex;//TODO: consider removing this mutex
 
 protected:
 	inline Connection() :
