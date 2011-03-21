@@ -89,9 +89,9 @@ class Connection : public virtual ting::RefCounted{
 		this->parentThread = 0;
 	}
 
-protected:
 	ting::Mutex receivedDataMutex;
 
+protected:
 	inline Connection() :
 			parentThread(0)
 	{}

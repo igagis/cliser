@@ -56,6 +56,7 @@ class ServerThread : public ting::MsgThread{
 		//override
 		void Run();
 
+		/// @cond
 		class KillThreadMessage : public ting::Message{
 			ThreadsKillerThread *thread;//to whom this message will be sent
 			ting::Ptr<ting::MsgThread> thr;//thread to kill
@@ -72,6 +73,7 @@ class ServerThread : public ting::MsgThread{
 			//override
 			void Handle();
 		};
+		/// @endcond
 	} threadsKillerThread;
 
 	//forward declaration
