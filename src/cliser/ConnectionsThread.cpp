@@ -238,7 +238,7 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 
 				ASSERT(!conn->receivedData)
 				if(!ASS(this->listener)->OnDataReceived_ts(conn, b)){
-					ting::Mutex::Guard mutexGuard(conn->receivedDataMutex);
+					ting::Mutex::Guard mutexGuard(conn->mutex);
 					
 //					TRACE(<< "ConnectionsThread::HandleSocketActivity(): received data not handled!!!!!!!!!!!" << std::endl)
 					ASSERT(!conn->receivedData)
