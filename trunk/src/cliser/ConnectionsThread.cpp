@@ -162,7 +162,8 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 			//was waiting for connect
 
 			//clear WRITE waiting flag and set READ waiting flag
-			this->waitSet.Change(&conn->socket, ting::Waitable::READ);
+			conn->currentFlags = ting::Waitable::READ;
+			this->waitSet.Change(&conn->socket, conn->currentFlags);
 
 			//try writing 0 bytes to clear the write flag and to check if connection was successful
 			try{
@@ -203,15 +204,10 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 
 					if(conn->packetQueue.size() == 0){
 						//clear WRITE waiting flag.
-
-						ting::Waitable::EReadinessFlags flags = ting::Waitable::NOT_READY;
-						{
-							ting::Mutex::Guard mutexGuard(conn->receivedDataMutex);
-							if(!conn->receivedData){
-								flags = ting::Waitable::EReadinessFlags(flags | ting::Waitable::READ);
-							}
-						}
-						this->waitSet.Change(&conn->socket, flags);
+						conn->currentFlags = ting::Waitable::EReadinessFlags(
+								conn->currentFlags & (~ting::Waitable::WRITE)
+							);
+						this->waitSet.Change(&conn->socket, conn->currentFlags);
 					}
 				}
 			}catch(ting::Socket::Exc &e){
@@ -239,6 +235,8 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 //						<< unsigned(b[2]) << " "
 //						<< unsigned(b[3]) << std::endl
 //					)
+
+				//TODO: why do we need to lock the mutex before calling the OnDataReceived_ts()???
 				ting::Mutex::Guard mutexGuard(conn->receivedDataMutex);
 				ASSERT(!conn->receivedData)
 				if(!ASS(this->listener)->OnDataReceived_ts(conn, b)){
@@ -247,12 +245,11 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 
 					conn->receivedData.Init(b);
 
-					//stop waiting for READ condition
-					ting::Waitable::EReadinessFlags flags = ting::Waitable::NOT_READY;
-					if(conn->packetQueue.size() > 0){
-						flags = ting::Waitable::EReadinessFlags(flags | ting::Waitable::WRITE);
-					}
-					this->waitSet.Change(&conn->socket, flags);
+					//clear READ waiting flag
+					conn->currentFlags = ting::Waitable::EReadinessFlags(
+							conn->currentFlags & (~ting::Waitable::READ)
+						);
+					this->waitSet.Change(&conn->socket, conn->currentFlags);
 				}
 			}else{
 				//connection closed
@@ -290,12 +287,15 @@ void ConnectionsThread::HandleAddConnectionMessage(const ting::Ref<Connection>& 
 		);
 	ASSERT(reinterpret_cast<cliser::Connection*>(conn->socket.GetUserData()) == conn.operator->())
 
+	
 	//add socket to waitset
+	
+	//if not connected, will be waiting for WRITE, because WRITE indicates that connect request has finished.
+	conn->currentFlags = isConnected ? ting::Waitable::READ : ting::Waitable::WRITE;
 	try{
 		this->AddSocketToSocketSet(
 				&(conn->socket),
-				//if not connected, will be waiting for WRITE, because WRITE indicates that connect request has finished.
-				isConnected ? ting::Waitable::READ : ting::Waitable::WRITE
+				conn->currentFlags
 			);
 	}catch(ting::Exc& e){
 //		TRACE(<< "ConnectionsThread::" << __func__ << "(): adding socket to waitset failed: " << e.What() << std::endl)
@@ -389,15 +389,11 @@ void ConnectionsThread::HandleSendDataMessage(ting::Ref<Connection>& conn, ting:
 				conn->dataSent = numBytesSent;
 				conn->packetQueue.push_back(data);
 
-				//Set WRITE wait flag
-				ting::Waitable::EReadinessFlags flags = ting::Waitable::WRITE;
-				{
-					ting::Mutex::Guard mutexGuard(conn->receivedDataMutex);
-					if(!conn->receivedData){
-						flags = ting::Waitable::EReadinessFlags(flags | ting::Waitable::READ);
-					}
-				}
-				this->waitSet.Change(&conn->socket, flags);
+				//Set WRITE waiting flag
+				conn->currentFlags = ting::Waitable::EReadinessFlags(
+						conn->currentFlags | ting::Waitable::WRITE
+					);
+				this->waitSet.Change(&conn->socket, conn->currentFlags);
 
 				ASSERT_INFO(conn->packetQueue.size() == 1, conn->packetQueue.size())
 				ASS(this->listener)->OnDataSent_ts(conn, 1, true);
@@ -422,19 +418,13 @@ void ConnectionsThread::HandleResumeListeningForReadMessage(ting::Ref<Connection
 
 //	TRACE(<< "ConnectionsThread::" << __func__ << "(): resuming data receiving!!!!!!!!!!" << std::endl)
 
-#ifdef DEBUG
-	{
-//		ting::Mutex::Guard mutexGuard(conn->receivedDataMutex);
-		ASSERT(!conn->receivedData)
-	}
-#endif
+	ASSERT(!conn->receivedData)
 
-	ting::Waitable::EReadinessFlags flags = ting::Waitable::READ;
-	if(conn->packetQueue.size() > 0){
-		flags = ting::Waitable::EReadinessFlags(flags | ting::Waitable::WRITE);
-	}
-
-	this->waitSet.Change(&conn->socket, flags);
+	//Set READ waiting flag
+	conn->currentFlags = ting::Waitable::EReadinessFlags(
+			conn->currentFlags | ting::Waitable::READ
+		);
+	this->waitSet.Change(&conn->socket, conn->currentFlags);
 }
 
 
