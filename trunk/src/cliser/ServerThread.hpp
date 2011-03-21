@@ -47,6 +47,15 @@ namespace cliser{
 
 
 
+/**
+ * @brief Thread which handles network connections on server side.
+ * This is a main thread of the connections server. It listens for new connections
+ * and as new connection is accepted it moves this connection to another
+ * thread which will handle the connection from now on. Thus, the server
+ * distributes the connections between many handling threads. Each such handling
+ * thread can handle up to a given maximum number of connections, this number is
+ * determined by a constructor parameter (See constructor description).
+ */
 class ServerThread : public ting::MsgThread{
 	
 	class ThreadsKillerThread : public ting::MsgThread{
@@ -94,10 +103,25 @@ class ServerThread : public ting::MsgThread{
 	ting::u16 queueLength;
 	
 public:
+	/**
+	 * @brief Get maximum number of connections per thread.
+	 * Get maximum number of connections per thread, it just returns a stored
+	 * value of a corresponding number passed as a constructor parameter when
+	 * creating the object.
+     * @return maximum number of connections per thread.
+     */
 	inline unsigned MaxClientsPerThread()const{
 		return this->maxClientsPerThread;
 	}
 
+	/**
+	 * @brief Constructor.
+     * @param port - TCP port to listen on for new connections.
+     * @param maxClientsPerThread - maximum number of connections handled by a single handling thread.
+     * @param listener - listener object to get notifications on network events.
+     * @param disableNaggle - disable naggle algorithm for all connections.
+     * @param acceptQueueLength - length of a queue of connection requests on the accepting network socket.
+     */
 	ServerThread(
 			ting::u16 port,
 			unsigned maxClientsPerThread,
