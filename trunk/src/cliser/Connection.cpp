@@ -35,7 +35,7 @@ using namespace cliser;
 
 
 void Connection::Send_ts(ting::Array<ting::u8> data){
-	ting::Mutex::Guard mutexGuard(this->parentThreadMutex);//make sure that this->clientThread won't be zeroed out by other thread
+	ting::Mutex::Guard mutexGuard(this->mutex);//make sure that this->clientThread won't be zeroed out by other thread
 	if(!this->parentThread){
 		//client disconnected, do nothing
 //		TRACE(<< "Connection::" << __func__ << "(): client disconnected" << std::endl)
@@ -62,7 +62,7 @@ void Connection::SendCopy_ts(const ting::Buffer<ting::u8>& data){
 
 
 void Connection::Disconnect_ts(){
-	ting::Mutex::Guard mutexGuard(this->parentThreadMutex);
+	ting::Mutex::Guard mutexGuard(this->mutex);
 	if(!this->parentThread){
 		//client disconnected, do nothing
 		return;
@@ -81,26 +81,24 @@ void Connection::Disconnect_ts(){
 
 
 ting::Array<ting::u8> Connection::GetReceivedData_ts(){
-	ting::Mutex::Guard mutexGuard(this->receivedDataMutex);
+	ting::Mutex::Guard parentThreadMutextGuard(this->mutex);
 
+	//At the moment of sending the ResumeListeningForReadMessage the receivedData variable should be empty.
 	ting::Array<ting::u8> ret = this->receivedData;
 
 	//Send the message to parent thread only if
 	//there was received data stored, which means
 	//that socket is not listened for READ condition.
-	if(ret){
-		ting::Mutex::Guard parentThreadMutextGuard(this->parentThreadMutex);
-		if(this->parentThread){
-			ting::Ref<Connection> c(this);
-			ASSERT(c)
+	if(ret && this->parentThread){
+		ting::Ref<Connection> c(this);
+		ASSERT(c)
 
-			//send message to parentHandler thread
-			ASS(this->parentThread)->PushMessage(
-					ting::Ptr<ting::Message>(
-							new ConnectionsThread::ResumeListeningForReadMessage(this->parentThread, c)
-						)
-				);
-		}
+		//send message to parentHandler thread
+		ASS(this->parentThread)->PushMessage(
+				ting::Ptr<ting::Message>(
+						new ConnectionsThread::ResumeListeningForReadMessage(this->parentThread, c)
+					)
+			);
 	}
 
 	return ret;
