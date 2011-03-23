@@ -1,5 +1,3 @@
-* update version number in every .hpp file header
-
 * add new entry to debian/changelog file
 
 * generate debian package using dpkg-buildpackage
