@@ -1,0 +1,37 @@
+Source: libcliser
+Section: devel
+Priority: extra
+Maintainer: Ivan Gagis <igagis@gmail.com>
+Build-Depends: libting-dev, doxygen
+Standards-Version: 3.7.2
+
+Package: libcliser0
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: TCP client-server library in C++.
+ libcliser is a library written in C++ which allows easy creation of
+ TCP-based network client-server systems.
+
+Package: libcliser0-dbg
+Section: devel
+Architecture: any
+Depends: ${shlibs:Depends}, libcliser0 (= ${binary:Version})
+Description: debugging symbols for libcliser0 package.
+
+Package: libcliser-dev
+Section: devel
+Architecture: any
+Depends: libting-dev, libcliser0 (= ${binary:Version})
+Suggests: libcliser-doc
+Description: TCP client-server library in C++.
+ libcliser is a library written in C++ which allows easy creation of
+ TCP-based network client-server systems.
+
+Package: libcliser-doc
+Section: devel
+Architecture: any
+Depends: libcliser-dev
+Description: documentation of libcliser - TCP client-server library in C++.
+ Documentation of libcliser - TCP client-server library in C++.
+ For more info see description of libcliser-dev package.

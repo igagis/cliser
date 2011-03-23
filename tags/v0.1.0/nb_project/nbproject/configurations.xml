@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="69">
+  <logicalFolder name="root" displayName="root" projectFiles="true">
+    <df name="src" root="../src">
+      <df name="cliser" kind="SOURCE_LOGICAL_FOLDER">
+        <in>ClientThread.cpp</in>
+        <in>ClientThread.hpp</in>
+        <in>Connection.cpp</in>
+        <in>Connection.hpp</in>
+        <in>ConnectionsThread.cpp</in>
+        <in>ConnectionsThread.hpp</in>
+        <in>ServerThread.cpp</in>
+        <in>ServerThread.hpp</in>
+      </df>
+      <df name="obj">
+        <df name="1">
+          <df name="2" kind="SOURCE_LOGICAL_FOLDER">
+            <df name="cliser" kind="SOURCE_LOGICAL_FOLDER">
+            </df>
+          </df>
+        </df>
+      </df>
+    </df>
+    <df name="tests" root="../tests">
+      <df name="ConnectDisconnect">
+        <in>main.cpp</in>
+      </df>
+      <df name="Simple">
+        <in>main.cpp</in>
+      </df>
+    </df>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>../makefile</itemPath>
+      <itemPath>nb_project-Makefile.mk</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <sourceFolderFilter>^(nbproject)$</sourceFolderFilter>
+  <sourceRootList>
+    <Elem>../src</Elem>
+    <Elem>../tests</Elem>
+  </sourceRootList>
+  <projectmakefile>nb_project-Makefile.mk</projectmakefile>
+  <confs>
+    <conf name="Default" type="0">
+      <toolsSet>
+        <developmentServer>localhost</developmentServer>
+        <compilerSet>GNU|GNU</compilerSet>
+        <platform>2</platform>
+      </toolsSet>
+      <makefileType>
+        <makeTool>
+          <buildCommandWorkingDir>..</buildCommandWorkingDir>
+          <buildCommand>${MAKE}</buildCommand>
+          <cleanCommand>${MAKE} clean</cleanCommand>
+          <executablePath></executablePath>
+          <ccTool>
+            <incDir>
+              <pElem>../src/cliser/srv</pElem>
+            </incDir>
+          </ccTool>
+        </makeTool>
+      </makefileType>
+    </conf>
+  </confs>
+</configurationDescriptor>

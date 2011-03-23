@@ -1,0 +1,16 @@
+#!/usr/bin/make -f
+
+build:
+	$(MAKE)
+
+clean:
+	rm -f debian/files
+	rm -rf debian/out
+	$(MAKE) clean
+
+binary:
+	./debian/libcliser.sh
+	./debian/libcliser-dbg.sh
+	./debian/libcliser-dev.sh
+	./debian/libcliser-doc.sh
+
