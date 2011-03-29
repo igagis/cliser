@@ -22,7 +22,7 @@ Description: debugging symbols for libcliser0 package.
 Package: libcliser-dev
 Section: devel
 Architecture: any
-Depends: libting-dev, libcliser0 (= ${binary:Version})
+Depends: libting-dev (>= 0.7.0), libcliser0 (= ${binary:Version})
 Suggests: libcliser-doc
 Description: TCP client-server library in C++.
  libcliser is a library written in C++ which allows easy creation of
@@ -31,7 +31,7 @@ Description: TCP client-server library in C++.
 Package: libcliser-doc
 Section: devel
 Architecture: any
-Depends: libcliser-dev
+Depends: libcliser-dev (= ${binary:Version})
 Description: documentation of libcliser - TCP client-server library in C++.
  Documentation of libcliser - TCP client-server library in C++.
  For more info see description of libcliser-dev package.

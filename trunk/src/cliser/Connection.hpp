@@ -206,7 +206,7 @@ public:
 	 * @param c - connection object.
 	 * @param d -data which was received.
 	 * @return true if the data was successfully handled.
-	 * @reutrn false if the data was not handled. In that case, the data will be stored in the
+	 * @return false if the data was not handled. In that case, the data will be stored in the
 	 *         Connection object. Listening for new incoming data from remote end will also be stopped.
 	 *         The data can later be retrieved using cliser::Connection::GetReceivedData_ts()
 	 *         method which will also resume listening for new incoming data from remote end.
