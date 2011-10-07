@@ -116,10 +116,10 @@ endif
 #  Libs and lib directories
 #============================
 ifeq ($(platform), maemo_linux)
-    libs := -lpthread -lrt
+    libs := -lting
 endif
 ifeq ($(platform), linux)
-    libs := -lpthread -lrt
+    libs := -lting
 endif
 ifeq ($(platform), win32)
     libs := -lws2_32
