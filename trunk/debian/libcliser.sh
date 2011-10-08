@@ -11,7 +11,9 @@ mkdir -p $baseDir
 libDir=$baseDir/usr/lib
 mkdir -p $libDir
 
-libFileName=libcliser.so
+libName=libcliser
+
+libFileName=$libName.so
 
 cp src/$libFileName.$soName $libDir
 strip -g $libDir/$libFileName.$soName
@@ -23,6 +25,9 @@ mkdir -p $baseDir/DEBIAN
 
 #remove substvars
 rm -f debian/substvars
+
+#create DEBIAN/shlibs file
+echo "$libName $soName $packageName (>= `./debian/util.sh latest_changelog_version`)" > $baseDir/DEBIAN/shlibs
 
 #calculate dependancies
 dpkg-shlibdeps $libDir/$libFileName.$soName
