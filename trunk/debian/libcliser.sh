@@ -27,7 +27,7 @@ mkdir -p $baseDir/DEBIAN
 rm -f debian/substvars
 
 #create DEBIAN/shlibs file
-echo "$libName $soName $packageName (>= `./debian/util.sh latest_changelog_version`)" > $baseDir/DEBIAN/shlibs
+echo "$libName $soName $packageName (>= `dpkg-parsechangelog | awk '$1 ~ /Version/ {print $2}'`)" > $baseDir/DEBIAN/shlibs
 
 #calculate dependancies
 dpkg-shlibdeps $libDir/$libFileName.$soName
