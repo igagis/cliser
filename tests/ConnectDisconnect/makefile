@@ -29,7 +29,7 @@ cf += -I../../src
 
 
 ifeq ($(platform),win32)
-    libs := $(cliserlib) -lws2_32
+    libs := $(cliserlib) ../../../ting/src/libting.a -lws2_32
     cf += -I../../../ting/src
     remove := del /Q /F 
 else
