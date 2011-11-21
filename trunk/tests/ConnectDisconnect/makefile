@@ -33,7 +33,7 @@ ifeq ($(platform),win32)
     cf += -I../../../ting/src
     remove := del /Q /F 
 else
-    libs := -lpthread -lrt -Wl,$(cliserlib)
+    libs := -lting -Wl,$(cliserlib)
     remove := rm -rf
 endif
 
