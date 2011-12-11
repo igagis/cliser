@@ -1,0 +1,9 @@
+Name: cliser   # human-readable name
+Description: TCP network client-server library in C++  # human-readable description
+Version: 0.1.0
+URL: http://cliser.googlecode.com
+Requires:
+Conflicts:
+Libs: -lcliser
+Libs.private:
+Cflags:
