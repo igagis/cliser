@@ -1,6 +1,6 @@
 /* The MIT License:
 
-Copyright (c) 2009-2011 Ivan Gagis <igagis@gmail.com>
+Copyright (c) 2009-2012 Ivan Gagis <igagis@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. */
 
-//Homepage: http://code.google.com/p/cliser/
+//Home page: http://code.google.com/p/cliser/
 
 #include <ting/Thread.hpp>
 #include <ting/math.hpp>
@@ -49,7 +49,7 @@ ClientThread::~ClientThread(){
 
 
 
-ting::Ref<cliser::Connection> ClientThread::Connect_ts(const ting::IPAddress& ip){
+ting::Ref<cliser::Connection> ClientThread::Connect_ts(const ting::net::IPAddress& ip){
 //    TRACE(<< "ClientThread::" << __func__ << "(): enter" << std::endl)
 
 	ting::Ref<cliser::Connection> conn = ASS(this->listener)->CreateConnectionObject();
@@ -69,7 +69,7 @@ ting::Ref<cliser::Connection> ClientThread::Connect_ts(const ting::IPAddress& ip
 
 
 void ClientThread::HandleConnectRequest(
-		const ting::IPAddress& ip,
+		const ting::net::IPAddress& ip,
 		const ting::Ref<cliser::Connection>& conn
 	)
 {
@@ -78,7 +78,7 @@ void ClientThread::HandleConnectRequest(
 	try{
 		ASSERT(conn->socket.IsNotValid())
 		conn->socket.Open(ip);
-	}catch(ting::Socket::Exc &e){
+	}catch(ting::net::Exc &e){
 //		TRACE(<< "ConnectToServerMessage::" << __func__ << "(): exception caught, e = " << e.What() << ", sending connect failed reply to main thread" << std::endl)
 		ASS(this->listener)->OnDisconnected_ts(conn);
 		return;

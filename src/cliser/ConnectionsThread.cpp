@@ -1,6 +1,6 @@
 /* The MIT License:
 
-Copyright (c) 2009-2011 Ivan Gagis <igagis@gmail.com>
+Copyright (c) 2009-2012 Ivan Gagis <igagis@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,9 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. */
 
-//Homepage: http://code.google.com/p/cliser/
+//Home page: http://code.google.com/p/cliser/
+
+
 
 #include <list>
 
@@ -177,7 +179,7 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 				conn->SetHandlingThread(this);
 				ASS(this->listener)->OnConnected_ts(conn);
 //				TRACE(<< "ConnectionsThread::" << __func__ << "(): connection was successful" << std::endl)
-			}catch(ting::Socket::Exc& e){
+			}catch(ting::net::Exc& e){
 				TRACE(<< "ConnectionsThread::" << __func__ << "(): connection was unsuccessful: " << e.What() << std::endl)
 				this->HandleRemoveConnectionMessage(conn);
 				return;
@@ -210,7 +212,7 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 						this->waitSet.Change(&conn->socket, conn->currentFlags);
 					}
 				}
-			}catch(ting::Socket::Exc &e){
+			}catch(ting::net::Exc &e){
 //				TRACE(<< "ConnectionsThread::" << __func__ << "(): exception caught while sending: " << e.What() << std::endl)
 				this->HandleRemoveConnectionMessage(conn);
 				return;
@@ -256,7 +258,7 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 				this->HandleRemoveConnectionMessage(conn);
 				return;
 			}
-		}catch(ting::Socket::Exc &e){
+		}catch(ting::net::Exc &e){
 //			TRACE(<< "ConnectionsThread::" << __func__ << "(): exception caught while reading: " << e.What() << std::endl)
 			this->HandleRemoveConnectionMessage(conn);
 			return;
@@ -402,7 +404,7 @@ void ConnectionsThread::HandleSendDataMessage(ting::Ref<Connection>& conn, ting:
 				ASSERT_INFO(conn->packetQueue.size() == 0, conn->packetQueue.size())
 				ASS(this->listener)->OnDataSent_ts(conn, 0, false);
 			}
-		}catch(ting::Socket::Exc& e){
+		}catch(ting::net::Exc& e){
 //			TRACE(<< "ConnectionsThread::" << __func__ << "(): exception caught" << e.What() << std::endl)
 			conn->Disconnect_ts();
 		}

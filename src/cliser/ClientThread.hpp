@@ -1,6 +1,6 @@
 /* The MIT License:
 
-Copyright (c) 2009-2011 Ivan Gagis <igagis@gmail.com>
+Copyright (c) 2009-2012 Ivan Gagis <igagis@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. */
 
-//Homepage: http://code.google.com/p/cliser/
+//Home page: http://code.google.com/p/cliser/
 
 /**
  * @file ClientThread.hpp
@@ -78,17 +78,17 @@ public:
 	 *           of unsuccessful result.
 	 */
 	//send connection request message to the thread
-	ting::Ref<cliser::Connection> Connect_ts(const ting::IPAddress& ip);
+	ting::Ref<cliser::Connection> Connect_ts(const ting::net::IPAddress& ip);
 
 private:
 	class ConnectToServerMessage : public ting::Message{
 		ClientThread* ct;
-		ting::IPAddress ip;
+		ting::net::IPAddress ip;
 		const ting::Ref<cliser::Connection> conn;
 	public:
 		ConnectToServerMessage(
 				ClientThread* ct,
-				const ting::IPAddress& ip,
+				const ting::net::IPAddress& ip,
 				const ting::Ref<cliser::Connection>& conn
 			) :
 				ct(ASS(ct)),
@@ -103,7 +103,7 @@ private:
 		}
 	};
 
-	void HandleConnectRequest(const ting::IPAddress& ip, const ting::Ref<cliser::Connection>& conn);
+	void HandleConnectRequest(const ting::net::IPAddress& ip, const ting::Ref<cliser::Connection>& conn);
 };
 
 

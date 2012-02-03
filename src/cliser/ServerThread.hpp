@@ -1,6 +1,6 @@
 /* The MIT License:
 
-Copyright (c) 2009-2011 Ivan Gagis <igagis@gmail.com>
+Copyright (c) 2009-2012 Ivan Gagis <igagis@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. */
 
-//Homepage: http://code.google.com/p/cliser/
+//Home page: http://code.google.com/p/cliser/
 
 /**
  * @file ServerThread.hpp
@@ -141,7 +141,7 @@ private:
 
 
 private:
-	void HandleNewConnection(ting::TCPSocket socket);
+	void HandleNewConnection(ting::net::TCPSocket socket);
 
 
 
