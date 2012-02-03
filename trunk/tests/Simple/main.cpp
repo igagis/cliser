@@ -44,7 +44,7 @@ public:
 		ting::u8* p = buf.Begin();
 		for(; p != buf.End(); p += sizeof(ting::u32)){
 			ASSERT_INFO_ALWAYS(p < (buf.End() - (sizeof(ting::u32) - 1)), "p = " << p << " buf.End() = " << buf.End())
-			ting::Serialize32(this->cnt, p);
+			ting::Serialize32LE(this->cnt, p);
 			++this->cnt;
 		}
 		ASSERT_ALWAYS(p == buf.End())
@@ -62,7 +62,7 @@ public:
 
 			if(this->rbufBytes == this->rbuf.Size()){
 				this->rbufBytes = 0;
-				ting::u32 num = ting::Deserialize32(this->rbuf.Begin());
+				ting::u32 num = ting::Deserialize32LE(this->rbuf.Begin());
 				ASSERT_INFO_ALWAYS(
 						this->rcnt == num,
 						"num = " << num << " rcnt = " << this->rcnt 
@@ -264,7 +264,7 @@ int main(int argc, char *argv[]){
 		}
 	}
 
-	ting::SocketLib socketsLib;
+	ting::net::Lib socketsLib;
 
 	Server server;
 	server.Start();
@@ -275,7 +275,7 @@ int main(int argc, char *argv[]){
 	client.Start();
 
 	for(unsigned i = 0; i < client.MaxConnections(); ++i){
-		client.Connect_ts(ting::IPAddress(DIpAddress, DPort));
+		client.Connect_ts(ting::net::IPAddress(DIpAddress, DPort));
 	}
 
 	if(msec == 0){

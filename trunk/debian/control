@@ -2,7 +2,7 @@ Source: libcliser
 Section: devel
 Priority: extra
 Maintainer: Ivan Gagis <igagis@gmail.com>
-Build-Depends: libting-dev (>= 0.10.0), doxygen, awk
+Build-Depends: libting-dev (>= 0.11.0), doxygen, awk
 Standards-Version: 3.7.2
 
 Package: libcliser0
@@ -22,7 +22,7 @@ Description: debugging symbols for libcliser0 package.
 Package: libcliser-dev
 Section: devel
 Architecture: any
-Depends: libting-dev (>= 0.10.0), libcliser0 (= ${binary:Version})
+Depends: libting-dev (>= 0.11.0), libcliser0 (= ${binary:Version})
 Suggests: libcliser-doc
 Description: TCP client-server library in C++.
  libcliser is a library written in C++ which allows easy creation of

@@ -55,7 +55,7 @@ public:
 		ASSERT_INFO((buf.Size() % sizeof(ting::u32)) == 0, "buf.Size() = " << buf.Size() << " (buf.Size() % sizeof(ting::u32)) = " << (buf.Size() % sizeof(ting::u32)))
 
 		for(ting::u8* p = buf.Begin(); p != buf.End(); p += sizeof(ting::u32)){
-			ting::Serialize32(this->cnt, p);
+			ting::Serialize32LE(this->cnt, p);
 			++this->cnt;
 		}
 
@@ -70,7 +70,7 @@ public:
 
 			if(this->rbufBytes == this->rbuf.Size()){
 				this->rbufBytes = 0;
-				ting::u32 num = ting::Deserialize32(this->rbuf.Begin());
+				ting::u32 num = ting::Deserialize32LE(this->rbuf.Begin());
 				ASSERT_INFO_ALWAYS(this->rcnt == num, "num = " << num << " rcnt = " << this->rcnt)
 				++this->rcnt;
 			}
@@ -250,7 +250,7 @@ private:
 			}
 		}
 
-		this->Connect_ts(ting::IPAddress(DIpAddress, DPort));
+		this->Connect_ts(ting::net::IPAddress(DIpAddress, DPort));
 	}
 
 	//override
@@ -285,7 +285,7 @@ int main(int argc, char *argv[]){
 		}
 	}
 
-	ting::SocketLib socketsLib;
+	ting::net::Lib socketsLib;
 
 	Server server;
 	server.Start();
@@ -296,7 +296,7 @@ int main(int argc, char *argv[]){
 	client.Start();
 
 	for(unsigned i = 0; i < client.MaxConnections(); ++i){
-		client.Connect_ts(ting::IPAddress(DIpAddress, DPort));
+		client.Connect_ts(ting::net::IPAddress(DIpAddress, DPort));
 	}
 
 	if(msec == 0){

@@ -1,6 +1,6 @@
 /* The MIT License:
 
-Copyright (c) 2009-2011 Ivan Gagis <igagis@gmail.com>
+Copyright (c) 2009-2012 Ivan Gagis <igagis@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,9 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE. */
 
-//Homepage: http://code.google.com/p/cliser/
+//Home page: http://code.google.com/p/cliser/
+
+
 
 #include <exception>
 
@@ -71,7 +73,7 @@ void ServerThread::Run(){
 //	TRACE(<<"Server::Run(): threads started"<<std::endl)
 
 	//open listening socket
-	ting::TCPServerSocket sock;
+	ting::net::TCPServerSocket sock;
 	sock.Open(this->port, this->disableNaggle, this->queueLength);
 
 	ting::WaitSet waitSet(2);
@@ -89,12 +91,12 @@ void ServerThread::Run(){
 		}
 
 		if(sock.CanRead()){
-			ting::TCPSocket newSock;
+			ting::net::TCPSocket newSock;
 			try{
 				if((newSock = sock.Accept()).IsValid()){
 					this->HandleNewConnection(newSock);
 				}
-			}catch(ting::Socket::Exc& e){
+			}catch(ting::net::Exc& e){
 				ASSERT_INFO(false, "sock.Accept() failed")
 			}
 		}
@@ -150,7 +152,7 @@ ServerThread::ServerConnectionsThread* ServerThread::GetNotFullThread(){
 
 
 
-void ServerThread::HandleNewConnection(ting::TCPSocket socket){
+void ServerThread::HandleNewConnection(ting::net::TCPSocket socket){
 //	LOG(<< "ServerThread::" << __func__ << "(): enter" << std::endl)
 //	TRACE(<< "ServerThread::" << __func__ << "(): enter" << std::endl)
 
