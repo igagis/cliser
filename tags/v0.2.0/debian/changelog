@@ -1,0 +1,13 @@
+libcliser (0.2.0-1) unstable; urgency=low
+
+  * Update to use libting-0.11.0
+
+ -- Ivan Gagis <igagis@gmail.com>  Fri, 03 Feb 2012 16:55:53 +0200
+
+
+libcliser (0.1.0-1) unstable; urgency=low
+
+  * Initial release
+
+ -- Ivan Gagis <igagis@gmail.com>  Fri, 25 Feb 2011 11:59:53 +0200
+
