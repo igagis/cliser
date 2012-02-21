@@ -79,7 +79,7 @@ private:
 	void HandleSocketActivity(ting::Ref<cliser::Connection>& conn);
 
 public:
-	~ConnectionsThread();
+	~ConnectionsThread()throw();
 
 	inline unsigned MaxConnections()const{
 		return ASSCOND(this->waitSet.Size() - 1, > 0);

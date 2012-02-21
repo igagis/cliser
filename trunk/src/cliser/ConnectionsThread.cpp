@@ -52,7 +52,7 @@ ConnectionsThread::ConnectionsThread(unsigned maxConnections, cliser::Listener* 
 
 
 
-ConnectionsThread::~ConnectionsThread(){
+ConnectionsThread::~ConnectionsThread()throw(){
 	M_SRV_CLIENTS_HANDLER_TRACE(<< "ConnectionsThread::" << __func__ << "(): invoked" << std::endl)
 	ASSERT(this->connections.size() == 0)
 	ASSERT(this->listener)

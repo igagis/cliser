@@ -44,7 +44,7 @@ ClientThread::ClientThread(unsigned maxConnections, cliser::Listener* listener) 
 
 
 
-ClientThread::~ClientThread(){
+ClientThread::~ClientThread()throw(){
 }
 
 

@@ -96,7 +96,7 @@ protected:
 	{}
 
 public:
-	virtual ~Connection(){
+	virtual ~Connection()throw(){
 //		TRACE(<< "Connection::" << __func__ << "(): invoked" << std::endl)
 	}
 

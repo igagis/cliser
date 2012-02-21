@@ -58,7 +58,7 @@ ServerThread::ServerThread(
 
 
 
-ServerThread::~ServerThread(){
+ServerThread::~ServerThread()throw(){
 	ASSERT(this->clientsThreads.size() == 0)
 
 	--this->listener->numTimesAdded;
