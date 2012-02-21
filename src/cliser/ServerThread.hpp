@@ -130,7 +130,7 @@ public:
 			ting::u16 acceptQueueLength = 50
 		);
 	
-	virtual ~ServerThread();
+	virtual ~ServerThread()throw();
 
 	//override
 	void Run();
@@ -186,6 +186,8 @@ private:
 				ConnectionsThread(maxConnections, this),
 				serverThread(ASS(serverThread))
 		{}
+		
+		~ServerConnectionsThread()throw(){}
 
 		//override
 		virtual ting::Ref<cliser::Connection> CreateConnectionObject(){

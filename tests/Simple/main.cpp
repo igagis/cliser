@@ -32,7 +32,7 @@ public:
 //		TRACE(<< "Connection::" << __func__ << "(): invoked" << std::endl)
 	}
 
-	~Connection(){
+	~Connection()throw(){
 //		TRACE(<< "Connection::" << __func__ << "(): invoked" << std::endl)
 	}
 
@@ -94,7 +94,7 @@ public:
 			cliser::ServerThread(DPort, 2, this, false, 100)
 	{}
 
-	~Server(){
+	~Server()throw(){
 		ASSERT_INFO_ALWAYS(this->numConnections == 0, "this->numConnections = " << this->numConnections)
 	}
 private:
@@ -165,7 +165,7 @@ public:
 			cliser::ClientThread(DMaxConnections, this) //max connections
 	{}
 
-	~Client(){
+	~Client()throw(){
 		ASSERT_INFO_ALWAYS(this->numConnections == 0, "this->numConnections = " << this->numConnections)
 	}
 private:
