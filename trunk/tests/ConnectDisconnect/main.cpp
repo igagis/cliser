@@ -55,7 +55,7 @@ public:
 		ASSERT_INFO((buf.Size() % sizeof(ting::u32)) == 0, "buf.Size() = " << buf.Size() << " (buf.Size() % sizeof(ting::u32)) = " << (buf.Size() % sizeof(ting::u32)))
 
 		for(ting::u8* p = buf.Begin(); p != buf.End(); p += sizeof(ting::u32)){
-			ting::Serialize32LE(this->cnt, p);
+			ting::util::Serialize32LE(this->cnt, p);
 			++this->cnt;
 		}
 
@@ -70,7 +70,7 @@ public:
 
 			if(this->rbufBytes == this->rbuf.Size()){
 				this->rbufBytes = 0;
-				ting::u32 num = ting::Deserialize32LE(this->rbuf.Begin());
+				ting::u32 num = ting::util::Deserialize32LE(this->rbuf.Begin());
 				ASSERT_INFO_ALWAYS(this->rcnt == num, "num = " << num << " rcnt = " << this->rcnt)
 				++this->rcnt;
 			}
