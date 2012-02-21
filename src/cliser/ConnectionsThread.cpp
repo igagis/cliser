@@ -29,7 +29,7 @@ THE SOFTWARE. */
 #include <ting/Socket.hpp>
 #include <ting/debug.hpp>
 #include <ting/math.hpp>
-#include <ting/utils.hpp>
+#include <ting/util.hpp>
 #include <ting/Buffer.hpp>
 
 #include "ServerThread.hpp"
