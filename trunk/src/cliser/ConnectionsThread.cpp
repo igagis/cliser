@@ -26,7 +26,6 @@ THE SOFTWARE. */
 
 #include <list>
 
-#include <ting/Socket.hpp>
 #include <ting/debug.hpp>
 #include <ting/math.hpp>
 #include <ting/util.hpp>
@@ -34,6 +33,7 @@ THE SOFTWARE. */
 
 #include "ServerThread.hpp"
 #include "Connection.hpp"
+
 #include "ConnectionsThread.hpp"
 
 

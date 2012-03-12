@@ -30,7 +30,7 @@ THE SOFTWARE. */
 
 #include <list>
 
-#include <ting/Socket.hpp>
+#include <ting/net/TCPSocket.hpp>
 #include <ting/types.hpp>
 #include <ting/Array.hpp>
 #include <ting/Ref.hpp>
