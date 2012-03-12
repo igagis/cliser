@@ -1,6 +1,7 @@
 #include <ting/debug.hpp>
 #include <ting/Buffer.hpp>
 #include <ting/Thread.hpp>
+#include <ting/net/Lib.hpp>
 
 #include "../src/cliser/ServerThread.hpp"
 #include "../src/cliser/ClientThread.hpp"

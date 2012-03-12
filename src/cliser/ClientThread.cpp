@@ -24,7 +24,6 @@ THE SOFTWARE. */
 
 #include <ting/Thread.hpp>
 #include <ting/math.hpp>
-#include <ting/Socket.hpp>
 #include <ting/util.hpp>
 #include <ting/Ptr.hpp>
 #include <ting/Buffer.hpp>

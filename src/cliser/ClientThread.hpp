@@ -36,7 +36,7 @@ THE SOFTWARE. */
 #include <ting/types.hpp>
 #include <ting/debug.hpp>
 #include <ting/Thread.hpp>
-#include <ting/Socket.hpp>
+#include <ting/net/IPAddress.hpp>
 #include <ting/WaitSet.hpp>
 
 #include "ConnectionsThread.hpp"

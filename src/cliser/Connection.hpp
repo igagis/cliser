@@ -36,7 +36,7 @@ THE SOFTWARE. */
 #include <ting/Array.hpp>
 #include <ting/Buffer.hpp>
 #include <ting/Ref.hpp>
-#include <ting/Socket.hpp>
+#include <ting/net/TCPSocket.hpp>
 #include <ting/Thread.hpp>
 
 
