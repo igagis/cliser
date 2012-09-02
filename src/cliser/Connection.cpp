@@ -23,7 +23,6 @@ THE SOFTWARE. */
 //Homepage: http://code.google.com/p/cliser/
 
 #include <ting/debug.hpp>
-#include <ting/Thread.hpp>
 
 #include "Connection.hpp"
 #include "ConnectionsThread.hpp"
@@ -35,7 +34,7 @@ using namespace cliser;
 
 
 void Connection::Send_ts(ting::Array<ting::u8> data){
-	ting::Mutex::Guard mutexGuard(this->mutex);//make sure that this->clientThread won't be zeroed out by other thread
+	ting::mt::Mutex::Guard mutexGuard(this->mutex);//make sure that this->clientThread won't be zeroed out by other thread
 	if(!this->parentThread){
 		//client disconnected, do nothing
 //		TRACE(<< "Connection::" << __func__ << "(): client disconnected" << std::endl)
@@ -45,7 +44,7 @@ void Connection::Send_ts(ting::Array<ting::u8> data){
 	
 	ting::Ref<Connection> c(this);
 	this->parentThread->PushMessage(
-			ting::Ptr<ting::Message>(
+			ting::Ptr<ting::mt::Message>(
 					new ConnectionsThread::SendDataMessage(this->parentThread, c, data)
 				)
 		);
@@ -62,7 +61,7 @@ void Connection::SendCopy_ts(const ting::Buffer<ting::u8>& data){
 
 
 void Connection::Disconnect_ts(){
-	ting::Mutex::Guard mutexGuard(this->mutex);
+	ting::mt::Mutex::Guard mutexGuard(this->mutex);
 	if(!this->parentThread){
 		//client disconnected, do nothing
 		return;
@@ -70,7 +69,7 @@ void Connection::Disconnect_ts(){
 	ASSERT(this->parentThread)
 	ting::Ref<Connection> c(this);
 	this->parentThread->PushMessage(
-			ting::Ptr<ting::Message>(
+			ting::Ptr<ting::mt::Message>(
 					new ConnectionsThread::RemoveConnectionMessage(this->parentThread, c)
 				)
 		);
@@ -81,7 +80,7 @@ void Connection::Disconnect_ts(){
 
 
 ting::Array<ting::u8> Connection::GetReceivedData_ts(){
-	ting::Mutex::Guard parentThreadMutextGuard(this->mutex);
+	ting::mt::Mutex::Guard parentThreadMutextGuard(this->mutex);
 
 	//At the moment of sending the ResumeListeningForReadMessage the receivedData variable should be empty.
 	ting::Array<ting::u8> ret = this->receivedData;
@@ -95,7 +94,7 @@ ting::Array<ting::u8> Connection::GetReceivedData_ts(){
 
 		//send message to parentHandler thread
 		ASS(this->parentThread)->PushMessage(
-				ting::Ptr<ting::Message>(
+				ting::Ptr<ting::mt::Message>(
 						new ConnectionsThread::ResumeListeningForReadMessage(this->parentThread, c)
 					)
 			);

@@ -35,7 +35,7 @@ THE SOFTWARE. */
 #include <ting/debug.hpp>
 #include <ting/types.hpp>
 #include <ting/Array.hpp>
-#include <ting/Thread.hpp>
+#include <ting/mt/MsgThread.hpp>
 #include <ting/net/TCPSocket.hpp>
 
 #include "ConnectionsThread.hpp"
@@ -56,9 +56,9 @@ namespace cliser{
  * thread can handle up to a given maximum number of connections, this number is
  * determined by a constructor parameter (See constructor description).
  */
-class ServerThread : public ting::MsgThread{
+class ServerThread : public ting::mt::MsgThread{
 	
-	class ThreadsKillerThread : public ting::MsgThread{
+	class ThreadsKillerThread : public ting::mt::MsgThread{
 	public:
 		ThreadsKillerThread(){};
 
@@ -66,11 +66,11 @@ class ServerThread : public ting::MsgThread{
 		void Run();
 
 		/// @cond
-		class KillThreadMessage : public ting::Message{
+		class KillThreadMessage : public ting::mt::Message{
 			ThreadsKillerThread *thread;//to whom this message will be sent
-			ting::Ptr<ting::MsgThread> thr;//thread to kill
+			ting::Ptr<ting::mt::MsgThread> thr;//thread to kill
 		  public:
-			KillThreadMessage(ThreadsKillerThread *threadKillerThread, ting::Ptr<ting::MsgThread> thread) :
+			KillThreadMessage(ThreadsKillerThread *threadKillerThread, ting::Ptr<ting::mt::MsgThread> thread) :
 					thread(threadKillerThread),
 					thr(thread)
 			{
@@ -147,7 +147,7 @@ private:
 
 	//This message is sent to server main thread when the client has been disconnected,
 	//and the connection was closed. The player was removed from its handler thread.
-	class ConnectionRemovedMessage : public ting::Message{
+	class ConnectionRemovedMessage : public ting::mt::Message{
 		ServerThread *thread;//this mesage should hold reference to the thread this message is sent to
 		ServerThread::ServerConnectionsThread* cht;
 	  public:
@@ -208,7 +208,7 @@ private:
 			//Send notification message to server main thread only if thread is not exiting yet.
 			if(!this->quitFlag){
 				this->serverThread->PushMessage(
-						ting::Ptr<ting::Message>(
+						ting::Ptr<ting::mt::Message>(
 								new ServerThread::ConnectionRemovedMessage(this->serverThread, this)
 							)
 					);

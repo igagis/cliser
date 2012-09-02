@@ -22,7 +22,6 @@ THE SOFTWARE. */
 
 //Home page: http://code.google.com/p/cliser/
 
-#include <ting/Thread.hpp>
 #include <ting/math.hpp>
 #include <ting/util.hpp>
 #include <ting/Ptr.hpp>
@@ -54,7 +53,7 @@ ting::Ref<cliser::Connection> ClientThread::Connect_ts(const ting::net::IPAddres
 	ting::Ref<cliser::Connection> conn = ASS(this->listener)->CreateConnectionObject();
 	//send connect request to thread
 	this->PushMessage(
-			ting::Ptr<ting::Message>(
+			ting::Ptr<ting::mt::Message>(
 					new ConnectToServerMessage(
 							this,
 							ip,

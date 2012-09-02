@@ -37,7 +37,7 @@ THE SOFTWARE. */
 #include <ting/Buffer.hpp>
 #include <ting/Ref.hpp>
 #include <ting/net/TCPSocket.hpp>
-#include <ting/Thread.hpp>
+#include <ting/mt/Mutex.hpp>
 
 
 
@@ -73,20 +73,20 @@ class Connection : public virtual ting::RefCounted{
 
 	//NOTE: clientThread may be accessed from different threads, therefore, protect it with mutex
 	ConnectionsThread *parentThread;
-	ting::Mutex mutex;
+	ting::mt::Mutex mutex;
 
 	ting::Array<ting::u8> receivedData;//Should be protected with mutex
 
 	inline void SetHandlingThread(ConnectionsThread *thr){
 		ASSERT(thr)
-		ting::Mutex::Guard mutexGuard(this->mutex);
+		ting::mt::Mutex::Guard mutexGuard(this->mutex);
 		//Assert that client is not added to some thread already.
 		ASSERT_INFO(!this->parentThread, "client's handler thread is already set")
 		this->parentThread = thr;
 	}
 
 	inline void ClearHandlingThread(){
-		ting::Mutex::Guard mutexGuard(this->mutex);
+		ting::mt::Mutex::Guard mutexGuard(this->mutex);
 		this->parentThread = 0;
 	}
 

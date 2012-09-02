@@ -122,7 +122,7 @@ void ConnectionsThread::Run(){
 			}
 
 			for(unsigned i = 0; i < numMsgsToHandle; ++i){
-				if(ting::Ptr<ting::Message> m = this->queue.PeekMsg()){
+				if(ting::Ptr<ting::mt::Message> m = this->queue.PeekMsg()){
 					M_SRV_CLIENTS_HANDLER_TRACE(<< "ConnectionsThread::" << __func__ << "(): message got" << std::endl)
 					m->Handle();
 				}else{
@@ -240,7 +240,7 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 
 				ASSERT(!conn->receivedData)
 				if(!ASS(this->listener)->OnDataReceived_ts(conn, b)){
-					ting::Mutex::Guard mutexGuard(conn->mutex);
+					ting::mt::Mutex::Guard mutexGuard(conn->mutex);
 					
 //					TRACE(<< "ConnectionsThread::HandleSocketActivity(): received data not handled!!!!!!!!!!!" << std::endl)
 					ASSERT(!conn->receivedData)

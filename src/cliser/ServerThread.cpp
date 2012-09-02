@@ -27,7 +27,6 @@ THE SOFTWARE. */
 #include <exception>
 
 #include <ting/debug.hpp>
-#include <ting/Thread.hpp>
 #include <ting/net/TCPServerSocket.hpp>
 #include <ting/util.hpp>
 
@@ -85,7 +84,7 @@ void ServerThread::Run(){
 
 		//TRACE(<<"C_TCPAcceptorThread::Run(): going to get message"<<std::endl)
 		if(this->queue.CanRead()){
-			if(ting::Ptr<ting::Message> m = this->queue.PeekMsg()){
+			if(ting::Ptr<ting::mt::Message> m = this->queue.PeekMsg()){
 				m->Handle();
 			}
 		}
@@ -178,7 +177,7 @@ void ServerThread::HandleNewConnection(ting::net::TCPSocket socket){
 	ASSERT(conn->socket.IsValid())
 
 	thr->PushMessage(
-			ting::Ptr<ting::Message>(
+			ting::Ptr<ting::mt::Message>(
 					new ConnectionsThread::AddConnectionMessage(thr, conn)
 				)
 		);
@@ -207,7 +206,7 @@ void ServerThread::HandleConnectionRemovedMessage(ServerThread::ServerConnection
 		if((*i) == cht){
 			//schedule thread for termination
 			this->threadsKillerThread.PushMessage(
-					ting::Ptr<ting::Message>(
+					ting::Ptr<ting::mt::Message>(
 							new ThreadsKillerThread::KillThreadMessage(
 									&this->threadsKillerThread,
 									(*i)

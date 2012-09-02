@@ -35,6 +35,7 @@ THE SOFTWARE. */
 #include <ting/Array.hpp>
 #include <ting/Ref.hpp>
 #include <ting/WaitSet.hpp>
+#include <ting/mt/MsgThread.hpp>
 
 #include "Connection.hpp"
 
@@ -58,7 +59,7 @@ class ClientThread;
 
 
 
-class ConnectionsThread : public ting::MsgThread{
+class ConnectionsThread : public ting::mt::MsgThread{
 	friend class cliser::ServerThread;
 	friend class cliser::ClientThread;
 	friend class cliser::Connection;
@@ -104,7 +105,7 @@ private:
 
 
 private:
-	class AddConnectionMessage : public ting::Message{
+	class AddConnectionMessage : public ting::mt::Message{
 		ConnectionsThread* thread;
 		ting::Ref<Connection> conn;
 
@@ -127,7 +128,7 @@ private:
 
 
 
-	class RemoveConnectionMessage : public ting::Message{
+	class RemoveConnectionMessage : public ting::mt::Message{
 		ConnectionsThread* thread;
 		ting::Ref<Connection> conn;
 	public:
@@ -146,7 +147,7 @@ private:
 
 
 
-	class SendDataMessage : public ting::Message{
+	class SendDataMessage : public ting::mt::Message{
 		ConnectionsThread *thread;//this mesage should hold reference to the thread this message is sent to
 
 		ting::Ref<Connection> conn;
@@ -174,7 +175,7 @@ private:
 
 
 
-	class ResumeListeningForReadMessage : public ting::Message{
+	class ResumeListeningForReadMessage : public ting::mt::Message{
 		ConnectionsThread* thread;
 		ting::Ref<Connection> conn;
 	public:

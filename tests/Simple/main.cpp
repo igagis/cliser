@@ -1,6 +1,7 @@
 #include <ting/debug.hpp>
 #include <ting/Buffer.hpp>
-#include <ting/Thread.hpp>
+#include <ting/mt/MsgThread.hpp>
+#include <ting/mt/Mutex.hpp>
 #include <ting/net/Lib.hpp>
 
 #include "../src/cliser/ServerThread.hpp"
@@ -99,7 +100,7 @@ public:
 		ASSERT_INFO_ALWAYS(this->numConnections == 0, "this->numConnections = " << this->numConnections)
 	}
 private:
-	ting::Mutex numConsMut;
+	ting::mt::Mutex numConsMut;
 	ting::Inited<unsigned, 0> numConnections;
 	
 	//override
@@ -114,7 +115,7 @@ private:
 		conn->isConnected = true;
 
 		{
-			ting::Mutex::Guard mutexGuard(this->numConsMut);
+			ting::mt::Mutex::Guard mutexGuard(this->numConsMut);
 			++(this->numConnections);
 			ASSERT_INFO_ALWAYS(this->numConnections <= DMaxConnections, "this->numConnections = " << this->numConnections)
 		}
@@ -132,7 +133,7 @@ private:
 		conn->isConnected = false;
 
 		{
-			ting::Mutex::Guard mutexGuard(this->numConsMut);
+			ting::mt::Mutex::Guard mutexGuard(this->numConsMut);
 			--(this->numConnections);
 			ASSERT_INFO_ALWAYS(this->numConnections <= DMaxConnections, "this->numConnections = 0x" << std::hex << this->numConnections)
 		}
@@ -170,7 +171,7 @@ public:
 		ASSERT_INFO_ALWAYS(this->numConnections == 0, "this->numConnections = " << this->numConnections)
 	}
 private:
-	ting::Mutex numConsMut;
+	ting::mt::Mutex numConsMut;
 	ting::Inited<unsigned, 0> numConnections;
 	
 	//override
@@ -181,7 +182,7 @@ private:
 	//override
 	void OnConnected_ts(const ting::Ref<cliser::Connection>& c){
 		{
-			ting::Mutex::Guard mutexGuard(this->numConsMut);
+			ting::mt::Mutex::Guard mutexGuard(this->numConsMut);
 			++(this->numConnections);
 			ASSERT_INFO_ALWAYS(this->numConnections <= DMaxConnections, "this->numConnections = " << this->numConnections)
 		}
@@ -202,7 +203,7 @@ private:
 			conn->isConnected = false;
 
 			{
-				ting::Mutex::Guard mutexGuard(this->numConsMut);
+				ting::mt::Mutex::Guard mutexGuard(this->numConsMut);
 				--(this->numConnections);
 				ASSERT_INFO_ALWAYS(this->numConnections <= DMaxConnections, "this->numConnections = " << this->numConnections)
 			}
@@ -212,7 +213,7 @@ private:
 		}
 	}
 
-	class HandleDataMessage : public ting::Message{
+	class HandleDataMessage : public ting::mt::Message{
 		ting::Ref<Connection> conn;
 	public:
 		HandleDataMessage(const ting::Ref<Connection>& conn) :
@@ -234,7 +235,7 @@ private:
 	bool OnDataReceived_ts(const ting::Ref<cliser::Connection>& c, const ting::Buffer<ting::u8>& d){
 		TRACE_ALWAYS(<< "Client: data received" << std::endl)
 		this->PushMessage(
-				ting::Ptr<ting::Message>(
+				ting::Ptr<ting::mt::Message>(
 						new HandleDataMessage(c.StaticCast<Connection>())
 					)
 			);
@@ -270,7 +271,7 @@ int main(int argc, char *argv[]){
 	Server server;
 	server.Start();
 
-	ting::Thread::Sleep(100);//give server thread some time to start waiting on the socket
+	ting::mt::Thread::Sleep(100);//give server thread some time to start waiting on the socket
 
 	Client client;
 	client.Start();
@@ -281,10 +282,10 @@ int main(int argc, char *argv[]){
 
 	if(msec == 0){
 		while(true){
-			ting::Thread::Sleep(1000000);
+			ting::mt::Thread::Sleep(1000000);
 		}
 	}else{
-		ting::Thread::Sleep(msec);
+		ting::mt::Thread::Sleep(msec);
 	}
 
 	client.PushQuitMessage();
