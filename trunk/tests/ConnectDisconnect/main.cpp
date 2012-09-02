@@ -106,7 +106,7 @@ public:
 		ASSERT_INFO_ALWAYS(this->numConnections == 0, "this->numConnections = " << this->numConnections)
 	}
 private:
-	ting::Mutex numConsMut;
+	ting::mt::Mutex numConsMut;
 	ting::Inited<unsigned, 0> numConnections;
 	
 	//override
@@ -123,7 +123,7 @@ private:
 		conn->isConnected = true;
 
 		{
-			ting::Mutex::Guard mutexGuard(this->numConsMut);
+			ting::mt::Mutex::Guard mutexGuard(this->numConsMut);
 			++(this->numConnections);
 //			ASSERT_INFO_ALWAYS(this->numConnections <= 2 * DMaxConnections, "this->numConnections = " << this->numConnections)
 		}
@@ -143,13 +143,13 @@ private:
 //		conn->isConnected = false;
 
 		{
-			ting::Mutex::Guard mutexGuard(this->numConsMut);
+			ting::mt::Mutex::Guard mutexGuard(this->numConsMut);
 			--(this->numConnections);
 //			ASSERT_INFO_ALWAYS(this->numConnections <= 2 * DMaxConnections, "this->numConnections = " << this->numConnections)
 		}
 	}
 
-	class HandleDataMessage : public ting::Message{
+	class HandleDataMessage : public ting::mt::Message{
 		ting::Ref<Connection> conn;
 	public:
 		HandleDataMessage(const ting::Ref<Connection>& conn) :
@@ -168,7 +168,7 @@ private:
 	bool OnDataReceived_ts(const ting::Ref<cliser::Connection>& c, const ting::Buffer<ting::u8>& d){
 		TRACE_ALWAYS(<< "Server: data received" << std::endl)
 		this->PushMessage(
-				ting::Ptr<ting::Message>(
+				ting::Ptr<ting::mt::Message>(
 						new HandleDataMessage(c.StaticCast<Connection>())
 					)
 			);
@@ -201,7 +201,7 @@ public:
 
 	ting::Inited<bool, 0> quitMessagePosted;
 private:
-	ting::Mutex numConsMut;
+	ting::mt::Mutex numConsMut;
 	ting::Inited<unsigned, 0> numConnections;
 
 	//override
@@ -214,7 +214,7 @@ private:
 		TRACE_ALWAYS(<< "Client::" << __func__ << "(): CONNECTED!!!" << std::endl)
 
 		{
-			ting::Mutex::Guard mutexGuard(this->numConsMut);
+			ting::mt::Mutex::Guard mutexGuard(this->numConsMut);
 			++(this->numConnections);
 			ASSERT_INFO_ALWAYS(this->numConnections <= DMaxConnections, "this->numConnections = " << this->numConnections)
 		}
@@ -238,7 +238,7 @@ private:
 //			conn->isConnected = false;
 
 			{
-				ting::Mutex::Guard mutexGuard(this->numConsMut);
+				ting::mt::Mutex::Guard mutexGuard(this->numConsMut);
 				--(this->numConnections);
 				ASSERT_INFO_ALWAYS(this->numConnections <= DMaxConnections, "this->numConnections = " << this->numConnections)
 			}
@@ -291,7 +291,7 @@ int main(int argc, char *argv[]){
 	Server server;
 	server.Start();
 
-	ting::Thread::Sleep(100);//give server thread some time to start waiting on the socket
+	ting::mt::Thread::Sleep(100);//give server thread some time to start waiting on the socket
 
 	Client client;
 	client.Start();
@@ -302,10 +302,10 @@ int main(int argc, char *argv[]){
 
 	if(msec == 0){
 		while(true){
-			ting::Thread::Sleep(1000000);
+			ting::mt::Thread::Sleep(1000000);
 		}
 	}else{
-		ting::Thread::Sleep(20000);
+		ting::mt::Thread::Sleep(20000);
 	}
 
 	//set the flag to indicate that the thread is exiting

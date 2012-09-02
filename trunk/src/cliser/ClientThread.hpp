@@ -35,7 +35,6 @@ THE SOFTWARE. */
 #include <ting/Buffer.hpp>
 #include <ting/types.hpp>
 #include <ting/debug.hpp>
-#include <ting/Thread.hpp>
 #include <ting/net/IPAddress.hpp>
 #include <ting/WaitSet.hpp>
 
@@ -81,7 +80,7 @@ public:
 	ting::Ref<cliser::Connection> Connect_ts(const ting::net::IPAddress& ip);
 
 private:
-	class ConnectToServerMessage : public ting::Message{
+	class ConnectToServerMessage : public ting::mt::Message{
 		ClientThread* ct;
 		ting::net::IPAddress ip;
 		const ting::Ref<cliser::Connection> conn;
