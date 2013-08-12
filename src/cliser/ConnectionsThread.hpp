@@ -1,6 +1,6 @@
 /* The MIT License:
 
-Copyright (c) 2009-2012 Ivan Gagis <igagis@gmail.com>
+Copyright (c) 2009-2013 Ivan Gagis <igagis@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -88,17 +88,17 @@ public:
 
 private:
 	inline void AddSocketToSocketSet(
-			ting::net::TCPSocket *sock,
+			ting::net::TCPSocket &sock,
 			ting::Waitable::EReadinessFlags flagsToWaitFor = ting::Waitable::READ
 		)
 	{
 		this->waitSet.Add(
-				static_cast<ting::Waitable*>(sock),
+				sock,
 				flagsToWaitFor
 			);
 	}
 
-	inline void RemoveSocketFromSocketSet(ting::net::TCPSocket *sock){
+	inline void RemoveSocketFromSocketSet(ting::net::TCPSocket &sock){
 		this->waitSet.Remove(sock);
 	}
 
