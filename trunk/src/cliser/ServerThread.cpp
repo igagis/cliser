@@ -1,6 +1,6 @@
 /* The MIT License:
 
-Copyright (c) 2009-2012 Ivan Gagis <igagis@gmail.com>
+Copyright (c) 2009-2013 Ivan Gagis <igagis@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,7 @@ THE SOFTWARE. */
 
 #include <ting/debug.hpp>
 #include <ting/net/TCPServerSocket.hpp>
+#include <ting/net/Lib.hpp>
 #include <ting/util.hpp>
 
 #include "ServerThread.hpp"
@@ -50,7 +51,7 @@ ServerThread::ServerThread(
 		disableNaggle(disableNaggle),
 		queueLength(queueLength)
 {
-	ASSERT(ting::SocketLib::IsCreated())
+	ASSERT(ting::net::Lib::IsCreated())
 
 	++this->listener->numTimesAdded;
 }
@@ -76,8 +77,8 @@ void ServerThread::Run(){
 	sock.Open(this->port, this->disableNaggle, this->queueLength);
 
 	ting::WaitSet waitSet(2);
-	waitSet.Add(&sock, ting::Waitable::READ);
-	waitSet.Add(&this->queue, ting::Waitable::READ);
+	waitSet.Add(sock, ting::Waitable::READ);
+	waitSet.Add(this->queue, ting::Waitable::READ);
 
 	while(!this->quitFlag){
 		waitSet.Wait();
@@ -102,8 +103,8 @@ void ServerThread::Run(){
 		//TRACE(<<"C_TCPAcceptorThread::Run(): cycle"<<std::endl)
 	}
 
-	waitSet.Remove(&this->queue);
-	waitSet.Remove(&sock);
+	waitSet.Remove(this->queue);
+	waitSet.Remove(sock);
 
 //	TRACE(<< "ServerThread::" << __func__ << "(): quiting thread" << std::endl)
 

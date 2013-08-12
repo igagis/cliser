@@ -1,6 +1,6 @@
 /* The MIT License:
 
-Copyright (c) 2009-2012 Ivan Gagis <igagis@gmail.com>
+Copyright (c) 2009-2013 Ivan Gagis <igagis@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -64,7 +64,7 @@ ConnectionsThread::~ConnectionsThread()throw(){
 void ConnectionsThread::Run(){
 	M_SRV_CLIENTS_HANDLER_TRACE(<< "ConnectionsThread::" << __func__ << "(): new thread started" << std::endl)
 
-	this->waitSet.Add(&this->queue, ting::Waitable::READ);
+	this->waitSet.Add(this->queue, ting::Waitable::READ);
 
 	ting::Array<ting::Waitable*> triggered(this->waitSet.Size());
 
@@ -140,7 +140,7 @@ void ConnectionsThread::Run(){
 	for(T_ConnectionsIter i = this->connections.begin(); i != this->connections.end(); ++i){
 		ting::Ref<Connection> c(ASS(*i));
 
-		this->RemoveSocketFromSocketSet(&c->socket);
+		this->RemoveSocketFromSocketSet(c->socket);
 		c->socket.Close();
 		c->ClearHandlingThread();
 
@@ -148,7 +148,7 @@ void ConnectionsThread::Run(){
 	}
 	this->connections.clear();//clear clients list
 
-	this->waitSet.Remove(&this->queue);
+	this->waitSet.Remove(this->queue);
 
 	ASSERT(this->connections.size() == 0)
 //	TRACE(<< "ConnectionsThread::" << __func__ << "(): exiting" << std::endl)
@@ -165,7 +165,7 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 
 			//clear WRITE waiting flag and set READ waiting flag
 			conn->currentFlags = ting::Waitable::READ;
-			this->waitSet.Change(&conn->socket, conn->currentFlags);
+			this->waitSet.Change(conn->socket, conn->currentFlags);
 
 			//try writing 0 bytes to clear the write flag and to check if connection was successful
 			try{
@@ -209,7 +209,7 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 						conn->currentFlags = ting::Waitable::EReadinessFlags(
 								conn->currentFlags & (~ting::Waitable::WRITE)
 							);
-						this->waitSet.Change(&conn->socket, conn->currentFlags);
+						this->waitSet.Change(conn->socket, conn->currentFlags);
 					}
 				}
 			}catch(ting::net::Exc &e){
@@ -251,7 +251,7 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 					conn->currentFlags = ting::Waitable::EReadinessFlags(
 							conn->currentFlags & (~ting::Waitable::READ)
 						);
-					this->waitSet.Change(&conn->socket, conn->currentFlags);
+					this->waitSet.Change(conn->socket, conn->currentFlags);
 				}
 			}else{
 				//connection closed
@@ -296,7 +296,7 @@ void ConnectionsThread::HandleAddConnectionMessage(const ting::Ref<Connection>& 
 	conn->currentFlags = isConnected ? ting::Waitable::READ : ting::Waitable::WRITE;
 	try{
 		this->AddSocketToSocketSet(
-				&(conn->socket),
+				conn->socket,
 				conn->currentFlags
 			);
 	}catch(ting::Exc& e){
@@ -342,7 +342,7 @@ void ConnectionsThread::HandleRemoveConnectionMessage(ting::Ref<cliser::Connecti
 			ASSERT((*i) == conn)
 			ASSERT((*i).operator->() == conn.operator->())
 
-			this->RemoveSocketFromSocketSet(&(conn->socket));
+			this->RemoveSocketFromSocketSet(conn->socket);
 
 			conn->socket.Close();//close connection if it is opened
 
@@ -395,7 +395,7 @@ void ConnectionsThread::HandleSendDataMessage(ting::Ref<Connection>& conn, ting:
 				conn->currentFlags = ting::Waitable::EReadinessFlags(
 						conn->currentFlags | ting::Waitable::WRITE
 					);
-				this->waitSet.Change(&conn->socket, conn->currentFlags);
+				this->waitSet.Change(conn->socket, conn->currentFlags);
 
 				ASSERT_INFO(conn->packetQueue.size() == 1, conn->packetQueue.size())
 				ASS(this->listener)->OnDataSent_ts(conn, 1, true);
@@ -426,7 +426,7 @@ void ConnectionsThread::HandleResumeListeningForReadMessage(ting::Ref<Connection
 	conn->currentFlags = ting::Waitable::EReadinessFlags(
 			conn->currentFlags | ting::Waitable::READ
 		);
-	this->waitSet.Change(&conn->socket, conn->currentFlags);
+	this->waitSet.Change(conn->socket, conn->currentFlags);
 }
 
 

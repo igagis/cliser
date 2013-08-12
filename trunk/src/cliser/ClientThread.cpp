@@ -1,6 +1,6 @@
 /* The MIT License:
 
-Copyright (c) 2009-2012 Ivan Gagis <igagis@gmail.com>
+Copyright (c) 2009-2013 Ivan Gagis <igagis@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@ THE SOFTWARE. */
 #include <ting/util.hpp>
 #include <ting/Ptr.hpp>
 #include <ting/Buffer.hpp>
+#include <ting/net/Lib.hpp>
 
 #include "ClientThread.hpp"
 
@@ -37,7 +38,7 @@ using namespace cliser;
 ClientThread::ClientThread(unsigned maxConnections, cliser::Listener* listener) :
 		ConnectionsThread(maxConnections, listener)
 {
-	ASSERT(ting::SocketLib::IsCreated())
+	ASSERT(ting::net::Lib::IsCreated())
 }
 
 
