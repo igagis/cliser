@@ -1,6 +1,6 @@
 /* The MIT License:
 
-Copyright (c) 2009-2013 Ivan Gagis <igagis@gmail.com>
+Copyright (c) 2009-2014 Ivan Gagis <igagis@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,7 @@ THE SOFTWARE. */
 
 #pragma once
 
-#include <ting/Array.hpp>
+
 #include <ting/Buffer.hpp>
 #include <ting/types.hpp>
 #include <ting/debug.hpp>
@@ -65,7 +65,7 @@ public:
 	 */
 	ClientThread(unsigned maxConnections, cliser::Listener* listener);
 
-	virtual ~ClientThread()throw();
+	virtual ~ClientThread()noexcept;
 
 	/**
 	 * @brief Request connection.
@@ -77,32 +77,10 @@ public:
 	 *           of unsuccessful result.
 	 */
 	//send connection request message to the thread
-	ting::Ref<cliser::Connection> Connect_ts(const ting::net::IPAddress& ip);
+	std::shared_ptr<cliser::Connection> Connect_ts(const ting::net::IPAddress& ip);
 
 private:
-	class ConnectToServerMessage : public ting::mt::Message{
-		ClientThread* ct;
-		ting::net::IPAddress ip;
-		const ting::Ref<cliser::Connection> conn;
-	public:
-		ConnectToServerMessage(
-				ClientThread* ct,
-				const ting::net::IPAddress& ip,
-				const ting::Ref<cliser::Connection>& conn
-			) :
-				ct(ASS(ct)),
-				ip(ip),
-				conn(conn)
-		{}
-
-		//override
-		void Handle(){
-//			TRACE(<< "ConnectToServerMessage::" << __func__ << "(): host=" << reinterpret_cast<void*>(ip.host) << " port=" << (ip.port) << std::endl)
-			this->ct->HandleConnectRequest(this->ip, this->conn);
-		}
-	};
-
-	void HandleConnectRequest(const ting::net::IPAddress& ip, const ting::Ref<cliser::Connection>& conn);
+	void HandleConnectRequest(const ting::net::IPAddress& ip, const std::shared_ptr<cliser::Connection>& conn);
 };
 
 

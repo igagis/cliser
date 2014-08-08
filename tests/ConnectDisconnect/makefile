@@ -1,3 +1,27 @@
+include prorab.mk
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+define TODO_efqwefqweghwha
 platform := linux
 
 binary_name := condisc_test
@@ -67,3 +91,4 @@ clean:
 
 
 include ../../targets.mk
+endef

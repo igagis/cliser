@@ -1,29 +1,3 @@
-/* The MIT License:
-
-Copyright (c) 2009-2013 Ivan Gagis <igagis@gmail.com>
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE. */
-
-//Home page: http://code.google.com/p/cliser/
-
-
-
 #include <list>
 
 #include <ting/debug.hpp>
@@ -66,34 +40,34 @@ void ConnectionsThread::Run(){
 
 	this->waitSet.Add(this->queue, ting::Waitable::READ);
 
-	ting::Array<ting::Waitable*> triggered(this->waitSet.Size());
+	std::vector<ting::Waitable*> triggered(this->waitSet.Size());
 
 	while(!this->quitFlag){
 //		TRACE(<< "ConnectionsThread::" << __func__ << "(): waiting..." << std::endl)
-		unsigned numTriggered = this->waitSet.Wait(&triggered);
+		unsigned numTriggered = this->waitSet.Wait(triggered);
 //		TRACE(<< "ConnectionsThread::" << __func__ << "(): triggered" << std::endl)
 //		ASSERT(numTriggered > 0)
 
-		ting::Waitable** p = triggered.Begin();
+		auto p = triggered.begin();
 		for(unsigned i = 0; i != numTriggered; ++i, ++p){
-			ASSERT(p != triggered.End())
+			ASSERT(p != triggered.end())
 			ASSERT(*p)
 
 			if(*p == &this->queue){
 				//Do not handle messages here, first handle all activities from sockets.
 				//Check if there are messages and handle them only after all sockets are
 				//handled. This is because connection can be removed as a result of handling some message while
-				//pointer to the waitable will still be in the buffer of triggered waitables, thus
-				//this pointer to waitable will be invalid.
+				//pointer to the Waitable will still be in the buffer of triggered waitables, thus
+				//this pointer to Waitable will be invalid.
 			}else{
 				//socket
 				ASSERT(*p != &this->queue)
 
 				ASSERT((*p)->GetUserData())
 
-				ting::Ref<cliser::Connection> conn(
-						reinterpret_cast<cliser::Connection*>((*p)->GetUserData())
-					);
+				auto connection = reinterpret_cast<cliser::Connection*>((*p)->GetUserData());
+				
+				std::shared_ptr<cliser::Connection> conn = connection->SharedFromThis(connection);
 				ASSERT(conn)
 
 				this->HandleSocketActivity(conn);
@@ -122,9 +96,9 @@ void ConnectionsThread::Run(){
 			}
 
 			for(unsigned i = 0; i < numMsgsToHandle; ++i){
-				if(ting::Ptr<ting::mt::Message> m = this->queue.PeekMsg()){
+				if(auto m = this->queue.PeekMsg()){
 					M_SRV_CLIENTS_HANDLER_TRACE(<< "ConnectionsThread::" << __func__ << "(): message got" << std::endl)
-					m->Handle();
+					m();
 				}else{
 					break;
 				}
@@ -138,7 +112,7 @@ void ConnectionsThread::Run(){
 
 	//disconnect all clients, removing sockets from wait set
 	for(T_ConnectionsIter i = this->connections.begin(); i != this->connections.end(); ++i){
-		ting::Ref<Connection> c(ASS(*i));
+		std::shared_ptr<Connection> c(ASS(*i));
 
 		this->RemoveSocketFromSocketSet(c->socket);
 		c->socket.Close();
@@ -157,7 +131,7 @@ void ConnectionsThread::Run(){
 
 
 
-void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
+void ConnectionsThread::HandleSocketActivity(std::shared_ptr<Connection>& conn){
 	if(conn->socket.CanWrite()){
 //		TRACE(<< "ConnectionsThread::HandleSocketActivity(): CanWrite" << std::endl)
 		if(conn->packetQueue.size() == 0){
@@ -169,7 +143,7 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 
 			//try writing 0 bytes to clear the write flag and to check if connection was successful
 			try{
-				ting::StaticBuffer<ting::u8, 0> buf;
+				std::array<std::uint8_t, 0> buf;
 				conn->socket.Send(buf);
 
 				//under win32 the CanRead() assertion fails sometimes... //TODO: why?
@@ -186,17 +160,17 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 			}
 
 		}else{
-			ASSERT(conn->dataSent < conn->packetQueue.front().Size())
+			ASSERT(conn->dataSent < conn->packetQueue.front().size())
 
 			try{
 //				TRACE(<< "ConnectionsThread::" << __func__ << "(): Packet data left = " << (conn->packetQueue.front().Size() - conn->dataSent) << std::endl)
 
 				conn->dataSent += conn->socket.Send(conn->packetQueue.front(), conn->dataSent);
-				ASSERT(conn->dataSent <= conn->packetQueue.front().Size())
+				ASSERT(conn->dataSent <= conn->packetQueue.front().size())
 
 //				TRACE(<< "ConnectionsThread::" << __func__ << "(): Packet data left = " << (conn->packetQueue.front().Size() - conn->dataSent) << std::endl)
 
-				if(conn->dataSent == conn->packetQueue.front().Size()){
+				if(conn->dataSent == conn->packetQueue.front().size()){
 					conn->packetQueue.pop_front();
 					conn->dataSent = 0;
 
@@ -223,13 +197,13 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 	if(conn->socket.CanRead()){
 //		TRACE(<< "ConnectionsThread::HandleSocketActivity(): CanRead()" << std::endl)
 
-		ting::StaticBuffer<ting::u8, 0x2000> buffer;//8kb
+		std::array<std::uint8_t, 0x2000> buffer;//8kb
 
 		try{
 			unsigned bytesReceived = conn->socket.Recv(buffer);
 			ASSERT(!conn->socket.CanRead())
 			if(bytesReceived != 0){
-				ting::Buffer<ting::u8> b(buffer.Begin(), bytesReceived);
+				ting::Buffer<std::uint8_t> b(&*buffer.begin(), bytesReceived);
 //				TRACE(<< "ConnectionsThread::" << __func__ << "(): bytesReceived = " << bytesReceived << " b.Size() = " << b.Size() << std::endl)
 //				TRACE(<< "ConnectionsThread::" << __func__ << "(): b[...] = "
 //						<< unsigned(b[0]) << " "
@@ -238,14 +212,15 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 //						<< unsigned(b[3]) << std::endl
 //					)
 
-				ASSERT(!conn->receivedData)
+				ASSERT(conn->receivedData.size() == 0)
 				if(!ASS(this->listener)->OnDataReceived_ts(conn, b)){
 					ting::mt::Mutex::Guard mutexGuard(conn->mutex);
 					
 //					TRACE(<< "ConnectionsThread::HandleSocketActivity(): received data not handled!!!!!!!!!!!" << std::endl)
-					ASSERT(!conn->receivedData)
+					ASSERT(conn->receivedData.size() == 0)
 
-					conn->receivedData.Init(b);
+					conn->receivedData.resize(b.size());
+					memcpy(&*conn->receivedData.begin(), &*b.begin(), b.size());
 
 					//clear READ waiting flag
 					conn->currentFlags = ting::Waitable::EReadinessFlags(
@@ -276,7 +251,7 @@ void ConnectionsThread::HandleSocketActivity(ting::Ref<Connection>& conn){
 
 
 
-void ConnectionsThread::HandleAddConnectionMessage(const ting::Ref<Connection>& conn, bool isConnected){
+void ConnectionsThread::HandleAddConnectionMessage(const std::shared_ptr<Connection>& conn, bool isConnected){
 	M_SRV_CLIENTS_HANDLER_TRACE(<< "ConnectionsThread::" << __func__ << "(): enter" << std::endl)
 
 	ASSERT(conn)
@@ -328,10 +303,10 @@ void ConnectionsThread::HandleAddConnectionMessage(const ting::Ref<Connection>& 
 
 
 //removing client means disconnect as well
-void ConnectionsThread::HandleRemoveConnectionMessage(ting::Ref<cliser::Connection>& conn){
+void ConnectionsThread::HandleRemoveConnectionMessage(std::shared_ptr<cliser::Connection>& conn){
 	M_SRV_CLIENTS_HANDLER_TRACE(<< "ConnectionsThread::" << __func__ << "(): enter" << std::endl)
 
-	ASSERT(conn.IsValid())
+	ASSERT(conn)
 
 	for(ConnectionsThread::T_ConnectionsIter i = this->connections.begin();
 			i != this->connections.end();
@@ -368,25 +343,25 @@ void ConnectionsThread::HandleRemoveConnectionMessage(ting::Ref<cliser::Connecti
 
 
 
-void ConnectionsThread::HandleSendDataMessage(ting::Ref<Connection>& conn, ting::Array<ting::u8> data){
+void ConnectionsThread::HandleSendDataMessage(std::shared_ptr<Connection>& conn, std::vector<std::uint8_t>&& data){
 //	TRACE(<< "ConnectionsThread::" << __func__ << "(): enter" << std::endl)
 	
-	if(!conn->socket.IsValid()){
+	if(!conn->socket){
 //		TRACE(<< "ConnectionsThread::" << __func__ << "(): socket is disconnected, ignoring message" << std::endl)
 		return;
 	}
 
 	if(conn->packetQueue.size() != 0){
 //		TRACE(<< "ConnectionsThread::" << __func__ << "(): adding data to send queue right away" << std::endl)
-		conn->packetQueue.push_back(data);
+		conn->packetQueue.push_back(std::move(data));
 		ASS(this->listener)->OnDataSent_ts(conn, conn->packetQueue.size(), true);
 		return;
 	}else{
 		try{
 			unsigned numBytesSent = conn->socket.Send(data);
-			ASSERT(numBytesSent <= data.Size())
+			ASSERT(numBytesSent <= data.size())
 
-			if(numBytesSent != data.Size()){
+			if(numBytesSent != data.size()){
 //				TRACE(<< "ConnectionsThread::" << __func__ << "(): adding data to send queue" << std::endl)
 				conn->dataSent = numBytesSent;
 				conn->packetQueue.push_back(data);
@@ -414,13 +389,14 @@ void ConnectionsThread::HandleSendDataMessage(ting::Ref<Connection>& conn, ting:
 
 
 
-void ConnectionsThread::HandleResumeListeningForReadMessage(ting::Ref<Connection>& conn){
-	if(conn->socket.IsNotValid())//if connection is closed
+void ConnectionsThread::HandleResumeListeningForReadMessage(std::shared_ptr<Connection>& conn){
+	if(!conn->socket){//if connection is closed
 		return;
+	}
 
 //	TRACE(<< "ConnectionsThread::" << __func__ << "(): resuming data receiving!!!!!!!!!!" << std::endl)
 
-	ASSERT(!conn->receivedData)
+	ASSERT(conn->receivedData.size() == 0)
 
 	//Set READ waiting flag
 	conn->currentFlags = ting::Waitable::EReadinessFlags(

@@ -1,6 +1,6 @@
 /* The MIT License:
 
-Copyright (c) 2009-2013 Ivan Gagis <igagis@gmail.com>
+Copyright (c) 2009-2014 Ivan Gagis <igagis@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,6 @@ THE SOFTWARE. */
 
 #include <ting/math.hpp>
 #include <ting/util.hpp>
-#include <ting/Ptr.hpp>
 #include <ting/Buffer.hpp>
 #include <ting/net/Lib.hpp>
 
@@ -43,39 +42,37 @@ ClientThread::ClientThread(unsigned maxConnections, cliser::Listener* listener) 
 
 
 
-ClientThread::~ClientThread()throw(){
+ClientThread::~ClientThread()noexcept{
 }
 
 
 
-ting::Ref<cliser::Connection> ClientThread::Connect_ts(const ting::net::IPAddress& ip){
+std::shared_ptr<cliser::Connection> ClientThread::Connect_ts(const ting::net::IPAddress& ip){
 //    TRACE(<< "ClientThread::" << __func__ << "(): enter" << std::endl)
 
-	ting::Ref<cliser::Connection> conn = ASS(this->listener)->CreateConnectionObject();
+	std::shared_ptr<cliser::Connection> conn = ASS(this->listener)->CreateConnectionObject();
+	
 	//send connect request to thread
 	this->PushMessage(
-			ting::Ptr<ting::mt::Message>(
-					new ConnectToServerMessage(
-							this,
-							ip,
-							conn
-						)
-				)
+			[this, conn, ip](){
+				this->HandleConnectRequest(ip, conn);
+			}
 		);
-	return conn;
+	
+	return std::move(conn);
 }
 
 
 
 void ClientThread::HandleConnectRequest(
 		const ting::net::IPAddress& ip,
-		const ting::Ref<cliser::Connection>& conn
+		const std::shared_ptr<cliser::Connection>& conn
 	)
 {
 //    TRACE(<< "ConnectToServerMessage::" << __func__ << "(): enter" << std::endl)
 	ASSERT(conn)
 	try{
-		ASSERT(conn->socket.IsNotValid())
+		ASSERT(!conn->socket)
 		conn->socket.Open(ip);
 	}catch(ting::net::Exc &e){
 //		TRACE(<< "ConnectToServerMessage::" << __func__ << "(): exception caught, e = " << e.What() << ", sending connect failed reply to main thread" << std::endl)
