@@ -1,6 +1,6 @@
 /* The MIT License:
 
-Copyright (c) 2009-2013 Ivan Gagis <igagis@gmail.com>
+Copyright (c) 2009-2014 Ivan Gagis <igagis@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,9 +31,6 @@ THE SOFTWARE. */
 #include <list>
 
 #include <ting/net/TCPSocket.hpp>
-#include <ting/types.hpp>
-#include <ting/Array.hpp>
-#include <ting/Ref.hpp>
 #include <ting/WaitSet.hpp>
 #include <ting/mt/MsgThread.hpp>
 
@@ -64,7 +61,7 @@ class ConnectionsThread : public ting::mt::MsgThread{
 	friend class cliser::ClientThread;
 	friend class cliser::Connection;
 
-	typedef std::list<ting::Ref<cliser::Connection> > T_ConnectionsList;
+	typedef std::list<std::shared_ptr<cliser::Connection> > T_ConnectionsList;
 	typedef T_ConnectionsList::iterator T_ConnectionsIter;
 	T_ConnectionsList connections;
 	ting::WaitSet waitSet;
@@ -77,17 +74,17 @@ private:
 	//override
 	void Run();
 
-	void HandleSocketActivity(ting::Ref<cliser::Connection>& conn);
+	void HandleSocketActivity(std::shared_ptr<cliser::Connection>& conn);
 
 public:
 	~ConnectionsThread()throw();
 
-	inline unsigned MaxConnections()const{
+	unsigned MaxConnections()const{
 		return ASSCOND(this->waitSet.Size() - 1, > 0);
 	}
 
 private:
-	inline void AddSocketToSocketSet(
+	void AddSocketToSocketSet(
 			ting::net::TCPSocket &sock,
 			ting::Waitable::EReadinessFlags flagsToWaitFor = ting::Waitable::READ
 		)
@@ -105,92 +102,15 @@ private:
 
 
 private:
-	class AddConnectionMessage : public ting::mt::Message{
-		ConnectionsThread* thread;
-		ting::Ref<Connection> conn;
-
-	public:
-		AddConnectionMessage(
-				ConnectionsThread* t,
-				ting::Ref<Connection>& c
-			) :
-				thread(ASS(t)),
-				conn(ASS(c))
-		{}
-
-		//override
-		void Handle(){
-			ASS(this->thread)->HandleAddConnectionMessage(this->conn, true);
-		}
-	};
-
-	void HandleAddConnectionMessage(const ting::Ref<Connection>& conn, bool isConnected);
+	void HandleAddConnectionMessage(const std::shared_ptr<Connection>& conn, bool isConnected);
 
 
-
-	class RemoveConnectionMessage : public ting::mt::Message{
-		ConnectionsThread* thread;
-		ting::Ref<Connection> conn;
-	public:
-		RemoveConnectionMessage(ConnectionsThread* t, ting::Ref<Connection>& c) :
-				thread(ASS(t)),
-				conn(ASS(c))
-		{}
-
-		//override
-		void Handle(){
-			this->thread->HandleRemoveConnectionMessage(this->conn);
-		}
-	};
-
-	void HandleRemoveConnectionMessage(ting::Ref<Connection>& conn);
+	void HandleRemoveConnectionMessage(std::shared_ptr<Connection>& conn);
 
 
+	void HandleSendDataMessage(std::shared_ptr<Connection>& conn, std::vector<std::uint8_t>&& data);
 
-	class SendDataMessage : public ting::mt::Message{
-		ConnectionsThread *thread;//this mesage should hold reference to the thread this message is sent to
-
-		ting::Ref<Connection> conn;
-
-		ting::Array<ting::u8> data;
-
-	  public:
-		SendDataMessage(
-				ConnectionsThread* clientThread,
-				ting::Ref<Connection>& conn,
-				ting::Array<ting::u8> d
-			) :
-				thread(ASS(clientThread)),
-				conn(ASS(conn)),
-				data(ASS(d))
-		{}
-
-		//override
-		void Handle(){
-			ASS(this->thread)->HandleSendDataMessage(this->conn, this->data);
-		}
-	};
-
-	void HandleSendDataMessage(ting::Ref<Connection>& conn, ting::Array<ting::u8> data);
-
-
-
-	class ResumeListeningForReadMessage : public ting::mt::Message{
-		ConnectionsThread* thread;
-		ting::Ref<Connection> conn;
-	public:
-		ResumeListeningForReadMessage(ConnectionsThread* t, ting::Ref<Connection>& c) :
-				thread(ASS(t)),
-				conn(ASS(c))
-		{}
-
-		//override
-		void Handle(){
-			this->thread->HandleResumeListeningForReadMessage(this->conn);
-		}
-	};
-
-	void HandleResumeListeningForReadMessage(ting::Ref<Connection>& conn);
+	void HandleResumeListeningForReadMessage(std::shared_ptr<Connection>& conn);
 };//~class
 
 

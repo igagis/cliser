@@ -1,6 +1,6 @@
 /* The MIT License:
 
-Copyright (c) 2009-2013 Ivan Gagis <igagis@gmail.com>
+Copyright (c) 2009-2014 Ivan Gagis <igagis@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,6 @@ THE SOFTWARE. */
 
 #include <ting/debug.hpp>
 #include <ting/types.hpp>
-#include <ting/Array.hpp>
 #include <ting/mt/MsgThread.hpp>
 #include <ting/net/TCPSocket.hpp>
 
@@ -62,37 +61,15 @@ class ServerThread : public ting::mt::MsgThread{
 	public:
 		ThreadsKillerThread(){};
 
-		//override
-		void Run();
-
-		/// @cond
-		class KillThreadMessage : public ting::mt::Message{
-			ThreadsKillerThread *thread;//to whom this message will be sent
-			ting::Ptr<ting::mt::MsgThread> thr;//thread to kill
-		  public:
-			KillThreadMessage(ThreadsKillerThread *threadKillerThread, ting::Ptr<ting::mt::MsgThread> thread) :
-					thread(threadKillerThread),
-					thr(thread)
-			{
-				ASSERT(this->thread)
-				ASSERT(this->thr.IsValid())
-				this->thr->PushQuitMessage();//post a quit message to the thread before message is sent to threads killer thread
-			}
-
-			//override
-			void Handle();
-		};
-		/// @endcond
+		void Run()override;
 	} threadsKillerThread;
 
 	//forward declaration
 	class ServerConnectionsThread;
 
-	typedef std::list<ting::Ptr<ServerConnectionsThread> > T_ThrList;
-	typedef T_ThrList::iterator T_ThrIter;
-	T_ThrList clientsThreads;
+	std::list<std::unique_ptr<ServerConnectionsThread>> clientsThreads;
 
-	ting::u16 port;
+	std::uint16_t port;
 
 	unsigned maxClientsPerThread;
 
@@ -100,7 +77,7 @@ class ServerThread : public ting::mt::MsgThread{
 
 	bool disableNaggle;
 	
-	ting::u16 queueLength;
+	std::uint16_t queueLength;
 	
 public:
 	/**
@@ -110,7 +87,7 @@ public:
 	 * creating the object.
      * @return maximum number of connections per thread.
      */
-	inline unsigned MaxClientsPerThread()const{
+	unsigned MaxClientsPerThread()const{
 		return this->maxClientsPerThread;
 	}
 
@@ -123,11 +100,11 @@ public:
      * @param acceptQueueLength - length of a queue of connection requests on the accepting network socket.
      */
 	ServerThread(
-			ting::u16 port,
+			std::uint16_t port,
 			unsigned maxClientsPerThread,
 			cliser::Listener* listener,
 			bool disableNaggle = false,
-			ting::u16 acceptQueueLength = 50
+			std::uint16_t acceptQueueLength = 50
 		);
 	
 	virtual ~ServerThread()throw();
@@ -143,28 +120,6 @@ private:
 private:
 	void HandleNewConnection(ting::net::TCPSocket socket);
 
-
-
-	//This message is sent to server main thread when the client has been disconnected,
-	//and the connection was closed. The player was removed from its handler thread.
-	class ConnectionRemovedMessage : public ting::mt::Message{
-		ServerThread *thread;//this mesage should hold reference to the thread this message is sent to
-		ServerThread::ServerConnectionsThread* cht;
-	  public:
-		ConnectionRemovedMessage(ServerThread* serverMainThread, ServerThread::ServerConnectionsThread* clientsHandlerThread) :
-				thread(serverMainThread),
-				cht(clientsHandlerThread)
-		{
-			ASSERT(this->thread)
-			ASSERT(this->cht)
-		}
-
-		//override
-		void Handle(){
-			ASS(this->thread)->HandleConnectionRemovedMessage(this->cht);
-		}
-	};
-
 	void HandleConnectionRemovedMessage(ServerThread::ServerConnectionsThread* cht);
 
 
@@ -175,7 +130,7 @@ private:
 		ServerThread* const serverThread;
 	public:
 		//This data is controlled by ServerThread
-		ting::Inited<unsigned, 0> numConnections;
+		unsigned numConnections = 0;
 		//~
 
 		ServerConnectionsThread(
@@ -190,49 +145,51 @@ private:
 		~ServerConnectionsThread()throw(){}
 
 		//override
-		virtual ting::Ref<cliser::Connection> CreateConnectionObject(){
+		virtual std::shared_ptr<cliser::Connection> CreateConnectionObject(){
 			//this function will not be ever called.
 			ASSERT(false);
-			return ting::Ref<cliser::Connection>();
+			return std::shared_ptr<cliser::Connection>();
 		}
 
 		//override
-		void OnConnected_ts(const ting::Ref<Connection>& c){
+		void OnConnected_ts(const std::shared_ptr<Connection>& c){
 			ASS(this->serverThread)->listener->OnConnected_ts(c);
 		}
 
-		//override
-		void OnDisconnected_ts(const ting::Ref<Connection>& c){
+
+		void OnDisconnected_ts(const std::shared_ptr<Connection>& c)override{
 			//Disconnection may be because thread is exiting because server main thread
 			//is also exiting, in that case no need to notify server main thread.
 			//Send notification message to server main thread only if thread is not exiting yet.
 			if(!this->quitFlag){
-				this->serverThread->PushMessage(
-						ting::Ptr<ting::mt::Message>(
-								new ServerThread::ConnectionRemovedMessage(this->serverThread, this)
-							)
-					);
+				this->serverThread->PushMessage(std::bind(
+						[](ServerThread* serverMainThread, ServerThread::ServerConnectionsThread* clientsHandlerThread){
+							serverMainThread->HandleConnectionRemovedMessage(clientsHandlerThread);
+						},
+						this->serverThread,
+						this
+					));
 			}
 
 			ASS(this->serverThread)->listener->OnDisconnected_ts(c);
 		}
 
 		//override
-		bool OnDataReceived_ts(const ting::Ref<Connection>& c, const ting::Buffer<ting::u8>& d){
+		bool OnDataReceived_ts(const std::shared_ptr<Connection>& c, const ting::Buffer<std::uint8_t>& d){
 			return ASS(this->serverThread)->listener->OnDataReceived_ts(c, d);
 		}
 
 		//override
-		void OnDataSent_ts(const ting::Ref<Connection>& c, unsigned numPacketsInQueue, bool addedToQueue){
+		void OnDataSent_ts(const std::shared_ptr<Connection>& c, unsigned numPacketsInQueue, bool addedToQueue){
 			ASS(this->serverThread)->listener->OnDataSent_ts(c, numPacketsInQueue, addedToQueue);
 		}
 
-		inline static ting::Ptr<ServerConnectionsThread> New(
+		static std::unique_ptr<ServerConnectionsThread> New(
 				ServerThread* serverThread,
 				unsigned maxConnections
 			)
 		{
-			return ting::Ptr<ServerConnectionsThread>(
+			return std::unique_ptr<ServerConnectionsThread>(
 					new ServerConnectionsThread(
 							serverThread,
 							maxConnections

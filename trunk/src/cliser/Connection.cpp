@@ -33,7 +33,7 @@ using namespace cliser;
 
 
 
-void Connection::Send_ts(ting::Array<ting::u8> data){
+void Connection::Send_ts(std::vector<std::uint8_t>&& data){
 	ting::mt::Mutex::Guard mutexGuard(this->mutex);//make sure that this->clientThread won't be zeroed out by other thread
 	if(!this->parentThread){
 		//client disconnected, do nothing
@@ -42,21 +42,18 @@ void Connection::Send_ts(ting::Array<ting::u8> data){
 	}
 	ASSERT(this->parentThread)
 	
-	ting::Ref<Connection> c(this);
-	this->parentThread->PushMessage(
-			ting::Ptr<ting::mt::Message>(
-					new ConnectionsThread::SendDataMessage(this->parentThread, c, data)
-				)
-		);
+	this->parentThread->PushMessage(std::bind(
+			[](ConnectionsThread* thr, std::shared_ptr<Connection>& c, std::vector<std::uint8_t>& data){
+				thr->HandleSendDataMessage(c, std::move(data));
+			},
+			this->parentThread,
+			this->SharedFromThis(this),
+			std::move(data)
+		));
 }
 
 
 
-void Connection::SendCopy_ts(const ting::Buffer<ting::u8>& data){
-	ting::Array<ting::u8> buf(data);
-
-	this->Send_ts(buf);
-}
 
 
 
@@ -67,40 +64,42 @@ void Connection::Disconnect_ts(){
 		return;
 	}
 	ASSERT(this->parentThread)
-	ting::Ref<Connection> c(this);
-	this->parentThread->PushMessage(
-			ting::Ptr<ting::mt::Message>(
-					new ConnectionsThread::RemoveConnectionMessage(this->parentThread, c)
-				)
-		);
+	
+	
+	this->parentThread->PushMessage(std::bind(
+			[](ConnectionsThread* t, std::shared_ptr<Connection>& c){
+				t->HandleRemoveConnectionMessage(c);
+			},
+			this->parentThread,
+			this->SharedFromThis(this)
+		));
 
 	this->parentThread = 0;
 }
 
 
 
-ting::Array<ting::u8> Connection::GetReceivedData_ts(){
+std::vector<std::uint8_t> Connection::GetReceivedData_ts(){
 	ting::mt::Mutex::Guard parentThreadMutextGuard(this->mutex);
 
 	//At the moment of sending the ResumeListeningForReadMessage the receivedData variable should be empty.
-	ting::Array<ting::u8> ret = this->receivedData;
+	std::vector<std::uint8_t> ret = std::move(this->receivedData);
 
 	//Send the message to parent thread only if
 	//there was received data stored, which means
 	//that socket is not listened for READ condition.
-	if(ret && this->parentThread){
-		ting::Ref<Connection> c(this);
-		ASSERT(c)
-
+	if(ret.size() != 0 && this->parentThread){
 		//send message to parentHandler thread
-		ASS(this->parentThread)->PushMessage(
-				ting::Ptr<ting::mt::Message>(
-						new ConnectionsThread::ResumeListeningForReadMessage(this->parentThread, c)
-					)
-			);
+		ASS(this->parentThread)->PushMessage(std::bind(
+				[](ConnectionsThread* t, std::shared_ptr<Connection>& c){
+					t->HandleResumeListeningForReadMessage(c);
+				},
+				this->parentThread,
+				this->SharedFromThis(this)
+			));
 	}
 
-	return ret;
+	return std::move(ret);
 }
 
 

@@ -39,11 +39,11 @@ using namespace cliser;
 
 
 ServerThread::ServerThread(
-		ting::u16 port,
+		std::uint16_t port,
 		unsigned maxClientsPerThread,
 		cliser::Listener* listener,
 		bool disableNaggle,
-		ting::u16 queueLength
+		std::uint16_t queueLength
 	) :
 		port(port),
 		maxClientsPerThread(maxClientsPerThread),
@@ -85,16 +85,16 @@ void ServerThread::Run(){
 
 		//TRACE(<<"C_TCPAcceptorThread::Run(): going to get message"<<std::endl)
 		if(this->queue.CanRead()){
-			if(ting::Ptr<ting::mt::Message> m = this->queue.PeekMsg()){
-				m->Handle();
+			if(auto m = this->queue.PeekMsg()){
+				m();
 			}
 		}
 
 		if(sock.CanRead()){
 			ting::net::TCPSocket newSock;
 			try{
-				if((newSock = sock.Accept()).IsValid()){
-					this->HandleNewConnection(newSock);
+				if(newSock = sock.Accept()){
+					this->HandleNewConnection(std::move(newSock));
 				}
 			}catch(ting::net::Exc& e){
 				ASSERT_INFO(false, "sock.Accept() failed")
@@ -111,11 +111,11 @@ void ServerThread::Run(){
 	this->threadsKillerThread.PushQuitMessage();
 
 	//kill all client threads
-	for(T_ThrIter i = this->clientsThreads.begin(); i != this->clientsThreads.end(); ++i){
+	for(auto i = this->clientsThreads.begin(); i != this->clientsThreads.end(); ++i){
 		(*i)->PushQuitMessage();
 	}
 
-	for(T_ThrIter i = this->clientsThreads.begin(); i != this->clientsThreads.end(); ++i){
+	for(auto i = this->clientsThreads.begin(); i != this->clientsThreads.end(); ++i){
 //		TRACE(<< "ServerThread::" << __func__ << "(): joining thread" << std::endl)
 		(*i)->Join();
 	}
@@ -134,15 +134,16 @@ void ServerThread::Run(){
 
 ServerThread::ServerConnectionsThread* ServerThread::GetNotFullThread(){
 	//TODO: adjust threads order for faster search
-	for(T_ThrIter i = this->clientsThreads.begin(); i != this->clientsThreads.end(); ++i){
-		if((*i)->numConnections < this->maxClientsPerThread)
+	for(auto i = this->clientsThreads.begin(); i != this->clientsThreads.end(); ++i){
+		if((*i)->numConnections < this->maxClientsPerThread){
 			return (*i).operator->();
+		}
 	}
 
 	this->clientsThreads.push_back(ServerConnectionsThread::New(
 			this,
-			this->MaxClientsPerThread())
-		);
+			this->MaxClientsPerThread()
+		));
 
 //	TRACE(<< "ServerThread::" << __func__ << "(): num threads = " << this->clientsThreads.size() << std::endl)
 
@@ -156,7 +157,7 @@ void ServerThread::HandleNewConnection(ting::net::TCPSocket socket){
 //	LOG(<< "ServerThread::" << __func__ << "(): enter" << std::endl)
 //	TRACE(<< "ServerThread::" << __func__ << "(): enter" << std::endl)
 
-	ASSERT(socket.IsValid())
+	ASSERT(socket)
 
 	ServerConnectionsThread* thr;
 	try{
@@ -171,19 +172,33 @@ void ServerThread::HandleNewConnection(ting::net::TCPSocket socket){
 
 	ASSERT(thr)
 
-	ting::Ref<Connection> conn = ASS(this->listener)->CreateConnectionObject();
+	std::shared_ptr<Connection> conn = ASS(this->listener)->CreateConnectionObject();
 
 	//set client socket
-	conn->socket = socket;
-	ASSERT(conn->socket.IsValid())
-
+	conn->socket = std::move(socket);
+	ASSERT(conn->socket)	
+	
 	thr->PushMessage(
-			ting::Ptr<ting::mt::Message>(
-					new ConnectionsThread::AddConnectionMessage(thr, conn)
-				)
+			[thr, conn](){
+				thr->HandleAddConnectionMessage(conn, true);
+			}
 		);
 	++thr->numConnections;
 }
+
+
+
+template <typename T> struct CopyablePtr{
+	std::unique_ptr<T> p;
+	
+	CopyablePtr(std::unique_ptr<T> ptr) :
+			p(std::move(ptr))
+	{}
+	
+	CopyablePtr(const CopyablePtr& o){
+		this->p.reset(const_cast<CopyablePtr&>(o).p.release());
+	}
+};
 
 
 
@@ -193,26 +208,24 @@ void ServerThread::HandleConnectionRemovedMessage(ServerThread::ServerConnection
 	ASSERT(cht->numConnections > 0)
 	--cht->numConnections;
 
-	if(cht->numConnections > 0)
+	if(cht->numConnections > 0){
 		return;
+	}
 
 	//if we get here then numClients is 0, remove the thread then:
 	//find it in the threads list and push to ThreadKillerThread
 
-	for(ServerThread::T_ThrIter i = this->clientsThreads.begin();
-			i != this->clientsThreads.end();
-			++i
-		)
-	{
-		if((*i) == cht){
+	for(auto i = this->clientsThreads.begin(); i != this->clientsThreads.end(); ++i){
+		if((*i).get() == cht){
+			(*i)->PushQuitMessage();//post a quit message to the thread before message is sent to threads killer thread
+			
+			CopyablePtr<decltype(i)::value_type::element_type> ptr(std::move(*i));
+			
 			//schedule thread for termination
 			this->threadsKillerThread.PushMessage(
-					ting::Ptr<ting::mt::Message>(
-							new ThreadsKillerThread::KillThreadMessage(
-									&this->threadsKillerThread,
-									(*i)
-								)
-						)
+					[ptr](){
+						ptr.p->Join();
+					}
 				);
 			//remove thread from threads list
 			this->clientsThreads.erase(i);
@@ -226,19 +239,20 @@ void ServerThread::HandleConnectionRemovedMessage(ServerThread::ServerConnection
 
 
 void ServerThread::ThreadsKillerThread::Run(){
+	ting::WaitSet ws(1);
+	
+	ws.Add(this->queue, ting::Waitable::READ);
+	
 	while(!this->quitFlag){
 //		TRACE(<< "ThreadsKillerThread::" << __func__ << "(): going to get message" << std::endl)
-		this->queue.GetMsg()->Handle();
+		ws.Wait();
+		while(auto m = this->queue.PeekMsg()){
+			m();
+		}
 //		TRACE(<< "ThreadsKillerThread::" << __func__ << "(): message handled, qf = " << this->quitFlag << std::endl)
 	}
+	
+	ws.Remove(this->queue);
 //	TRACE(<< "ThreadsKillerThread::" << __func__ << "(): exit" << std::endl)
 }
 
-
-
-//override
-void ServerThread::ThreadsKillerThread::KillThreadMessage::Handle(){
-//	TRACE(<< "KillThreadMessage::" << __func__ << "(): enter" << std::endl)
-	this->thr->Join();//wait for thread finish
-//	TRACE(<< "KillThreadMessage::" << __func__ << "(): exit" << std::endl)
-}

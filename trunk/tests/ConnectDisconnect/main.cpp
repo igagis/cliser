@@ -13,7 +13,7 @@ namespace{
 const unsigned DMaxConnections = 63;
 
 const ting::u32 DMaxCnt = 16384;
-const ting::u16 DPort = 13666;
+const std::uint16_t DPort = 13666;
 const char* DIpAddress = "127.0.0.1";
 }
 
@@ -22,7 +22,7 @@ const char* DIpAddress = "127.0.0.1";
 class Connection : public cliser::Connection{
 public:
 
-	ting::StaticBuffer<ting::u8, sizeof(ting::u32)> rbuf;
+	std::array<std::uint8_t, sizeof(ting::u32)> rbuf;
 	ting::Inited<unsigned, 0> rbufBytes;
 
 	ting::Inited<ting::u32, 0> cnt;
@@ -49,13 +49,13 @@ public:
 			return;
 		}
 
-		ting::Array<ting::u8> buf(sizeof(ting::u32) * ( (std::min)(ting::u32((0xffff + 1) / sizeof(ting::u32)), DMaxCnt - this->cnt)) );
+		std::vector<std::uint8_t> buf(sizeof(ting::u32) * ( (std::min)(ting::u32((0xffff + 1) / sizeof(ting::u32)), DMaxCnt - this->cnt)) );
 
 		ASSERT(buf.Size() > 0)
 
 		ASSERT_INFO((buf.Size() % sizeof(ting::u32)) == 0, "buf.Size() = " << buf.Size() << " (buf.Size() % sizeof(ting::u32)) = " << (buf.Size() % sizeof(ting::u32)))
 
-		for(ting::u8* p = buf.Begin(); p != buf.End(); p += sizeof(ting::u32)){
+		for(std::uint8_t* p = buf.Begin(); p != buf.End(); p += sizeof(ting::u32)){
 			ting::util::Serialize32LE(this->cnt, p);
 			++this->cnt;
 		}
@@ -64,8 +64,8 @@ public:
 	}
 
 
-	void HandleReceivedData(const ting::Buffer<ting::u8>& d){
-		for(const ting::u8* p = d.Begin(); p != d.End(); ++p){
+	void HandleReceivedData(const ting::Buffer<std::uint8_t>& d){
+		for(const std::uint8_t* p = d.Begin(); p != d.End(); ++p){
 			this->rbuf[this->rbufBytes] = *p;
 			++this->rbufBytes;
 
@@ -88,8 +88,8 @@ public:
 
 
 
-	static ting::Ref<Connection> New(){
-		return ting::Ref<Connection>(new Connection());
+	static std::shared_ptr<Connection> New(){
+		return std::shared_ptr<Connection>(new Connection());
 	}
 };
 
@@ -110,15 +110,15 @@ private:
 	ting::Inited<unsigned, 0> numConnections;
 	
 	//override
-	ting::Ref<cliser::Connection> CreateConnectionObject(){
+	std::shared_ptr<cliser::Connection> CreateConnectionObject(){
 		return Connection::New();
 	}
 
 	//override
-	void OnConnected_ts(const ting::Ref<cliser::Connection>& c){
+	void OnConnected_ts(const std::shared_ptr<cliser::Connection>& c){
 		TRACE_ALWAYS(<< "Server::" << __func__ << "(): CONNECTED!!!" << std::endl)
 
-		ting::Ref<Connection> conn = c.StaticCast<Connection>();
+		std::shared_ptr<Connection> conn = c.StaticCast<Connection>();
 		ASSERT_ALWAYS(!conn->isConnected)
 		conn->isConnected = true;
 
@@ -133,10 +133,10 @@ private:
 	}
 
 	//override
-	void OnDisconnected_ts(const ting::Ref<cliser::Connection>& c){
+	void OnDisconnected_ts(const std::shared_ptr<cliser::Connection>& c){
 		TRACE_ALWAYS(<< "Server::" << __func__ << "(): DISCONNECTED!!!" << std::endl)
 
-		ting::Ref<Connection> conn = c.StaticCast<Connection>();
+		std::shared_ptr<Connection> conn = c.StaticCast<Connection>();
 		ASSERT_INFO_ALWAYS(conn->isConnected, "Server: disconnected non-connected connection")
 
 		//do not clear the flag to catch second connection of the same Connection object if any
@@ -150,25 +150,25 @@ private:
 	}
 
 	class HandleDataMessage : public ting::mt::Message{
-		ting::Ref<Connection> conn;
+		std::shared_ptr<Connection> conn;
 	public:
-		HandleDataMessage(const ting::Ref<Connection>& conn) :
+		HandleDataMessage(const std::shared_ptr<Connection>& conn) :
 				conn(conn)
 		{}
 
 		//override
 		void Handle(){
-			if(ting::Array<ting::u8> d = this->conn->GetReceivedData_ts()){
+			if(std::vector<std::uint8_t> d = this->conn->GetReceivedData_ts()){
 				this->conn->HandleReceivedData(d);
 			}
 		}
 	};
 
 	//override
-	bool OnDataReceived_ts(const ting::Ref<cliser::Connection>& c, const ting::Buffer<ting::u8>& d){
+	bool OnDataReceived_ts(const std::shared_ptr<cliser::Connection>& c, const ting::Buffer<std::uint8_t>& d){
 		TRACE_ALWAYS(<< "Server: data received" << std::endl)
 		this->PushMessage(
-				ting::Ptr<ting::mt::Message>(
+				std::unique_ptr<ting::mt::Message>(
 						new HandleDataMessage(c.StaticCast<Connection>())
 					)
 			);
@@ -177,7 +177,7 @@ private:
 	}
 
 	//override
-	void OnDataSent_ts(const ting::Ref<cliser::Connection>& c, unsigned numPacketsInQueue, bool addedToQueue){
+	void OnDataSent_ts(const std::shared_ptr<cliser::Connection>& c, unsigned numPacketsInQueue, bool addedToQueue){
 		if(numPacketsInQueue >= 2)
 			return;
 
@@ -205,12 +205,12 @@ private:
 	ting::Inited<unsigned, 0> numConnections;
 
 	//override
-	ting::Ref<cliser::Connection> CreateConnectionObject(){
+	std::shared_ptr<cliser::Connection> CreateConnectionObject(){
 		return Connection::New();
 	}
 
 	//override
-	void OnConnected_ts(const ting::Ref<cliser::Connection>& c){
+	void OnConnected_ts(const std::shared_ptr<cliser::Connection>& c){
 		TRACE_ALWAYS(<< "Client::" << __func__ << "(): CONNECTED!!!" << std::endl)
 
 		{
@@ -219,7 +219,7 @@ private:
 			ASSERT_INFO_ALWAYS(this->numConnections <= DMaxConnections, "this->numConnections = " << this->numConnections)
 		}
 
-		ting::Ref<Connection> conn = c.StaticCast<Connection>();
+		std::shared_ptr<Connection> conn = c.StaticCast<Connection>();
 		ASSERT_ALWAYS(!conn->isConnected)
 		conn->isConnected = true;
 
@@ -228,8 +228,8 @@ private:
 	}
 
 	//override
-	void OnDisconnected_ts(const ting::Ref<cliser::Connection>& c){
-		ting::Ref<Connection> conn = c.StaticCast<Connection>();
+	void OnDisconnected_ts(const std::shared_ptr<cliser::Connection>& c){
+		std::shared_ptr<Connection> conn = c.StaticCast<Connection>();
 		
 		if(conn->isConnected){
 			TRACE_ALWAYS(<< "Client::" << __func__ << "(): DISCONNECTED!!!" << std::endl)
@@ -255,8 +255,8 @@ private:
 	}
 
 	//override
-	bool OnDataReceived_ts(const ting::Ref<cliser::Connection>& c, const ting::Buffer<ting::u8>& d){
-		ting::Ref<Connection> con = c.StaticCast<Connection>();
+	bool OnDataReceived_ts(const std::shared_ptr<cliser::Connection>& c, const ting::Buffer<std::uint8_t>& d){
+		std::shared_ptr<Connection> con = c.StaticCast<Connection>();
 
 		con->HandleReceivedData(d);
 		TRACE_ALWAYS(<< "Client: data received" << std::endl)
@@ -264,7 +264,7 @@ private:
 	}
 
 	//override
-	void OnDataSent_ts(const ting::Ref<cliser::Connection>& c, unsigned numPacketsInQueue, bool addedToQueue){
+	void OnDataSent_ts(const std::shared_ptr<cliser::Connection>& c, unsigned numPacketsInQueue, bool addedToQueue){
 		if(numPacketsInQueue >= 2)
 			return;
 		

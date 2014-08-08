@@ -1,6 +1,6 @@
 /* The MIT License:
 
-Copyright (c) 2009-2013 Ivan Gagis <igagis@gmail.com>
+Copyright (c) 2009-2014 Ivan Gagis <igagis@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -32,13 +32,12 @@ THE SOFTWARE. */
 
 #pragma once
 
-#include <ting/types.hpp>
-#include <ting/Array.hpp>
 #include <ting/Buffer.hpp>
-#include <ting/Ref.hpp>
 #include <ting/net/TCPSocket.hpp>
 #include <ting/mt/Mutex.hpp>
+#include <ting/Shared.hpp>
 
+#include <list>
 
 
 namespace cliser{
@@ -55,16 +54,16 @@ class ConnectionsThread;
  * This class incapsulates all the data used by the cliser library to receive and send data.
  * Basically, it incapsulates the network socket and some other data.
  * Also, user can send data to remote end through a Connection object, using its Send_ts() and SendCopy_ts() methods.
- * User should subcluss the cliser::Connection object to include his own data.
+ * User should subclass the cliser::Connection object to include his own data.
  * Connection objects are created using abstract factory method of cliser::Listener interface.
  */
-class Connection : public virtual ting::RefCounted{
+class Connection : public virtual ting::Shared{
 	friend class ConnectionsThread;
 	friend class ServerThread;
 	friend class ClientThread;
 
 	//This is the network data associated with Connection
-	std::list<ting::Array<ting::u8> > packetQueue;
+	std::list<std::vector<std::uint8_t>> packetQueue;
 	unsigned dataSent;//number of bytes sent from first packet in the queue
 	//~
 
@@ -72,12 +71,12 @@ class Connection : public virtual ting::RefCounted{
 	ting::Waitable::EReadinessFlags currentFlags;
 
 	//NOTE: clientThread may be accessed from different threads, therefore, protect it with mutex
-	ConnectionsThread *parentThread;
+	ConnectionsThread *parentThread = 0;
 	ting::mt::Mutex mutex;
 
-	ting::Array<ting::u8> receivedData;//Should be protected with mutex
+	std::vector<std::uint8_t> receivedData;//Should be protected with mutex
 
-	inline void SetHandlingThread(ConnectionsThread *thr){
+	void SetHandlingThread(ConnectionsThread *thr){
 		ASSERT(thr)
 		ting::mt::Mutex::Guard mutexGuard(this->mutex);
 		//Assert that client is not added to some thread already.
@@ -85,18 +84,16 @@ class Connection : public virtual ting::RefCounted{
 		this->parentThread = thr;
 	}
 
-	inline void ClearHandlingThread(){
+	void ClearHandlingThread(){
 		ting::mt::Mutex::Guard mutexGuard(this->mutex);
 		this->parentThread = 0;
 	}
 
 protected:
-	inline Connection() :
-			parentThread(0)
-	{}
+	Connection(){}
 
 public:
-	virtual ~Connection()throw(){
+	virtual ~Connection()noexcept{
 //		TRACE(<< "Connection::" << __func__ << "(): invoked" << std::endl)
 	}
 
@@ -120,15 +117,7 @@ public:
 	 * sending queue.
 	 * @param data - data to send.
 	 */
-	void Send_ts(ting::Array<ting::u8> data);
-
-	/**
-	 * @brief Request sending of data copy to the remote end.
-	 * This methods works same as Send_ts() except that it copies the data passed
-	 * as argument instead of taking ownership of the passed ting::Array.
-	 * @param data
-	 */
-	void SendCopy_ts(const ting::Buffer<ting::u8>& data);
+	void Send_ts(std::vector<std::uint8_t>&& data);
 
 	/**
 	 * @brief Get stored received data and resume listening for incoming data.
@@ -145,7 +134,7 @@ public:
 	 * @return the valid Array with the data if there is data stored.
 	 * @return invalid Array object if there is no data stored.
 	 */
-	ting::Array<ting::u8> GetReceivedData_ts();
+	std::vector<std::uint8_t> GetReceivedData_ts();
 };
 
 
@@ -167,7 +156,7 @@ class Listener{
 	//      (the object which does notifications through this listener).
 	friend class cliser::ConnectionsThread;
 	friend class ServerThread;
-	ting::Inited<unsigned, 0> numTimesAdded;
+	unsigned numTimesAdded = 0;
 
 public:
 
@@ -176,9 +165,9 @@ public:
 	 * This method is called when cliser system needs a new connection object.
 	 * The user is supposed to reimplement the method and return a reference to
 	 * the newly created Connection object.
-	 * @return ting::Ref reference to the newly created Connection object.
+	 * @return std::shared_ptr reference to the newly created Connection object.
 	 */
-	virtual ting::Ref<cliser::Connection> CreateConnectionObject() = 0;
+	virtual std::shared_ptr<cliser::Connection> CreateConnectionObject() = 0;
 
 	/**
 	 * @brief New connection estabilished.
@@ -187,7 +176,7 @@ public:
 	 * The method is supposed to be thread safe.
 	 * @param c - connection object of the new connection.
 	 */
-	virtual void OnConnected_ts(const ting::Ref<Connection>& c) = 0;
+	virtual void OnConnected_ts(const std::shared_ptr<Connection>& c) = 0;
 
 	/**
 	 * @brief connection closed.
@@ -196,7 +185,7 @@ public:
 	 * The method is supposed to be thread safe.
 	 * @param c - connection object of the connection which was closed.
 	 */
-	virtual void OnDisconnected_ts(const ting::Ref<Connection>& c) = 0;
+	virtual void OnDisconnected_ts(const std::shared_ptr<Connection>& c) = 0;
 
 	/**
 	 * @brief Data received.
@@ -211,7 +200,7 @@ public:
 	 *         The data can later be retrieved using cliser::Connection::GetReceivedData_ts()
 	 *         method which will also resume listening for new incoming data from remote end.
 	 */
-	virtual bool OnDataReceived_ts(const ting::Ref<Connection>& c, const ting::Buffer<ting::u8>& d) = 0;
+	virtual bool OnDataReceived_ts(const std::shared_ptr<Connection>& c, const ting::Buffer<std::uint8_t>& d) = 0;
 
 	/**
 	 * @brief Data has been sent.
@@ -224,9 +213,9 @@ public:
      * @param numPacketsInQueue - number of packets currently stored in the sending queue of the connection object.
      * @param addedToQueue - flag indicating that the data was stored to the sending queue instead of actually sending.
      */
-	virtual void OnDataSent_ts(const ting::Ref<Connection>& c, unsigned numPacketsInQueue, bool addedToQueue){}
+	virtual void OnDataSent_ts(const std::shared_ptr<Connection>& c, unsigned numPacketsInQueue, bool addedToQueue){}
 
-	virtual ~Listener(){
+	virtual ~Listener()noexcept{
 		ASSERT(this->numTimesAdded == 0)
 	}
 };
