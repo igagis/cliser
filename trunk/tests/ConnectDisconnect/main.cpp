@@ -3,8 +3,8 @@
 #include <ting/Buffer.hpp>
 #include <ting/net/Lib.hpp>
 
-#include "../src/cliser/ServerThread.hpp"
-#include "../src/cliser/ClientThread.hpp"
+#include "../../src/cliser/ServerThread.hpp"
+#include "../../src/cliser/ClientThread.hpp"
 
 
 
@@ -12,7 +12,7 @@
 namespace{
 const unsigned DMaxConnections = 63;
 
-const ting::u32 DMaxCnt = 16384;
+const std::uint32_t DMaxCnt = 16384;
 const std::uint16_t DPort = 13666;
 const char* DIpAddress = "127.0.0.1";
 }
@@ -22,14 +22,14 @@ const char* DIpAddress = "127.0.0.1";
 class Connection : public cliser::Connection{
 public:
 
-	std::array<std::uint8_t, sizeof(ting::u32)> rbuf;
-	ting::Inited<unsigned, 0> rbufBytes;
+	std::array<std::uint8_t, sizeof(std::uint32_t)> rbuf;
+	unsigned rbufBytes = 0;
 
-	ting::Inited<ting::u32, 0> cnt;
+	std::uint32_t cnt = 0;
 
-	ting::Inited<ting::u32, 0> rcnt;
+	std::uint32_t rcnt = 0;
 
-	ting::Inited<bool, false> isConnected;
+	bool isConnected = false;
 
 	Connection(){
 //		TRACE(<< "Connection::" << __func__ << "(): invoked" << std::endl)
@@ -49,29 +49,29 @@ public:
 			return;
 		}
 
-		std::vector<std::uint8_t> buf(sizeof(ting::u32) * ( (std::min)(ting::u32((0xffff + 1) / sizeof(ting::u32)), DMaxCnt - this->cnt)) );
+		std::vector<std::uint8_t> buf(sizeof(std::uint32_t) * ( (std::min)(std::uint32_t((0xffff + 1) / sizeof(std::uint32_t)), DMaxCnt - this->cnt)) );
 
-		ASSERT(buf.Size() > 0)
+		ASSERT(buf.size() > 0)
 
-		ASSERT_INFO((buf.Size() % sizeof(ting::u32)) == 0, "buf.Size() = " << buf.Size() << " (buf.Size() % sizeof(ting::u32)) = " << (buf.Size() % sizeof(ting::u32)))
+		ASSERT_INFO((buf.size() % sizeof(std::uint32_t)) == 0, "buf.Size() = " << buf.size() << " (buf.Size() % sizeof(std::uint32_t)) = " << (buf.size() % sizeof(std::uint32_t)))
 
-		for(std::uint8_t* p = buf.Begin(); p != buf.End(); p += sizeof(ting::u32)){
+		for(std::uint8_t* p = &*buf.begin(); p != &*buf.end(); p += sizeof(std::uint32_t)){
 			ting::util::Serialize32LE(this->cnt, p);
 			++this->cnt;
 		}
 
-		this->Send_ts(buf);
+		this->Send_ts(std::move(buf));
 	}
 
 
 	void HandleReceivedData(const ting::Buffer<std::uint8_t>& d){
-		for(const std::uint8_t* p = d.Begin(); p != d.End(); ++p){
+		for(const std::uint8_t* p = d.begin(); p != d.end(); ++p){
 			this->rbuf[this->rbufBytes] = *p;
 			++this->rbufBytes;
 
-			if(this->rbufBytes == this->rbuf.Size()){
+			if(this->rbufBytes == this->rbuf.size()){
 				this->rbufBytes = 0;
-				ting::u32 num = ting::util::Deserialize32LE(this->rbuf.Begin());
+				std::uint32_t num = ting::util::Deserialize32LE(this->rbuf.begin());
 				ASSERT_INFO_ALWAYS(this->rcnt == num, "num = " << num << " rcnt = " << this->rcnt)
 				++this->rcnt;
 			}
@@ -85,12 +85,6 @@ public:
 			}
 		}
 	}
-
-
-
-	static std::shared_ptr<Connection> New(){
-		return std::shared_ptr<Connection>(new Connection());
-	}
 };
 
 
@@ -102,23 +96,23 @@ public:
 			cliser::ServerThread(DPort, 2, this, true, 100)
 	{}
 
-	~Server()throw(){
+	~Server()noexcept{
 		ASSERT_INFO_ALWAYS(this->numConnections == 0, "this->numConnections = " << this->numConnections)
 	}
 private:
 	ting::mt::Mutex numConsMut;
-	ting::Inited<unsigned, 0> numConnections;
+	unsigned numConnections = 0;
 	
 	//override
 	std::shared_ptr<cliser::Connection> CreateConnectionObject(){
-		return Connection::New();
+		return ting::New<Connection>();
 	}
 
 	//override
 	void OnConnected_ts(const std::shared_ptr<cliser::Connection>& c){
 		TRACE_ALWAYS(<< "Server::" << __func__ << "(): CONNECTED!!!" << std::endl)
 
-		std::shared_ptr<Connection> conn = c.StaticCast<Connection>();
+		std::shared_ptr<Connection> conn = std::static_pointer_cast<Connection>(c);
 		ASSERT_ALWAYS(!conn->isConnected)
 		conn->isConnected = true;
 
@@ -129,14 +123,14 @@ private:
 		}
 		
 		TRACE_ALWAYS(<< "Server: sending data" << std::endl)
-		c.StaticCast<Connection>()->SendPortion();
+		std::static_pointer_cast<Connection>(c)->SendPortion();
 	}
 
 	//override
 	void OnDisconnected_ts(const std::shared_ptr<cliser::Connection>& c){
 		TRACE_ALWAYS(<< "Server::" << __func__ << "(): DISCONNECTED!!!" << std::endl)
 
-		std::shared_ptr<Connection> conn = c.StaticCast<Connection>();
+		std::shared_ptr<Connection> conn = std::static_pointer_cast<Connection>(c);
 		ASSERT_INFO_ALWAYS(conn->isConnected, "Server: disconnected non-connected connection")
 
 		//do not clear the flag to catch second connection of the same Connection object if any
@@ -149,7 +143,7 @@ private:
 		}
 	}
 
-	class HandleDataMessage : public ting::mt::Message{
+	class HandleDataMessage{
 		std::shared_ptr<Connection> conn;
 	public:
 		HandleDataMessage(const std::shared_ptr<Connection>& conn) :
@@ -158,9 +152,7 @@ private:
 
 		//override
 		void Handle(){
-			if(std::vector<std::uint8_t> d = this->conn->GetReceivedData_ts()){
-				this->conn->HandleReceivedData(d);
-			}
+			
 		}
 	};
 
@@ -168,9 +160,12 @@ private:
 	bool OnDataReceived_ts(const std::shared_ptr<cliser::Connection>& c, const ting::Buffer<std::uint8_t>& d){
 		TRACE_ALWAYS(<< "Server: data received" << std::endl)
 		this->PushMessage(
-				std::unique_ptr<ting::mt::Message>(
-						new HandleDataMessage(c.StaticCast<Connection>())
-					)
+				[c](){
+					std::vector<std::uint8_t> d = c->GetReceivedData_ts();
+					if(d.size() != 0){
+						std::static_pointer_cast<Connection>(c)->HandleReceivedData(d);
+					}
+				}
 			);
 
 		return false;
@@ -182,7 +177,7 @@ private:
 			return;
 
 		TRACE_ALWAYS(<< "Server: sending data" << std::endl)
-		c.StaticCast<Connection>()->SendPortion();
+		std::static_pointer_cast<Connection>(c)->SendPortion();
 	}
 };
 
@@ -199,14 +194,14 @@ public:
 		ASSERT_INFO_ALWAYS(this->numConnections == 0, "this->numConnections = " << this->numConnections)
 	}
 
-	ting::Inited<bool, 0> quitMessagePosted;
+	bool quitMessagePosted = 0;
 private:
 	ting::mt::Mutex numConsMut;
-	ting::Inited<unsigned, 0> numConnections;
+	unsigned numConnections = 0;
 
 	//override
 	std::shared_ptr<cliser::Connection> CreateConnectionObject(){
-		return Connection::New();
+		return ting::New<Connection>();
 	}
 
 	//override
@@ -219,7 +214,7 @@ private:
 			ASSERT_INFO_ALWAYS(this->numConnections <= DMaxConnections, "this->numConnections = " << this->numConnections)
 		}
 
-		std::shared_ptr<Connection> conn = c.StaticCast<Connection>();
+		std::shared_ptr<Connection> conn = std::static_pointer_cast<Connection>(c);
 		ASSERT_ALWAYS(!conn->isConnected)
 		conn->isConnected = true;
 
@@ -229,7 +224,7 @@ private:
 
 	//override
 	void OnDisconnected_ts(const std::shared_ptr<cliser::Connection>& c){
-		std::shared_ptr<Connection> conn = c.StaticCast<Connection>();
+		std::shared_ptr<Connection> conn = std::static_pointer_cast<Connection>(c);
 		
 		if(conn->isConnected){
 			TRACE_ALWAYS(<< "Client::" << __func__ << "(): DISCONNECTED!!!" << std::endl)
@@ -256,7 +251,7 @@ private:
 
 	//override
 	bool OnDataReceived_ts(const std::shared_ptr<cliser::Connection>& c, const ting::Buffer<std::uint8_t>& d){
-		std::shared_ptr<Connection> con = c.StaticCast<Connection>();
+		std::shared_ptr<Connection> con = std::static_pointer_cast<Connection>(c);
 
 		con->HandleReceivedData(d);
 		TRACE_ALWAYS(<< "Client: data received" << std::endl)
@@ -269,7 +264,7 @@ private:
 			return;
 		
 		TRACE_ALWAYS(<< "Client: sending data" << std::endl)
-		c.StaticCast<Connection>()->SendPortion();
+		std::static_pointer_cast<Connection>(c)->SendPortion();
 	}
 };
 

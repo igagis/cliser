@@ -10,6 +10,9 @@
       </df>
     </df>
     <df root="tests" name="1">
+      <df name="ConnectDisconnect">
+        <in>main.cpp</in>
+      </df>
       <df name="Simple">
         <in>main.cpp</in>
       </df>
@@ -70,6 +73,10 @@
       </item>
       <item path="src/cliser/ServerThread.cpp" ex="false" tool="1" flavor2="8">
         <ccTool flags="0">
+        </ccTool>
+      </item>
+      <item path="tests/ConnectDisconnect/main.cpp" ex="false" tool="1" flavor2="8">
+        <ccTool flags="1">
         </ccTool>
       </item>
       <item path="tests/Simple/main.cpp" ex="false" tool="1" flavor2="8">
