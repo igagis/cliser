@@ -1,6 +1,6 @@
 /* The MIT License:
 
-Copyright (c) 2009-2013 Ivan Gagis <igagis@gmail.com>
+Copyright (c) 2009-2014 Ivan Gagis <igagis@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,7 @@ using namespace cliser;
 
 
 void Connection::Send_ts(const std::shared_ptr<const SharedBuffer>& data){
-	ting::mt::Mutex::Guard mutexGuard(this->mutex);//make sure that this->clientThread won't be zeroed out by other thread
+	decltype(this->mutex)::Guard mutexGuard(this->mutex);//make sure that this->clientThread won't be zeroed out by other thread
 	if(!this->parentThread){
 		//client disconnected, do nothing
 //		TRACE(<< "Connection::" << __func__ << "(): client disconnected" << std::endl)
@@ -58,7 +58,7 @@ void Connection::Send_ts(const std::shared_ptr<const SharedBuffer>& data){
 
 
 void Connection::Disconnect_ts(){
-	ting::mt::Mutex::Guard mutexGuard(this->mutex);
+	decltype(this->mutex)::Guard mutexGuard(this->mutex);
 	if(!this->parentThread){
 		//client disconnected, do nothing
 		return;
@@ -80,7 +80,7 @@ void Connection::Disconnect_ts(){
 
 
 std::vector<std::uint8_t> Connection::GetReceivedData_ts(){
-	ting::mt::Mutex::Guard parentThreadMutextGuard(this->mutex);
+	decltype(this->mutex)::Guard parentThreadMutextGuard(this->mutex);
 
 	//At the moment of sending the ResumeListeningForReadMessage the receivedData variable should be empty.
 	std::vector<std::uint8_t> ret = std::move(this->receivedData);
