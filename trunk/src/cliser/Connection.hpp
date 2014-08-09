@@ -50,20 +50,6 @@ class ConnectionsThread;
 
 
 
-class SharedBuffer : public ting::Shared{
-	std::vector<std::uint8_t> b;
-public:
-	SharedBuffer(std::vector<std::uint8_t>&& buf) :
-			b(std::move(buf))
-	{}
-	
-	ting::Buffer<const std::uint8_t> Buf()const{
-		return this->b;
-	}
-};
-
-
-
 /**
  * @brief Connection base class.
  * This class incapsulates all the data used by the cliser library to receive and send data.
@@ -78,7 +64,7 @@ class Connection : public virtual ting::Shared{
 	friend class ClientThread;
 
 	//This is the network data associated with Connection
-	std::list<std::shared_ptr<const SharedBuffer>> packetQueue;
+	std::list<std::shared_ptr<const std::vector<std::uint8_t>>> packetQueue;
 	unsigned dataSent;//number of bytes sent from first packet in the queue
 	//~
 
@@ -132,7 +118,7 @@ public:
 	 * sending queue.
 	 * @param data - data to send.
 	 */
-	void Send_ts(const std::shared_ptr<const SharedBuffer>& data);
+	void Send_ts(const std::shared_ptr<const std::vector<std::uint8_t>>& data);
 
 	/**
 	 * @brief Get stored received data and resume listening for incoming data.
@@ -146,10 +132,10 @@ public:
 	 * data will be stopped for this connection. Thus, when the user is able to handle the data
 	 * he should call the GetReceivedData_ts() method to get the data, and resume listening for
 	 * further incoming data from the remote end.
-	 * @return the valid Array with the data if there is data stored.
-	 * @return invalid Array object if there is no data stored.
+	 * @return non-empty vector with the data if there is data stored.
+	 * @return empty vector if there is no data stored.
 	 */
-	std::vector<std::uint8_t> GetReceivedData_ts();
+	const std::vector<std::uint8_t> GetReceivedData_ts();
 };
 
 
@@ -220,7 +206,8 @@ public:
 	/**
 	 * @brief Data has been sent.
 	 * This callback method is called by cliser system to indicate that the data was
-	 * sent or placed to sending queue. Note, that for data placed into the sending queue
+	 * sent or placed to sending queue. The data is either sent right a way or placed to sending queue,
+	 * depending on load of network connection. Note, that for data placed into the sending queue
 	 * this method will be called twice: first, when the data is placed to the queue and
 	 * second time, when the data has actually been sent to the remote end.
 	 * The method is supposed to be thread safe.

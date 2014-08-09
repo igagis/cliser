@@ -33,7 +33,7 @@ using namespace cliser;
 
 
 
-void Connection::Send_ts(const std::shared_ptr<const SharedBuffer>& data){
+void Connection::Send_ts(const std::shared_ptr<const std::vector<std::uint8_t>>& data){
 	decltype(this->mutex)::Guard mutexGuard(this->mutex);//make sure that this->clientThread won't be zeroed out by other thread
 	if(!this->parentThread){
 		//client disconnected, do nothing
@@ -43,7 +43,7 @@ void Connection::Send_ts(const std::shared_ptr<const SharedBuffer>& data){
 	ASSERT(this->parentThread)
 	
 	this->parentThread->PushMessage(std::bind(
-			[](ConnectionsThread* thr, std::shared_ptr<Connection>& c, std::shared_ptr<const SharedBuffer>& data){
+			[](ConnectionsThread* thr, std::shared_ptr<Connection>& c, std::shared_ptr<const std::vector<std::uint8_t>>& data){
 				thr->HandleSendDataMessage(c, std::move(data));
 			},
 			this->parentThread,
@@ -79,7 +79,7 @@ void Connection::Disconnect_ts(){
 
 
 
-std::vector<std::uint8_t> Connection::GetReceivedData_ts(){
+const std::vector<std::uint8_t> Connection::GetReceivedData_ts(){
 	decltype(this->mutex)::Guard parentThreadMutextGuard(this->mutex);
 
 	//At the moment of sending the ResumeListeningForReadMessage the receivedData variable should be empty.

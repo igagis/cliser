@@ -108,7 +108,7 @@ private:
 	void HandleRemoveConnectionMessage(std::shared_ptr<Connection>& conn);
 
 
-	void HandleSendDataMessage(std::shared_ptr<Connection>& conn, std::shared_ptr<const SharedBuffer>&& data);
+	void HandleSendDataMessage(std::shared_ptr<Connection>& conn, std::shared_ptr<const std::vector<std::uint8_t>>&& data);
 
 	void HandleResumeListeningForReadMessage(std::shared_ptr<Connection>& conn);
 };//~class
