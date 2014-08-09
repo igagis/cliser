@@ -51,7 +51,7 @@ public:
 		}
 		ASSERT_ALWAYS(p == &*buf.end())
 
-		this->Send_ts(ting::New<cliser::SharedBuffer>(std::move(buf)));
+		this->Send_ts(std::make_shared<std::vector<std::uint8_t>>(std::move(buf)));
 	}
 
 

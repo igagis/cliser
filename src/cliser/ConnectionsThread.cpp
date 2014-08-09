@@ -160,17 +160,17 @@ void ConnectionsThread::HandleSocketActivity(std::shared_ptr<Connection>& conn){
 			}
 
 		}else{
-			ASSERT(conn->dataSent < conn->packetQueue.front()->Buf().size())
+			ASSERT(conn->dataSent < conn->packetQueue.front()->size())
 
 			try{
 //				TRACE(<< "ConnectionsThread::" << __func__ << "(): Packet data left = " << (conn->packetQueue.front().Size() - conn->dataSent) << std::endl)
 
-				conn->dataSent += conn->socket.Send(conn->packetQueue.front()->Buf(), conn->dataSent);
-				ASSERT(conn->dataSent <= conn->packetQueue.front()->Buf().size())
+				conn->dataSent += conn->socket.Send(*conn->packetQueue.front(), conn->dataSent);
+				ASSERT(conn->dataSent <= conn->packetQueue.front()->size())
 
 //				TRACE(<< "ConnectionsThread::" << __func__ << "(): Packet data left = " << (conn->packetQueue.front().Size() - conn->dataSent) << std::endl)
 
-				if(conn->dataSent == conn->packetQueue.front()->Buf().size()){
+				if(conn->dataSent == conn->packetQueue.front()->size()){
 					conn->packetQueue.pop_front();
 					conn->dataSent = 0;
 
@@ -343,7 +343,7 @@ void ConnectionsThread::HandleRemoveConnectionMessage(std::shared_ptr<cliser::Co
 
 
 
-void ConnectionsThread::HandleSendDataMessage(std::shared_ptr<Connection>& conn, std::shared_ptr<const SharedBuffer>&& data){
+void ConnectionsThread::HandleSendDataMessage(std::shared_ptr<Connection>& conn, std::shared_ptr<const std::vector<std::uint8_t>>&& data){
 //	TRACE(<< "ConnectionsThread::" << __func__ << "(): enter" << std::endl)
 	
 	if(!conn->socket){
@@ -358,10 +358,10 @@ void ConnectionsThread::HandleSendDataMessage(std::shared_ptr<Connection>& conn,
 		return;
 	}else{
 		try{
-			unsigned numBytesSent = conn->socket.Send(data->Buf());
-			ASSERT(numBytesSent <= data->Buf().size())
+			unsigned numBytesSent = conn->socket.Send(*data);
+			ASSERT(numBytesSent <= data->size())
 
-			if(numBytesSent != data->Buf().size()){
+			if(numBytesSent != data->size()){
 //				TRACE(<< "ConnectionsThread::" << __func__ << "(): adding data to send queue" << std::endl)
 				conn->dataSent = numBytesSent;
 				conn->packetQueue.push_back(std::move(data));
