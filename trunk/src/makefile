@@ -23,6 +23,8 @@ this_cflags += -g #include debugging symbols
 this_cflags += -fPIC
 this_cflags += -std=c++11
 
+this_ldlibs += -lting
+
 
 ifeq ($(debug),true)
     this_cflags += -DDEBUG
