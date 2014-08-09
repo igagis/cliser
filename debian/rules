@@ -1,16 +1,13 @@
 #!/usr/bin/make -f
+%:
+	dh $@
 
-build:
-	$(MAKE)
+override_dh_auto_test:
+#do nothing
 
-clean:
-	rm -f debian/files
-	rm -rf debian/out
-	$(MAKE) clean
 
-binary:
-	./debian/libcliser.sh
-	./debian/libcliser-dbg.sh
-	./debian/libcliser-dev.sh
-	./debian/libcliser-doc.sh
 
+.PHONY: override_dh_strip
+override_dh_strip:
+	dh_strip --dbg-package=libcliser0-dbg
+	
