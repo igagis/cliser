@@ -24,7 +24,7 @@ THE SOFTWARE. */
 
 #include <ting/math.hpp>
 #include <ting/util.hpp>
-#include <ting/Buffer.hpp>
+#include <ting/ArrayAdaptor.hpp>
 #include <ting/net/Lib.hpp>
 
 #include "ClientThread.hpp"
