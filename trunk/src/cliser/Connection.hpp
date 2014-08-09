@@ -93,14 +93,14 @@ class Connection : public virtual ting::Shared{
 
 	void SetHandlingThread(ConnectionsThread *thr){
 		ASSERT(thr)
-		ting::mt::Mutex::Guard mutexGuard(this->mutex);
+		decltype(this->mutex)::Guard mutexGuard(this->mutex);
 		//Assert that client is not added to some thread already.
 		ASSERT_INFO(!this->parentThread, "client's handler thread is already set")
 		this->parentThread = thr;
 	}
 
 	void ClearHandlingThread(){
-		ting::mt::Mutex::Guard mutexGuard(this->mutex);
+		decltype(this->mutex)::Guard mutexGuard(this->mutex);
 		this->parentThread = 0;
 	}
 
