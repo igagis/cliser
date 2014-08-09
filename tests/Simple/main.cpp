@@ -51,7 +51,7 @@ public:
 		}
 		ASSERT_ALWAYS(p == &*buf.end())
 
-		this->Send_ts(std::move(buf));
+		this->Send_ts(ting::New<cliser::SharedBuffer>(std::move(buf)));
 	}
 
 
@@ -90,20 +90,18 @@ public:
 			cliser::ServerThread(DPort, 2, this, false, 100)
 	{}
 
-	~Server()throw(){
+	~Server()noexcept{
 		ASSERT_INFO_ALWAYS(this->numConnections == 0, "this->numConnections = " << this->numConnections)
 	}
 private:
 	ting::mt::Mutex numConsMut;
 	unsigned numConnections = 0;
 	
-	//override
-	std::shared_ptr<cliser::Connection> CreateConnectionObject(){
+	std::shared_ptr<cliser::Connection> CreateConnectionObject()override{
 		return ting::New<Connection>();
 	}
 
-	//override
-	void OnConnected_ts(const std::shared_ptr<cliser::Connection>& c){
+	void OnConnected_ts(const std::shared_ptr<cliser::Connection>& c)override{
 		std::shared_ptr<Connection> conn = std::static_pointer_cast<Connection>(c);
 		ASSERT_ALWAYS(!conn->isConnected)
 		conn->isConnected = true;
@@ -119,8 +117,7 @@ private:
 		std::static_pointer_cast<Connection>(c)->SendPortion();
 	}
 
-	//override
-	void OnDisconnected_ts(const std::shared_ptr<cliser::Connection>& c){
+	void OnDisconnected_ts(const std::shared_ptr<cliser::Connection>& c)override{
 		std::shared_ptr<Connection> conn = std::static_pointer_cast<Connection>(c);
 
 		ASSERT_INFO_ALWAYS(conn->isConnected, "Server: disconnected non-connected connection")
@@ -133,8 +130,7 @@ private:
 		}
 	}
 
-	//override
-	bool OnDataReceived_ts(const std::shared_ptr<cliser::Connection>& c, const ting::Buffer<std::uint8_t>& d){
+	bool OnDataReceived_ts(const std::shared_ptr<cliser::Connection>& c, const ting::Buffer<std::uint8_t>& d)override{
 		std::shared_ptr<Connection> con = std::static_pointer_cast<Connection>(c);
 
 		con->HandleReceivedData(d);
@@ -142,10 +138,10 @@ private:
 		return true;
 	}
 
-	//override
-	void OnDataSent_ts(const std::shared_ptr<cliser::Connection>& c, unsigned numPacketsInQueue, bool addedToQueue){
-		if(numPacketsInQueue >= 2)
+	void OnDataSent_ts(const std::shared_ptr<cliser::Connection>& c, unsigned numPacketsInQueue, bool addedToQueue)override{
+		if(numPacketsInQueue >= 2){
 			return;
+		}
 
 		TRACE_ALWAYS(<< "Server: sending data" << std::endl)
 		std::static_pointer_cast<Connection>(c)->SendPortion();
@@ -168,13 +164,11 @@ private:
 	ting::mt::Mutex numConsMut;
 	unsigned numConnections = 0;
 	
-	//override
-	std::shared_ptr<cliser::Connection> CreateConnectionObject(){
+	std::shared_ptr<cliser::Connection> CreateConnectionObject()override{
 		return ting::New<Connection>();
 	}
 
-	//override
-	void OnConnected_ts(const std::shared_ptr<cliser::Connection>& c){
+	void OnConnected_ts(const std::shared_ptr<cliser::Connection>& c)override{
 		{
 			ting::mt::Mutex::Guard mutexGuard(this->numConsMut);
 			++(this->numConnections);
@@ -189,8 +183,7 @@ private:
 		conn->SendPortion();
 	}
 
-	//override
-	void OnDisconnected_ts(const std::shared_ptr<cliser::Connection>& c){
+	void OnDisconnected_ts(const std::shared_ptr<cliser::Connection>& c)override{
 		std::shared_ptr<Connection> conn = std::static_pointer_cast<Connection>(c);
 		
 		if(conn->isConnected){
@@ -208,8 +201,7 @@ private:
 	}
 
 
-	//override
-	bool OnDataReceived_ts(const std::shared_ptr<cliser::Connection>& c, const ting::Buffer<std::uint8_t>& d){
+	bool OnDataReceived_ts(const std::shared_ptr<cliser::Connection>& c, const ting::Buffer<std::uint8_t>& d)override{
 		TRACE_ALWAYS(<< "Client: data received" << std::endl)
 		
 		this->PushMessage(
@@ -226,8 +218,7 @@ private:
 		return false;
 	}
 
-	//override
-	void OnDataSent_ts(const std::shared_ptr<cliser::Connection>& c, unsigned numPacketsInQueue, bool addedToQueue){
+	void OnDataSent_ts(const std::shared_ptr<cliser::Connection>& c, unsigned numPacketsInQueue, bool addedToQueue)override{
 		if(numPacketsInQueue >= 2){
 			return;
 		}

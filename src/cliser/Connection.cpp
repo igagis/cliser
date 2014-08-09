@@ -33,7 +33,7 @@ using namespace cliser;
 
 
 
-void Connection::Send_ts(std::vector<std::uint8_t>&& data){
+void Connection::Send_ts(const std::shared_ptr<const SharedBuffer>& data){
 	ting::mt::Mutex::Guard mutexGuard(this->mutex);//make sure that this->clientThread won't be zeroed out by other thread
 	if(!this->parentThread){
 		//client disconnected, do nothing
@@ -43,12 +43,12 @@ void Connection::Send_ts(std::vector<std::uint8_t>&& data){
 	ASSERT(this->parentThread)
 	
 	this->parentThread->PushMessage(std::bind(
-			[](ConnectionsThread* thr, std::shared_ptr<Connection>& c, std::vector<std::uint8_t>& data){
+			[](ConnectionsThread* thr, std::shared_ptr<Connection>& c, std::shared_ptr<const SharedBuffer>& data){
 				thr->HandleSendDataMessage(c, std::move(data));
 			},
 			this->parentThread,
 			this->SharedFromThis(this),
-			std::move(data)
+			data
 		));
 }
 

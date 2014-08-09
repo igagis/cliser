@@ -142,17 +142,15 @@ private:
 				serverThread(ASS(serverThread))
 		{}
 		
-		~ServerConnectionsThread()throw(){}
+		~ServerConnectionsThread()noexcept{}
 
-		//override
-		virtual std::shared_ptr<cliser::Connection> CreateConnectionObject(){
+		virtual std::shared_ptr<cliser::Connection> CreateConnectionObject()override{
 			//this function will not be ever called.
 			ASSERT(false);
 			return std::shared_ptr<cliser::Connection>();
 		}
 
-		//override
-		void OnConnected_ts(const std::shared_ptr<Connection>& c){
+		void OnConnected_ts(const std::shared_ptr<Connection>& c)override{
 			ASS(this->serverThread)->listener->OnConnected_ts(c);
 		}
 
@@ -174,13 +172,11 @@ private:
 			ASS(this->serverThread)->listener->OnDisconnected_ts(c);
 		}
 
-		//override
-		bool OnDataReceived_ts(const std::shared_ptr<Connection>& c, const ting::Buffer<std::uint8_t>& d){
+		bool OnDataReceived_ts(const std::shared_ptr<Connection>& c, const ting::Buffer<std::uint8_t>& d)override{
 			return ASS(this->serverThread)->listener->OnDataReceived_ts(c, d);
 		}
 
-		//override
-		void OnDataSent_ts(const std::shared_ptr<Connection>& c, unsigned numPacketsInQueue, bool addedToQueue){
+		void OnDataSent_ts(const std::shared_ptr<Connection>& c, unsigned numPacketsInQueue, bool addedToQueue)override{
 			ASS(this->serverThread)->listener->OnDataSent_ts(c, numPacketsInQueue, addedToQueue);
 		}
 

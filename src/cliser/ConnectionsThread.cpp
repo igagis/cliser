@@ -160,17 +160,17 @@ void ConnectionsThread::HandleSocketActivity(std::shared_ptr<Connection>& conn){
 			}
 
 		}else{
-			ASSERT(conn->dataSent < conn->packetQueue.front().size())
+			ASSERT(conn->dataSent < conn->packetQueue.front()->Buf().size())
 
 			try{
 //				TRACE(<< "ConnectionsThread::" << __func__ << "(): Packet data left = " << (conn->packetQueue.front().Size() - conn->dataSent) << std::endl)
 
-				conn->dataSent += conn->socket.Send(conn->packetQueue.front(), conn->dataSent);
-				ASSERT(conn->dataSent <= conn->packetQueue.front().size())
+				conn->dataSent += conn->socket.Send(conn->packetQueue.front()->Buf(), conn->dataSent);
+				ASSERT(conn->dataSent <= conn->packetQueue.front()->Buf().size())
 
 //				TRACE(<< "ConnectionsThread::" << __func__ << "(): Packet data left = " << (conn->packetQueue.front().Size() - conn->dataSent) << std::endl)
 
-				if(conn->dataSent == conn->packetQueue.front().size()){
+				if(conn->dataSent == conn->packetQueue.front()->Buf().size()){
 					conn->packetQueue.pop_front();
 					conn->dataSent = 0;
 
@@ -343,7 +343,7 @@ void ConnectionsThread::HandleRemoveConnectionMessage(std::shared_ptr<cliser::Co
 
 
 
-void ConnectionsThread::HandleSendDataMessage(std::shared_ptr<Connection>& conn, std::vector<std::uint8_t>&& data){
+void ConnectionsThread::HandleSendDataMessage(std::shared_ptr<Connection>& conn, std::shared_ptr<const SharedBuffer>&& data){
 //	TRACE(<< "ConnectionsThread::" << __func__ << "(): enter" << std::endl)
 	
 	if(!conn->socket){
@@ -358,13 +358,13 @@ void ConnectionsThread::HandleSendDataMessage(std::shared_ptr<Connection>& conn,
 		return;
 	}else{
 		try{
-			unsigned numBytesSent = conn->socket.Send(data);
-			ASSERT(numBytesSent <= data.size())
+			unsigned numBytesSent = conn->socket.Send(data->Buf());
+			ASSERT(numBytesSent <= data->Buf().size())
 
-			if(numBytesSent != data.size()){
+			if(numBytesSent != data->Buf().size()){
 //				TRACE(<< "ConnectionsThread::" << __func__ << "(): adding data to send queue" << std::endl)
 				conn->dataSent = numBytesSent;
-				conn->packetQueue.push_back(data);
+				conn->packetQueue.push_back(std::move(data));
 
 				//Set WRITE waiting flag
 				conn->currentFlags = ting::Waitable::EReadinessFlags(

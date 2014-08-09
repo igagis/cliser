@@ -38,6 +38,7 @@ THE SOFTWARE. */
 #include <ting/Shared.hpp>
 
 #include <list>
+#include <vector>
 
 
 namespace cliser{
@@ -46,6 +47,20 @@ namespace cliser{
 
 //forward declarations
 class ConnectionsThread;
+
+
+
+class SharedBuffer : public ting::Shared{
+	std::vector<std::uint8_t> b;
+public:
+	SharedBuffer(std::vector<std::uint8_t>&& buf) :
+			b(std::move(buf))
+	{}
+	
+	ting::Buffer<const std::uint8_t> Buf()const{
+		return this->b;
+	}
+};
 
 
 
@@ -63,7 +78,7 @@ class Connection : public virtual ting::Shared{
 	friend class ClientThread;
 
 	//This is the network data associated with Connection
-	std::list<std::vector<std::uint8_t>> packetQueue;
+	std::list<std::shared_ptr<const SharedBuffer>> packetQueue;
 	unsigned dataSent;//number of bytes sent from first packet in the queue
 	//~
 
@@ -117,7 +132,7 @@ public:
 	 * sending queue.
 	 * @param data - data to send.
 	 */
-	void Send_ts(std::vector<std::uint8_t>&& data);
+	void Send_ts(const std::shared_ptr<const SharedBuffer>& data);
 
 	/**
 	 * @brief Get stored received data and resume listening for incoming data.

@@ -60,7 +60,7 @@ public:
 			++this->cnt;
 		}
 
-		this->Send_ts(std::move(buf));
+		this->Send_ts(ting::New<cliser::SharedBuffer>(std::move(buf)));
 	}
 
 
