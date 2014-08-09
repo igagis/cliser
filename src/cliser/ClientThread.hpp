@@ -32,7 +32,7 @@ THE SOFTWARE. */
 #pragma once
 
 
-#include <ting/Buffer.hpp>
+#include <ting/ArrayAdaptor.hpp>
 #include <ting/types.hpp>
 #include <ting/debug.hpp>
 #include <ting/net/IPAddress.hpp>

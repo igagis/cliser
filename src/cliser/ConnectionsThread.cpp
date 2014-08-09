@@ -3,7 +3,7 @@
 #include <ting/debug.hpp>
 #include <ting/math.hpp>
 #include <ting/util.hpp>
-#include <ting/Buffer.hpp>
+#include <ting/ArrayAdaptor.hpp>
 
 #include "ServerThread.hpp"
 #include "Connection.hpp"
@@ -203,7 +203,7 @@ void ConnectionsThread::HandleSocketActivity(std::shared_ptr<Connection>& conn){
 			unsigned bytesReceived = conn->socket.Recv(buffer);
 			ASSERT(!conn->socket.CanRead())
 			if(bytesReceived != 0){
-				ting::Buffer<std::uint8_t> b(&*buffer.begin(), bytesReceived);
+				ting::ArrayAdaptor<std::uint8_t> b(&*buffer.begin(), bytesReceived);
 //				TRACE(<< "ConnectionsThread::" << __func__ << "(): bytesReceived = " << bytesReceived << " b.Size() = " << b.Size() << std::endl)
 //				TRACE(<< "ConnectionsThread::" << __func__ << "(): b[...] = "
 //						<< unsigned(b[0]) << " "
