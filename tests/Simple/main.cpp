@@ -90,7 +90,7 @@ public:
 			cliser::ServerThread(DPort, 2, this, false, 100)
 	{}
 
-	~Server()noexcept{
+	~Server()NOEXCEPT{
 		ASSERT_INFO_ALWAYS(this->numConnections == 0, "this->numConnections = " << this->numConnections)
 	}
 private:

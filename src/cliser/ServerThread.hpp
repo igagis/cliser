@@ -142,7 +142,7 @@ private:
 				serverThread(ASS(serverThread))
 		{}
 		
-		~ServerConnectionsThread()noexcept{}
+		~ServerConnectionsThread()NOEXCEPT{}
 
 		virtual std::shared_ptr<cliser::Connection> CreateConnectionObject()override{
 			//this function will not be ever called.

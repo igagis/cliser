@@ -94,7 +94,7 @@ protected:
 	Connection(){}
 
 public:
-	virtual ~Connection()noexcept{
+	virtual ~Connection()NOEXCEPT{
 //		TRACE(<< "Connection::" << __func__ << "(): invoked" << std::endl)
 	}
 
@@ -217,7 +217,7 @@ public:
      */
 	virtual void OnDataSent_ts(const std::shared_ptr<Connection>& c, unsigned numPacketsInQueue, bool addedToQueue){}
 
-	virtual ~Listener()noexcept{
+	virtual ~Listener()NOEXCEPT{
 		ASSERT(this->numTimesAdded == 0)
 	}
 };
