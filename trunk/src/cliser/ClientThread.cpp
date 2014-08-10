@@ -42,7 +42,7 @@ ClientThread::ClientThread(unsigned maxConnections, cliser::Listener* listener) 
 
 
 
-ClientThread::~ClientThread()noexcept{
+ClientThread::~ClientThread()NOEXCEPT{
 }
 
 

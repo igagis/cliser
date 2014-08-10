@@ -65,7 +65,7 @@ public:
 	 */
 	ClientThread(unsigned maxConnections, cliser::Listener* listener);
 
-	virtual ~ClientThread()noexcept;
+	virtual ~ClientThread()NOEXCEPT;
 
 	/**
 	 * @brief Request connection.
