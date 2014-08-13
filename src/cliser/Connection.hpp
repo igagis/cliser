@@ -32,7 +32,7 @@ THE SOFTWARE. */
 
 #pragma once
 
-#include <ting/ArrayAdaptor.hpp>
+#include <ting/Buffer.hpp>
 #include <ting/net/TCPSocket.hpp>
 #include <ting/mt/Mutex.hpp>
 #include <ting/Shared.hpp>
@@ -201,7 +201,7 @@ public:
 	 *         The data can later be retrieved using cliser::Connection::GetReceivedData_ts()
 	 *         method which will also resume listening for new incoming data from remote end.
 	 */
-	virtual bool OnDataReceived_ts(const std::shared_ptr<Connection>& c, const ting::ArrayAdaptor<std::uint8_t> d) = 0;
+	virtual bool OnDataReceived_ts(const std::shared_ptr<Connection>& c, const ting::Buffer<std::uint8_t> d) = 0;
 
 	/**
 	 * @brief Data has been sent.

@@ -1,5 +1,5 @@
 #include <ting/debug.hpp>
-#include <ting/ArrayAdaptor.hpp>
+#include <ting/Buffer.hpp>
 #include <ting/mt/MsgThread.hpp>
 #include <ting/mt/Mutex.hpp>
 #include <ting/net/Lib.hpp>
@@ -55,7 +55,7 @@ public:
 	}
 
 
-	void HandleReceivedData(const ting::ArrayAdaptor<std::uint8_t> d){
+	void HandleReceivedData(const ting::Buffer<std::uint8_t> d){
 		for(const std::uint8_t* p = &*d.begin(); p != &*d.end(); ++p){
 			this->rbuf[this->rbufBytes] = *p;
 			++this->rbufBytes;
@@ -130,7 +130,7 @@ private:
 		}
 	}
 
-	bool OnDataReceived_ts(const std::shared_ptr<cliser::Connection>& c, const ting::ArrayAdaptor<std::uint8_t> d)override{
+	bool OnDataReceived_ts(const std::shared_ptr<cliser::Connection>& c, const ting::Buffer<std::uint8_t> d)override{
 		std::shared_ptr<Connection> con = std::static_pointer_cast<Connection>(c);
 
 		con->HandleReceivedData(d);
@@ -201,7 +201,7 @@ private:
 	}
 
 
-	bool OnDataReceived_ts(const std::shared_ptr<cliser::Connection>& c, const ting::ArrayAdaptor<std::uint8_t> d)override{
+	bool OnDataReceived_ts(const std::shared_ptr<cliser::Connection>& c, const ting::Buffer<std::uint8_t> d)override{
 		TRACE_ALWAYS(<< "Client: data received" << std::endl)
 		
 		this->PushMessage(
