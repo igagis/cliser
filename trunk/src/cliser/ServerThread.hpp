@@ -172,7 +172,7 @@ private:
 			ASS(this->serverThread)->listener->OnDisconnected_ts(c);
 		}
 
-		bool OnDataReceived_ts(const std::shared_ptr<Connection>& c, const ting::ArrayAdaptor<std::uint8_t> d)override{
+		bool OnDataReceived_ts(const std::shared_ptr<Connection>& c, const ting::Buffer<std::uint8_t> d)override{
 			return ASS(this->serverThread)->listener->OnDataReceived_ts(c, d);
 		}
 
