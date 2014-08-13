@@ -165,7 +165,10 @@ void ConnectionsThread::HandleSocketActivity(std::shared_ptr<Connection>& conn){
 			try{
 //				TRACE(<< "ConnectionsThread::" << __func__ << "(): Packet data left = " << (conn->packetQueue.front().Size() - conn->dataSent) << std::endl)
 
-				conn->dataSent += conn->socket.Send(*conn->packetQueue.front(), conn->dataSent);
+				conn->dataSent += conn->socket.Send(ting::Buffer<const std::uint8_t>(
+						&*conn->packetQueue.front()->begin() + conn->dataSent,
+						conn->packetQueue.front()->size() - conn->dataSent
+					));
 				ASSERT(conn->dataSent <= conn->packetQueue.front()->size())
 
 //				TRACE(<< "ConnectionsThread::" << __func__ << "(): Packet data left = " << (conn->packetQueue.front().Size() - conn->dataSent) << std::endl)
