@@ -3,7 +3,7 @@ include prorab.mk
 
 this_name := cliser
 
-this_so_name := 0
+this_soname := 0
 
 this_srcs += cliser/ClientThread.cpp
 this_srcs += cliser/Connection.cpp
