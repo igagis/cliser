@@ -34,11 +34,11 @@ THE SOFTWARE. */
 
 #include <ting/Buffer.hpp>
 #include <ting/net/TCPSocket.hpp>
-#include <ting/mt/Mutex.hpp>
 #include <ting/Shared.hpp>
 
 #include <list>
 #include <vector>
+#include <mutex>
 
 
 namespace cliser{
@@ -73,20 +73,20 @@ class Connection : public virtual ting::Shared{
 
 	//NOTE: clientThread may be accessed from different threads, therefore, protect it with mutex
 	ConnectionsThread *parentThread = 0;
-	ting::mt::Mutex mutex;
+	std::mutex mutex;
 
 	std::vector<std::uint8_t> receivedData;//Should be protected with mutex
 
 	void SetHandlingThread(ConnectionsThread *thr){
 		ASSERT(thr)
-		decltype(this->mutex)::Guard mutexGuard(this->mutex);
+		std::lock_guard<decltype(this->mutex)> mutexGuard(this->mutex);
 		//Assert that client is not added to some thread already.
 		ASSERT_INFO(!this->parentThread, "client's handler thread is already set")
 		this->parentThread = thr;
 	}
 
 	void ClearHandlingThread(){
-		decltype(this->mutex)::Guard mutexGuard(this->mutex);
+		std::lock_guard<decltype(this->mutex)> mutexGuard(this->mutex);
 		this->parentThread = 0;
 	}
 

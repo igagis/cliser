@@ -1,7 +1,6 @@
 #include <ting/debug.hpp>
 #include <ting/Buffer.hpp>
 #include <ting/mt/MsgThread.hpp>
-#include <ting/mt/Mutex.hpp>
 #include <ting/net/Lib.hpp>
 
 #include "../../src/cliser/ServerThread.hpp"
@@ -94,7 +93,7 @@ public:
 		ASSERT_INFO_ALWAYS(this->numConnections == 0, "this->numConnections = " << this->numConnections)
 	}
 private:
-	ting::mt::Mutex numConsMut;
+	std::mutex numConsMut;
 	unsigned numConnections = 0;
 	
 	std::shared_ptr<cliser::Connection> CreateConnectionObject()override{
@@ -107,7 +106,7 @@ private:
 		conn->isConnected = true;
 
 		{
-			ting::mt::Mutex::Guard mutexGuard(this->numConsMut);
+			std::lock_guard<decltype(this->numConsMut)> mutexGuard(this->numConsMut);
 			++(this->numConnections);
 			ASSERT_INFO_ALWAYS(this->numConnections <= DMaxConnections, "this->numConnections = " << this->numConnections)
 		}
@@ -124,7 +123,7 @@ private:
 		conn->isConnected = false;
 
 		{
-			ting::mt::Mutex::Guard mutexGuard(this->numConsMut);
+			std::lock_guard<decltype(this->numConsMut)> mutexGuard(this->numConsMut);
 			--(this->numConnections);
 			ASSERT_INFO_ALWAYS(this->numConnections <= DMaxConnections, "this->numConnections = 0x" << std::hex << this->numConnections)
 		}
@@ -161,7 +160,7 @@ public:
 		ASSERT_INFO_ALWAYS(this->numConnections == 0, "this->numConnections = " << this->numConnections)
 	}
 private:
-	ting::mt::Mutex numConsMut;
+	std::mutex numConsMut;
 	unsigned numConnections = 0;
 	
 	std::shared_ptr<cliser::Connection> CreateConnectionObject()override{
@@ -170,7 +169,7 @@ private:
 
 	void OnConnected_ts(const std::shared_ptr<cliser::Connection>& c)override{
 		{
-			ting::mt::Mutex::Guard mutexGuard(this->numConsMut);
+			std::lock_guard<decltype(this->numConsMut)> mutexGuard(this->numConsMut);
 			++(this->numConnections);
 			ASSERT_INFO_ALWAYS(this->numConnections <= DMaxConnections, "this->numConnections = " << this->numConnections)
 		}
@@ -190,7 +189,7 @@ private:
 			conn->isConnected = false;
 
 			{
-				ting::mt::Mutex::Guard mutexGuard(this->numConsMut);
+				std::lock_guard<decltype(this->numConsMut)> mutexGuard(this->numConsMut);
 				--(this->numConnections);
 				ASSERT_INFO_ALWAYS(this->numConnections <= DMaxConnections, "this->numConnections = " << this->numConnections)
 			}
