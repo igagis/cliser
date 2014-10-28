@@ -100,7 +100,7 @@ public:
 		ASSERT_INFO_ALWAYS(this->numConnections == 0, "this->numConnections = " << this->numConnections)
 	}
 private:
-	ting::mt::Mutex numConsMut;
+	std::mutex numConsMut;
 	unsigned numConnections = 0;
 	
 	//override
@@ -117,7 +117,7 @@ private:
 		conn->isConnected = true;
 
 		{
-			ting::mt::Mutex::Guard mutexGuard(this->numConsMut);
+			std::lock_guard<decltype(this->numConsMut)> mutexGuard(this->numConsMut);
 			++(this->numConnections);
 //			ASSERT_INFO_ALWAYS(this->numConnections <= 2 * DMaxConnections, "this->numConnections = " << this->numConnections)
 		}
@@ -137,7 +137,7 @@ private:
 //		conn->isConnected = false;
 
 		{
-			ting::mt::Mutex::Guard mutexGuard(this->numConsMut);
+			std::lock_guard<decltype(this->numConsMut)> mutexGuard(this->numConsMut);
 			--(this->numConnections);
 //			ASSERT_INFO_ALWAYS(this->numConnections <= 2 * DMaxConnections, "this->numConnections = " << this->numConnections)
 		}
@@ -183,7 +183,7 @@ public:
 
 	bool quitMessagePosted = 0;
 private:
-	ting::mt::Mutex numConsMut;
+	std::mutex numConsMut;
 	unsigned numConnections = 0;
 
 	//override
@@ -196,7 +196,7 @@ private:
 		TRACE_ALWAYS(<< "Client::" << __func__ << "(): CONNECTED!!!" << std::endl)
 
 		{
-			ting::mt::Mutex::Guard mutexGuard(this->numConsMut);
+			std::lock_guard<decltype(this->numConsMut)> mutexGuard(this->numConsMut);
 			++(this->numConnections);
 			ASSERT_INFO_ALWAYS(this->numConnections <= DMaxConnections, "this->numConnections = " << this->numConnections)
 		}
@@ -220,7 +220,7 @@ private:
 //			conn->isConnected = false;
 
 			{
-				ting::mt::Mutex::Guard mutexGuard(this->numConsMut);
+				std::lock_guard<decltype(this->numConsMut)> mutexGuard(this->numConsMut);
 				--(this->numConnections);
 				ASSERT_INFO_ALWAYS(this->numConnections <= DMaxConnections, "this->numConnections = " << this->numConnections)
 			}

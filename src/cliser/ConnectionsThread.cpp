@@ -217,7 +217,7 @@ void ConnectionsThread::HandleSocketActivity(std::shared_ptr<Connection>& conn){
 
 				ASSERT(conn->receivedData.size() == 0)
 				if(!ASS(this->listener)->OnDataReceived_ts(conn, b)){
-					decltype(conn->mutex)::Guard mutexGuard(conn->mutex);
+					std::lock_guard<decltype(conn->mutex)> mutexGuard(conn->mutex);
 					
 //					TRACE(<< "ConnectionsThread::HandleSocketActivity(): received data not handled!!!!!!!!!!!" << std::endl)
 					ASSERT(conn->receivedData.size() == 0)
