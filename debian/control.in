@@ -2,13 +2,14 @@ Source: libcliser
 Section: misc
 Priority: optional
 Maintainer: Ivan Gagis <igagis@gmail.com>
-Build-Depends: debhelper (>= 9), libting-dev (>= 4.0.0)
+Build-Depends: debhelper (>= 9), prorab, libsetka-dev, libnitki-dev
 Build-Depends-Indep: doxygen
 Standards-Version: 3.9.2
 
 Package: libcliser-dev
-Architecture: any
-Depends: libcliser$(soname) (= ${binary:Version}), ${misc:Depends}, libting-dev (>= 4.0.0)
+Architecture: all
+Depends: libcliser$(soname) (= ${binary:Version}), ${misc:Depends},
+		libsetka-dev, libnitki-dev
 Suggests: libcliser-doc, libcliser$(soname)-dbg (= ${binary:Version})
 Description: TCP client-server library in C++.
  libcliser is a library written in C++ which allows easy creation of

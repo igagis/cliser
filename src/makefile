@@ -23,7 +23,7 @@ this_cflags += -g #include debugging symbols
 this_cflags += -fPIC
 this_cflags += -std=c++11
 
-this_ldlibs += -lsetka
+this_ldlibs += -lsetka -lnitki -lpogodi
 
 
 ifeq ($(debug),true)
