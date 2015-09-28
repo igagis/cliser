@@ -1,7 +1,17 @@
-* add new entry to debian/changelog file
+* add new entry to debian/changelog file if it has not beed added yet:
+	$ dch -v"1.0.1-1" "Unique added"
 
-* update version in pkg-config/cliser.pc file
+* mark debian/changelog entry as released:
+	$ dch -r -D stable ""
 
-* update the PROJECT_NUMBER variable in the docs/doxygen.cfg file to latest version number
+* update the PROJECT_NUMBER variable in the doc/doxygen.cfg file to latest version number
 
-* generate debian package using dpkg-buildpackage
+* update Version in pkg-config/*.pc file
+
+* Check if SO-name needs increment and update src/soname.txt if needed
+
+* make version tag in version control system
+
+* generate debian package:
+	$ make deb
+
