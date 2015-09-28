@@ -1,7 +1,7 @@
-#include <ting/debug.hpp>
-#include <ting/Buffer.hpp>
-#include <ting/mt/MsgThread.hpp>
-#include <ting/net/Lib.hpp>
+#include <utki/debug.hpp>
+#include <utki/Buf.hpp>
+#include <nitki/MsgThread.hpp>
+#include <setka/Lib.hpp>
 
 #include "../../src/cliser/ServerThread.hpp"
 #include "../../src/cliser/ClientThread.hpp"
