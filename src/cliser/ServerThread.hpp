@@ -8,10 +8,9 @@
 
 #include <list>
 
-#include <ting/debug.hpp>
-#include <ting/types.hpp>
-#include <ting/mt/MsgThread.hpp>
-#include <ting/net/TCPSocket.hpp>
+#include <utki/debug.hpp>
+#include <nitki/MsgThread.hpp>
+#include <setka/TCPSocket.hpp>
 
 #include "ConnectionsThread.hpp"
 #include "Connection.hpp"
