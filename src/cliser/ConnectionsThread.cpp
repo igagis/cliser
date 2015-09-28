@@ -43,7 +43,7 @@ void ConnectionsThread::run(){
 
 	while(!this->quitFlag){
 //		TRACE(<< "ConnectionsThread::" << __func__ << "(): waiting..." << std::endl)
-		unsigned numTriggered = this->waitSet.wait(triggered);
+		unsigned numTriggered = this->waitSet.wait(utki::wrapBuf(triggered));
 //		TRACE(<< "ConnectionsThread::" << __func__ << "(): triggered" << std::endl)
 //		ASSERT(numTriggered > 0)
 
@@ -143,7 +143,7 @@ void ConnectionsThread::HandleSocketActivity(std::shared_ptr<Connection>& conn){
 			//try writing 0 bytes to clear the write flag and to check if connection was successful
 			try{
 				std::array<std::uint8_t, 0> buf;
-				conn->socket.send(buf);
+				conn->socket.send(utki::wrapBuf(buf));
 
 				//under win32 the canRead() assertion fails sometimes... //TODO: why?
 //				ASSERT(!conn->socket.canRead())//TODO: remove?
