@@ -13,7 +13,7 @@ this_cflags += -g
 this_cflags += -std=c++11
 
 
-this_ldlibs += -lcliser -lting -lpthread
+this_ldlibs += -lcliser -lsetka -lnitki -pthread
 
 this_ldflags += -L$(prorab_this_dir)../../src
 

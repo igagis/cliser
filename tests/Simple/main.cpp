@@ -45,7 +45,7 @@ public:
 		std::uint8_t* p = &*buf.begin();
 		for(; p != &*buf.end(); p += sizeof(std::uint32_t)){
 			ASSERT_INFO_ALWAYS(p < (&*buf.end() - (sizeof(std::uint32_t) - 1)), "p = " << p << " buf.End() = " << &*buf.end())
-			ting::util::Serialize32LE(this->cnt, p);
+			utki::serialize32LE(this->cnt, p);
 			++this->cnt;
 		}
 		ASSERT_ALWAYS(p == &*buf.end())
@@ -54,7 +54,7 @@ public:
 	}
 
 
-	void HandleReceivedData(const ting::Buffer<std::uint8_t> d){
+	void HandleReceivedData(const utki::Buf<std::uint8_t> d){
 		for(const std::uint8_t* p = &*d.begin(); p != &*d.end(); ++p){
 			this->rbuf[this->rbufBytes] = *p;
 			++this->rbufBytes;
@@ -63,7 +63,7 @@ public:
 
 			if(this->rbufBytes == this->rbuf.size()){
 				this->rbufBytes = 0;
-				std::uint32_t num = ting::util::Deserialize32LE(this->rbuf.begin());
+				std::uint32_t num = utki::deserialize32LE(this->rbuf.begin());
 				ASSERT_INFO_ALWAYS(
 						this->rcnt == num,
 						"num = " << num << " rcnt = " << this->rcnt 
@@ -89,7 +89,7 @@ public:
 			cliser::ServerThread(DPort, 2, this, false, 100)
 	{}
 
-	~Server()NOEXCEPT{
+	~Server()noexcept{
 		ASSERT_INFO_ALWAYS(this->numConnections == 0, "this->numConnections = " << this->numConnections)
 	}
 private:
@@ -97,7 +97,7 @@ private:
 	unsigned numConnections = 0;
 	
 	std::shared_ptr<cliser::Connection> CreateConnectionObject()override{
-		return ting::New<Connection>();
+		return utki::makeShared<Connection>();
 	}
 
 	void OnConnected_ts(const std::shared_ptr<cliser::Connection>& c)override{
@@ -129,7 +129,7 @@ private:
 		}
 	}
 
-	bool OnDataReceived_ts(const std::shared_ptr<cliser::Connection>& c, const ting::Buffer<std::uint8_t> d)override{
+	bool OnDataReceived_ts(const std::shared_ptr<cliser::Connection>& c, const utki::Buf<std::uint8_t> d)override{
 		std::shared_ptr<Connection> con = std::static_pointer_cast<Connection>(c);
 
 		con->HandleReceivedData(d);
@@ -164,7 +164,7 @@ private:
 	unsigned numConnections = 0;
 	
 	std::shared_ptr<cliser::Connection> CreateConnectionObject()override{
-		return ting::New<Connection>();
+		return utki::makeShared<Connection>();
 	}
 
 	void OnConnected_ts(const std::shared_ptr<cliser::Connection>& c)override{
@@ -200,10 +200,10 @@ private:
 	}
 
 
-	bool OnDataReceived_ts(const std::shared_ptr<cliser::Connection>& c, const ting::Buffer<std::uint8_t> d)override{
+	bool OnDataReceived_ts(const std::shared_ptr<cliser::Connection>& c, const utki::Buf<std::uint8_t> d)override{
 		TRACE_ALWAYS(<< "Client: data received" << std::endl)
 		
-		this->PushMessage(
+		this->pushMessage(
 				[c](){
 					std::vector<std::uint8_t> d = std::move(c->GetReceivedData_ts());
 					if(d.size()){
@@ -240,33 +240,33 @@ int main(int argc, char *argv[]){
 		}
 	}
 
-	ting::net::Lib socketsLib;
+	setka::Lib socketsLib;
 
 	Server server;
-	server.Start();
+	server.start();
 
-	ting::mt::Thread::Sleep(100);//give server thread some time to start waiting on the socket
+	nitki::Thread::sleep(100);//give server thread some time to start waiting on the socket
 
 	Client client;
-	client.Start();
+	client.start();
 
 	for(unsigned i = 0; i < client.MaxConnections(); ++i){
-		client.Connect_ts(ting::net::IPAddress(DIpAddress, DPort));
+		client.Connect_ts(setka::IPAddress(DIpAddress, DPort));
 	}
 
 	if(msec == 0){
 		while(true){
-			ting::mt::Thread::Sleep(1000000);
+			nitki::Thread::sleep(1000000);
 		}
 	}else{
-		ting::mt::Thread::Sleep(msec);
+		nitki::Thread::sleep(msec);
 	}
 
-	client.PushQuitMessage();
-	client.Join();
+	client.pushQuitMessage();
+	client.join();
 
-	server.PushQuitMessage();
-	server.Join();
+	server.pushQuitMessage();
+	server.join();
 
 	return 0;
 }

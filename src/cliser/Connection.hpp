@@ -35,7 +35,7 @@ class ConnectionsThread;
  * User should subclass the cliser::Connection object to include his own data.
  * Connection objects are created using abstract factory method of cliser::Listener interface.
  */
-class Connection : public virtual ting::Shared{
+class Connection : public virtual utki::Shared{
 	friend class ConnectionsThread;
 	friend class ServerThread;
 	friend class ClientThread;
@@ -45,8 +45,8 @@ class Connection : public virtual ting::Shared{
 	unsigned dataSent;//number of bytes sent from first packet in the queue
 	//~
 
-	ting::net::TCPSocket socket;
-	ting::Waitable::EReadinessFlags currentFlags;
+	setka::TCPSocket socket;
+	pogodi::Waitable::EReadinessFlags currentFlags;
 
 	//NOTE: clientThread may be accessed from different threads, therefore, protect it with mutex
 	ConnectionsThread *parentThread = 0;
@@ -71,7 +71,7 @@ protected:
 	Connection(){}
 
 public:
-	virtual ~Connection()NOEXCEPT{
+	virtual ~Connection()noexcept{
 //		TRACE(<< "Connection::" << __func__ << "(): invoked" << std::endl)
 	}
 
@@ -178,7 +178,7 @@ public:
 	 *         The data can later be retrieved using cliser::Connection::GetReceivedData_ts()
 	 *         method which will also resume listening for new incoming data from remote end.
 	 */
-	virtual bool OnDataReceived_ts(const std::shared_ptr<Connection>& c, const ting::Buffer<std::uint8_t> d) = 0;
+	virtual bool OnDataReceived_ts(const std::shared_ptr<Connection>& c, const utki::Buf<std::uint8_t> d) = 0;
 
 	/**
 	 * @brief Data has been sent.
@@ -194,7 +194,7 @@ public:
      */
 	virtual void OnDataSent_ts(const std::shared_ptr<Connection>& c, unsigned numPacketsInQueue, bool addedToQueue){}
 
-	virtual ~Listener()NOEXCEPT{
+	virtual ~Listener()noexcept{
 		ASSERT(this->numTimesAdded == 0)
 	}
 };

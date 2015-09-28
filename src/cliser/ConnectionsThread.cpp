@@ -1,9 +1,8 @@
 #include <list>
+#include <cstring>
 
-#include <ting/debug.hpp>
-#include <ting/math.hpp>
-#include <ting/util.hpp>
-#include <ting/Buffer.hpp>
+#include <utki/debug.hpp>
+#include <utki/Buf.hpp>
 
 #include "ServerThread.hpp"
 #include "Connection.hpp"
@@ -35,16 +34,16 @@ ConnectionsThread::~ConnectionsThread()throw(){
 
 
 
-void ConnectionsThread::Run(){
+void ConnectionsThread::run(){
 	M_SRV_CLIENTS_HANDLER_TRACE(<< "ConnectionsThread::" << __func__ << "(): new thread started" << std::endl)
 
-	this->waitSet.Add(this->queue, ting::Waitable::READ);
+	this->waitSet.add(this->queue, pogodi::Waitable::READ);
 
-	std::vector<ting::Waitable*> triggered(this->waitSet.Size());
+	std::vector<pogodi::Waitable*> triggered(this->waitSet.size());
 
 	while(!this->quitFlag){
 //		TRACE(<< "ConnectionsThread::" << __func__ << "(): waiting..." << std::endl)
-		unsigned numTriggered = this->waitSet.Wait(triggered);
+		unsigned numTriggered = this->waitSet.wait(triggered);
 //		TRACE(<< "ConnectionsThread::" << __func__ << "(): triggered" << std::endl)
 //		ASSERT(numTriggered > 0)
 
@@ -63,11 +62,11 @@ void ConnectionsThread::Run(){
 				//socket
 				ASSERT(*p != &this->queue)
 
-				ASSERT((*p)->GetUserData())
+				ASSERT((*p)->getUserData())
 
-				auto connection = reinterpret_cast<cliser::Connection*>((*p)->GetUserData());
+				auto connection = reinterpret_cast<cliser::Connection*>((*p)->getUserData());
 				
-				std::shared_ptr<cliser::Connection> conn = connection->SharedFromThis(connection);
+				std::shared_ptr<cliser::Connection> conn = connection->sharedFromThis(connection);
 				ASSERT(conn)
 
 				this->HandleSocketActivity(conn);
@@ -76,7 +75,7 @@ void ConnectionsThread::Run(){
 
 		//At this point we have handled all the socket activities and now we can proceed with
 		//handling messages if there are any.
-		if(this->queue.CanRead()){
+		if(this->queue.canRead()){
 			//NOTE: here we will handle only limited number of messages from queue.
 			//      This is because as a result of
 			//      handling some message it is possible that a new message will be posted
@@ -96,7 +95,7 @@ void ConnectionsThread::Run(){
 			}
 
 			for(unsigned i = 0; i < numMsgsToHandle; ++i){
-				if(auto m = this->queue.PeekMsg()){
+				if(auto m = this->queue.peekMsg()){
 					M_SRV_CLIENTS_HANDLER_TRACE(<< "ConnectionsThread::" << __func__ << "(): message got" << std::endl)
 					m();
 				}else{
@@ -115,14 +114,14 @@ void ConnectionsThread::Run(){
 		std::shared_ptr<Connection> c(ASS(*i));
 
 		this->RemoveSocketFromSocketSet(c->socket);
-		c->socket.Close();
+		c->socket.close();
 		c->ClearHandlingThread();
 
 		ASS(this->listener)->OnDisconnected_ts(c);
 	}
 	this->connections.clear();//clear clients list
 
-	this->waitSet.Remove(this->queue);
+	this->waitSet.remove(this->queue);
 
 	ASSERT(this->connections.size() == 0)
 //	TRACE(<< "ConnectionsThread::" << __func__ << "(): exiting" << std::endl)
@@ -132,29 +131,29 @@ void ConnectionsThread::Run(){
 
 
 void ConnectionsThread::HandleSocketActivity(std::shared_ptr<Connection>& conn){
-	if(conn->socket.CanWrite()){
+	if(conn->socket.canWrite()){
 //		TRACE(<< "ConnectionsThread::HandleSocketActivity(): CanWrite" << std::endl)
 		if(conn->packetQueue.size() == 0){
 			//was waiting for connect
 
 			//clear WRITE waiting flag and set READ waiting flag
-			conn->currentFlags = ting::Waitable::READ;
-			this->waitSet.Change(conn->socket, conn->currentFlags);
+			conn->currentFlags = pogodi::Waitable::READ;
+			this->waitSet.change(conn->socket, conn->currentFlags);
 
 			//try writing 0 bytes to clear the write flag and to check if connection was successful
 			try{
 				std::array<std::uint8_t, 0> buf;
-				conn->socket.Send(buf);
+				conn->socket.send(buf);
 
-				//under win32 the CanRead() assertion fails sometimes... //TODO: why?
-//				ASSERT(!conn->socket.CanRead())//TODO: remove?
-				ASSERT(!conn->socket.CanWrite())
+				//under win32 the canRead() assertion fails sometimes... //TODO: why?
+//				ASSERT(!conn->socket.canRead())//TODO: remove?
+				ASSERT(!conn->socket.canWrite())
 
 				conn->SetHandlingThread(this);
 				ASS(this->listener)->OnConnected_ts(conn);
 //				TRACE(<< "ConnectionsThread::" << __func__ << "(): connection was successful" << std::endl)
-			}catch(ting::net::Exc& e){
-				TRACE(<< "ConnectionsThread::" << __func__ << "(): connection was unsuccessful: " << e.What() << std::endl)
+			}catch(setka::Exc& e){
+				TRACE(<< "ConnectionsThread::" << __func__ << "(): connection was unsuccessful: " << e.what() << std::endl)
 				this->HandleRemoveConnectionMessage(conn);
 				return;
 			}
@@ -165,7 +164,7 @@ void ConnectionsThread::HandleSocketActivity(std::shared_ptr<Connection>& conn){
 			try{
 //				TRACE(<< "ConnectionsThread::" << __func__ << "(): Packet data left = " << (conn->packetQueue.front().Size() - conn->dataSent) << std::endl)
 
-				conn->dataSent += conn->socket.Send(ting::Buffer<const std::uint8_t>(
+				conn->dataSent += conn->socket.send(utki::Buf<const std::uint8_t>(
 						&*conn->packetQueue.front()->begin() + conn->dataSent,
 						conn->packetQueue.front()->size() - conn->dataSent
 					));
@@ -183,13 +182,13 @@ void ConnectionsThread::HandleSocketActivity(std::shared_ptr<Connection>& conn){
 
 					if(conn->packetQueue.size() == 0){
 						//clear WRITE waiting flag.
-						conn->currentFlags = ting::Waitable::EReadinessFlags(
-								conn->currentFlags & (~ting::Waitable::WRITE)
+						conn->currentFlags = pogodi::Waitable::EReadinessFlags(
+								conn->currentFlags & (~pogodi::Waitable::WRITE)
 							);
-						this->waitSet.Change(conn->socket, conn->currentFlags);
+						this->waitSet.change(conn->socket, conn->currentFlags);
 					}
 				}
-			}catch(ting::net::Exc &e){
+			}catch(setka::Exc &e){
 //				TRACE(<< "ConnectionsThread::" << __func__ << "(): exception caught while sending: " << e.What() << std::endl)
 				this->HandleRemoveConnectionMessage(conn);
 				return;
@@ -197,16 +196,16 @@ void ConnectionsThread::HandleSocketActivity(std::shared_ptr<Connection>& conn){
 		}
 	}
 
-	if(conn->socket.CanRead()){
-//		TRACE(<< "ConnectionsThread::HandleSocketActivity(): CanRead()" << std::endl)
+	if(conn->socket.canRead()){
+//		TRACE(<< "ConnectionsThread::HandleSocketActivity(): canRead()" << std::endl)
 
 		std::array<std::uint8_t, 0x2000> buffer;//8kb
 
 		try{
-			unsigned bytesReceived = conn->socket.Recv(buffer);
-			ASSERT(!conn->socket.CanRead())
+			unsigned bytesReceived = conn->socket.recieve(buffer);
+			ASSERT(!conn->socket.canRead())
 			if(bytesReceived != 0){
-				ting::Buffer<std::uint8_t> b(&*buffer.begin(), bytesReceived);
+				utki::Buf<std::uint8_t> b(&*buffer.begin(), bytesReceived);
 //				TRACE(<< "ConnectionsThread::" << __func__ << "(): bytesReceived = " << bytesReceived << " b.Size() = " << b.Size() << std::endl)
 //				TRACE(<< "ConnectionsThread::" << __func__ << "(): b[...] = "
 //						<< unsigned(b[0]) << " "
@@ -226,30 +225,30 @@ void ConnectionsThread::HandleSocketActivity(std::shared_ptr<Connection>& conn){
 					memcpy(&*conn->receivedData.begin(), &*b.begin(), b.size());
 
 					//clear READ waiting flag
-					conn->currentFlags = ting::Waitable::EReadinessFlags(
-							conn->currentFlags & (~ting::Waitable::READ)
+					conn->currentFlags = pogodi::Waitable::EReadinessFlags(
+							conn->currentFlags & (~pogodi::Waitable::READ)
 						);
-					this->waitSet.Change(conn->socket, conn->currentFlags);
+					this->waitSet.change(conn->socket, conn->currentFlags);
 				}
 			}else{
 				//connection closed
 				this->HandleRemoveConnectionMessage(conn);
 				return;
 			}
-		}catch(ting::net::Exc &e){
+		}catch(setka::Exc &e){
 //			TRACE(<< "ConnectionsThread::" << __func__ << "(): exception caught while reading: " << e.What() << std::endl)
 			this->HandleRemoveConnectionMessage(conn);
 			return;
 		}
 	}
 
-	if(conn->socket.ErrorCondition()){
+	if(conn->socket.errorCondition()){
 		this->HandleRemoveConnectionMessage(conn);
 		return;
 	}
 
-	ASSERT(!conn->socket.CanRead())
-	ASSERT(!conn->socket.CanWrite())
+	ASSERT(!conn->socket.canRead())
+	ASSERT(!conn->socket.canWrite())
 }
 
 
@@ -260,24 +259,24 @@ void ConnectionsThread::HandleAddConnectionMessage(const std::shared_ptr<Connect
 	ASSERT(conn)
 
 	//set Waitable pointer to connection
-	conn->socket.SetUserData(
+	conn->socket.setUserData(
 			reinterpret_cast<void*>(
 					static_cast<cliser::Connection*>(conn.operator->())//NOTE: static cast just to make sure we have cliser::Connection*
 				)
 		);
-	ASSERT(reinterpret_cast<cliser::Connection*>(conn->socket.GetUserData()) == conn.operator->())
+	ASSERT(reinterpret_cast<cliser::Connection*>(conn->socket.getUserData()) == conn.operator->())
 
 	
 	//add socket to waitset
 	
 	//if not connected, will be waiting for WRITE, because WRITE indicates that connect request has finished.
-	conn->currentFlags = isConnected ? ting::Waitable::READ : ting::Waitable::WRITE;
+	conn->currentFlags = isConnected ? pogodi::Waitable::READ : pogodi::Waitable::WRITE;
 	try{
 		this->AddSocketToSocketSet(
 				conn->socket,
 				conn->currentFlags
 			);
-	}catch(ting::Exc& e){
+	}catch(utki::Exc& e){
 //		TRACE(<< "ConnectionsThread::" << __func__ << "(): adding socket to waitset failed: " << e.What() << std::endl)
 		ASS(this->listener)->OnDisconnected_ts(conn);
 		return;
@@ -297,8 +296,8 @@ void ConnectionsThread::HandleAddConnectionMessage(const std::shared_ptr<Connect
 		ASSERT(!conn->parentThread)
 	}
 
-	ASSERT(!conn->socket.CanRead())
-	ASSERT(!conn->socket.CanWrite())
+	ASSERT(!conn->socket.canRead())
+	ASSERT(!conn->socket.canWrite())
 
 	M_SRV_CLIENTS_HANDLER_TRACE(<< "ConnectionsThread::" << __func__ << "(): exit" << std::endl)
 }
@@ -322,7 +321,7 @@ void ConnectionsThread::HandleRemoveConnectionMessage(std::shared_ptr<cliser::Co
 
 			this->RemoveSocketFromSocketSet(conn->socket);
 
-			conn->socket.Close();//close connection if it is opened
+			conn->socket.close();//close connection if it is opened
 
 			conn->ClearHandlingThread();
 
@@ -361,7 +360,7 @@ void ConnectionsThread::HandleSendDataMessage(std::shared_ptr<Connection>& conn,
 		return;
 	}else{
 		try{
-			unsigned numBytesSent = conn->socket.Send(*data);
+			unsigned numBytesSent = conn->socket.send(*data);
 			ASSERT(numBytesSent <= data->size())
 
 			if(numBytesSent != data->size()){
@@ -370,10 +369,10 @@ void ConnectionsThread::HandleSendDataMessage(std::shared_ptr<Connection>& conn,
 				conn->packetQueue.push_back(std::move(data));
 
 				//Set WRITE waiting flag
-				conn->currentFlags = ting::Waitable::EReadinessFlags(
-						conn->currentFlags | ting::Waitable::WRITE
+				conn->currentFlags = pogodi::Waitable::EReadinessFlags(
+						conn->currentFlags | pogodi::Waitable::WRITE
 					);
-				this->waitSet.Change(conn->socket, conn->currentFlags);
+				this->waitSet.change(conn->socket, conn->currentFlags);
 
 				ASSERT_INFO(conn->packetQueue.size() == 1, conn->packetQueue.size())
 				ASS(this->listener)->OnDataSent_ts(conn, 1, true);
@@ -382,7 +381,7 @@ void ConnectionsThread::HandleSendDataMessage(std::shared_ptr<Connection>& conn,
 				ASSERT_INFO(conn->packetQueue.size() == 0, conn->packetQueue.size())
 				ASS(this->listener)->OnDataSent_ts(conn, 0, false);
 			}
-		}catch(ting::net::Exc& e){
+		}catch(setka::Exc& e){
 //			TRACE(<< "ConnectionsThread::" << __func__ << "(): exception caught" << e.What() << std::endl)
 			conn->Disconnect_ts();
 		}
@@ -402,10 +401,10 @@ void ConnectionsThread::HandleResumeListeningForReadMessage(std::shared_ptr<Conn
 	ASSERT(conn->receivedData.size() == 0)
 
 	//Set READ waiting flag
-	conn->currentFlags = ting::Waitable::EReadinessFlags(
-			conn->currentFlags | ting::Waitable::READ
+	conn->currentFlags = pogodi::Waitable::EReadinessFlags(
+			conn->currentFlags | pogodi::Waitable::READ
 		);
-	this->waitSet.Change(conn->socket, conn->currentFlags);
+	this->waitSet.change(conn->socket, conn->currentFlags);
 }
 
 

@@ -1,7 +1,8 @@
-#include <ting/debug.hpp>
+#include <utki/debug.hpp>
+#include <utki/Buf.hpp>
+#include <setka/Lib.hpp>
+
 #include <algorithm>
-#include <ting/Buffer.hpp>
-#include <ting/net/Lib.hpp>
 
 #include "../../src/cliser/ServerThread.hpp"
 #include "../../src/cliser/ClientThread.hpp"
@@ -56,7 +57,7 @@ public:
 		ASSERT_INFO((buf.size() % sizeof(std::uint32_t)) == 0, "buf.Size() = " << buf.size() << " (buf.Size() % sizeof(std::uint32_t)) = " << (buf.size() % sizeof(std::uint32_t)))
 
 		for(std::uint8_t* p = &*buf.begin(); p != &*buf.end(); p += sizeof(std::uint32_t)){
-			ting::util::Serialize32LE(this->cnt, p);
+			utki::serialize32LE(this->cnt, p);
 			++this->cnt;
 		}
 
@@ -64,14 +65,14 @@ public:
 	}
 
 
-	void HandleReceivedData(const ting::Buffer<std::uint8_t> d){
+	void HandleReceivedData(const utki::Buf<std::uint8_t> d){
 		for(const std::uint8_t* p = d.begin(); p != d.end(); ++p){
 			this->rbuf[this->rbufBytes] = *p;
 			++this->rbufBytes;
 
 			if(this->rbufBytes == this->rbuf.size()){
 				this->rbufBytes = 0;
-				std::uint32_t num = ting::util::Deserialize32LE(this->rbuf.begin());
+				std::uint32_t num = utki::deserialize32LE(this->rbuf.begin());
 				ASSERT_INFO_ALWAYS(this->rcnt == num, "num = " << num << " rcnt = " << this->rcnt)
 				++this->rcnt;
 			}
@@ -96,7 +97,7 @@ public:
 			cliser::ServerThread(DPort, 2, this, true, 100)
 	{}
 
-	~Server()NOEXCEPT{
+	~Server()noexcept{
 		ASSERT_INFO_ALWAYS(this->numConnections == 0, "this->numConnections = " << this->numConnections)
 	}
 private:
@@ -105,7 +106,7 @@ private:
 	
 	//override
 	std::shared_ptr<cliser::Connection> CreateConnectionObject(){
-		return ting::New<Connection>();
+		return utki::makeShared<Connection>();
 	}
 
 	//override
@@ -144,9 +145,9 @@ private:
 	}
 
 	//override
-	bool OnDataReceived_ts(const std::shared_ptr<cliser::Connection>& c, const ting::Buffer<std::uint8_t> d)override{
+	bool OnDataReceived_ts(const std::shared_ptr<cliser::Connection>& c, const utki::Buf<std::uint8_t> d)override{
 		TRACE_ALWAYS(<< "Server: data received" << std::endl)
-		this->PushMessage(
+		this->pushMessage(
 				[c](){
 					std::vector<std::uint8_t> d = c->GetReceivedData_ts();
 					if(d.size() != 0){
@@ -188,7 +189,7 @@ private:
 
 	//override
 	std::shared_ptr<cliser::Connection> CreateConnectionObject()override{
-		return ting::New<Connection>();
+		return utki::makeShared<Connection>();
 	}
 
 	//override
@@ -233,11 +234,11 @@ private:
 			}
 		}
 
-		this->Connect_ts(ting::net::IPAddress(DIpAddress, DPort));
+		this->Connect_ts(setka::IPAddress(DIpAddress, DPort));
 	}
 
 	//override
-	bool OnDataReceived_ts(const std::shared_ptr<cliser::Connection>& c, const ting::Buffer<std::uint8_t> d)override{
+	bool OnDataReceived_ts(const std::shared_ptr<cliser::Connection>& c, const utki::Buf<std::uint8_t> d)override{
 		std::shared_ptr<Connection> con = std::static_pointer_cast<Connection>(c);
 
 		con->HandleReceivedData(d);
@@ -268,26 +269,26 @@ int main(int argc, char *argv[]){
 		}
 	}
 
-	ting::net::Lib socketsLib;
+	setka::Lib socketsLib;
 
 	Server server;
-	server.Start();
+	server.start();
 
-	ting::mt::Thread::Sleep(100);//give server thread some time to start waiting on the socket
+	nitki::Thread::sleep(100);//give server thread some time to start waiting on the socket
 
 	Client client;
-	client.Start();
+	client.start();
 
 	for(unsigned i = 0; i < client.MaxConnections(); ++i){
-		client.Connect_ts(ting::net::IPAddress(DIpAddress, DPort));
+		client.Connect_ts(setka::IPAddress(DIpAddress, DPort));
 	}
 
 	if(msec == 0){
 		while(true){
-			ting::mt::Thread::Sleep(1000000);
+			nitki::Thread::sleep(1000000);
 		}
 	}else{
-		ting::mt::Thread::Sleep(20000);
+		nitki::Thread::sleep(20000);
 	}
 
 	//set the flag to indicate that the thread is exiting
@@ -296,11 +297,11 @@ int main(int argc, char *argv[]){
 	//it will be reported as the connection has failed. So, no need to assert in that case.
 	client.quitMessagePosted = true;
 	
-	client.PushQuitMessage();
-	client.Join();
+	client.pushQuitMessage();
+	client.join();
 
-	server.PushQuitMessage();
-	server.Join();
+	server.pushQuitMessage();
+	server.join();
 
 	return 0;
 }

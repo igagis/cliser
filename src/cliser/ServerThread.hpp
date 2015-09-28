@@ -30,13 +30,13 @@ namespace cliser{
  * thread can handle up to a given maximum number of connections, this number is
  * determined by a constructor parameter (See constructor description).
  */
-class ServerThread : public ting::mt::MsgThread{
+class ServerThread : public nitki::MsgThread{
 	
-	class ThreadsKillerThread : public ting::mt::MsgThread{
+	class ThreadsKillerThread : public nitki::MsgThread{
 	public:
 		ThreadsKillerThread(){};
 
-		void Run()override;
+		void run()override;
 	} threadsKillerThread;
 
 	//forward declaration
@@ -84,8 +84,7 @@ public:
 	
 	virtual ~ServerThread()throw();
 
-	//override
-	void Run();
+	void run()override;
 
 private:
 	ServerConnectionsThread* GetNotFullThread();
@@ -93,7 +92,7 @@ private:
 
 
 private:
-	void HandleNewConnection(ting::net::TCPSocket socket);
+	void HandleNewConnection(setka::TCPSocket socket);
 
 	void HandleConnectionRemovedMessage(ServerThread::ServerConnectionsThread* cht);
 
@@ -117,7 +116,7 @@ private:
 				serverThread(ASS(serverThread))
 		{}
 		
-		~ServerConnectionsThread()NOEXCEPT{}
+		~ServerConnectionsThread()noexcept{}
 
 		virtual std::shared_ptr<cliser::Connection> CreateConnectionObject()override{
 			//this function will not be ever called.
@@ -135,7 +134,7 @@ private:
 			//is also exiting, in that case no need to notify server main thread.
 			//Send notification message to server main thread only if thread is not exiting yet.
 			if(!this->quitFlag){
-				this->serverThread->PushMessage(std::bind(
+				this->serverThread->pushMessage(std::bind(
 						[](ServerThread* serverMainThread, ServerThread::ServerConnectionsThread* clientsHandlerThread){
 							serverMainThread->HandleConnectionRemovedMessage(clientsHandlerThread);
 						},
@@ -147,7 +146,7 @@ private:
 			ASS(this->serverThread)->listener->OnDisconnected_ts(c);
 		}
 
-		bool OnDataReceived_ts(const std::shared_ptr<Connection>& c, const ting::Buffer<std::uint8_t> d)override{
+		bool OnDataReceived_ts(const std::shared_ptr<Connection>& c, const utki::Buf<std::uint8_t> d)override{
 			return ASS(this->serverThread)->listener->OnDataReceived_ts(c, d);
 		}
 

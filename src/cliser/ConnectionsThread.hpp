@@ -30,7 +30,7 @@ class ClientThread;
 
 
 
-class ConnectionsThread : public ting::mt::MsgThread{
+class ConnectionsThread : public nitki::MsgThread{
 	friend class cliser::ServerThread;
 	friend class cliser::ClientThread;
 	friend class cliser::Connection;
@@ -38,15 +38,14 @@ class ConnectionsThread : public ting::mt::MsgThread{
 	typedef std::list<std::shared_ptr<cliser::Connection> > T_ConnectionsList;
 	typedef T_ConnectionsList::iterator T_ConnectionsIter;
 	T_ConnectionsList connections;
-	ting::WaitSet waitSet;
+	pogodi::WaitSet waitSet;
 
 protected:
 	cliser::Listener* const listener;
 private:
 	ConnectionsThread(unsigned maxConnections, cliser::Listener* listener);
 
-	//override
-	void Run();
+	void run()override;
 
 	void HandleSocketActivity(std::shared_ptr<cliser::Connection>& conn);
 
@@ -54,23 +53,23 @@ public:
 	~ConnectionsThread()throw();
 
 	unsigned MaxConnections()const{
-		return ASSCOND(this->waitSet.Size() - 1, > 0);
+		return ASSCOND(this->waitSet.size() - 1, > 0);
 	}
 
 private:
 	void AddSocketToSocketSet(
-			ting::net::TCPSocket &sock,
-			ting::Waitable::EReadinessFlags flagsToWaitFor = ting::Waitable::READ
+			setka::TCPSocket &sock,
+			pogodi::Waitable::EReadinessFlags flagsToWaitFor = pogodi::Waitable::READ
 		)
 	{
-		this->waitSet.Add(
+		this->waitSet.add(
 				sock,
 				flagsToWaitFor
 			);
 	}
 
-	inline void RemoveSocketFromSocketSet(ting::net::TCPSocket &sock){
-		this->waitSet.Remove(sock);
+	inline void RemoveSocketFromSocketSet(setka::TCPSocket &sock){
+		this->waitSet.remove(sock);
 	}
 
 

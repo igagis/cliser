@@ -1,35 +1,8 @@
-/* The MIT License:
-
-Copyright (c) 2009-2013 Ivan Gagis <igagis@gmail.com>
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE. */
-
-//Home page: http://code.google.com/p/cliser/
-
-
-
 #include <exception>
 
-#include <ting/debug.hpp>
-#include <ting/net/TCPServerSocket.hpp>
-#include <ting/net/Lib.hpp>
-#include <ting/util.hpp>
+#include <utki/debug.hpp>
+#include <setka/TCPServerSocket.hpp>
+#include <setka/Lib.hpp>
 
 #include "ServerThread.hpp"
 
@@ -51,7 +24,7 @@ ServerThread::ServerThread(
 		disableNaggle(disableNaggle),
 		queueLength(queueLength)
 {
-	ASSERT(ting::net::Lib::IsCreated())
+	ASSERT(setka::Lib::isCreated())
 
 	++this->listener->numTimesAdded;
 }
@@ -66,58 +39,57 @@ ServerThread::~ServerThread()throw(){
 
 
 
-//override
-void ServerThread::Run(){
+void ServerThread::run(){
 //	TRACE(<<"Server::Run(): enter thread"<<std::endl)
-	this->threadsKillerThread.Start();
+	this->threadsKillerThread.start();
 //	TRACE(<<"Server::Run(): threads started"<<std::endl)
 
 	//open listening socket
-	ting::net::TCPServerSocket sock;
-	sock.Open(this->port, this->disableNaggle, this->queueLength);
+	setka::TCPServerSocket sock;
+	sock.open(this->port, this->disableNaggle, this->queueLength);
 
-	ting::WaitSet waitSet(2);
-	waitSet.Add(sock, ting::Waitable::READ);
-	waitSet.Add(this->queue, ting::Waitable::READ);
+	pogodi::WaitSet waitSet(2);
+	waitSet.add(sock, pogodi::Waitable::READ);
+	waitSet.add(this->queue, pogodi::Waitable::READ);
 
 	while(!this->quitFlag){
-		waitSet.Wait();
+		waitSet.wait();
 
 		//TRACE(<<"C_TCPAcceptorThread::Run(): going to get message"<<std::endl)
-		if(this->queue.CanRead()){
-			if(auto m = this->queue.PeekMsg()){
+		if(this->queue.canRead()){
+			if(auto m = this->queue.peekMsg()){
 				m();
 			}
 		}
 
-		if(sock.CanRead()){
-			ting::net::TCPSocket newSock;
+		if(sock.canRead()){
+			setka::TCPSocket newSock;
 			try{
-				if(newSock = sock.Accept()){
+				if(newSock = sock.accept()){
 					this->HandleNewConnection(std::move(newSock));
 				}
-			}catch(ting::net::Exc& e){
+			}catch(setka::Exc& e){
 				ASSERT_INFO(false, "sock.Accept() failed")
 			}
 		}
 		//TRACE(<<"C_TCPAcceptorThread::Run(): cycle"<<std::endl)
 	}
 
-	waitSet.Remove(this->queue);
-	waitSet.Remove(sock);
+	waitSet.remove(this->queue);
+	waitSet.remove(sock);
 
 //	TRACE(<< "ServerThread::" << __func__ << "(): quiting thread" << std::endl)
 
-	this->threadsKillerThread.PushQuitMessage();
+	this->threadsKillerThread.pushQuitMessage();
 
 	//kill all client threads
 	for(auto i = this->clientsThreads.begin(); i != this->clientsThreads.end(); ++i){
-		(*i)->PushQuitMessage();
+		(*i)->pushQuitMessage();
 	}
 
 	for(auto i = this->clientsThreads.begin(); i != this->clientsThreads.end(); ++i){
 //		TRACE(<< "ServerThread::" << __func__ << "(): joining thread" << std::endl)
-		(*i)->Join();
+		(*i)->join();
 	}
 //	TRACE(<< "ServerThread::" << __func__ << "(): connections threads joined" << std::endl)
 
@@ -125,7 +97,7 @@ void ServerThread::Run(){
 
 //	TRACE(<< "ServerThread::" << __func__ << "(): waiting for killer thread to finish" << std::endl)
 
-	this->threadsKillerThread.Join();
+	this->threadsKillerThread.join();
 
 //	TRACE(<< "ServerThread::" << __func__ << "(): exit" << std::endl)
 }
@@ -147,13 +119,13 @@ ServerThread::ServerConnectionsThread* ServerThread::GetNotFullThread(){
 
 //	TRACE(<< "ServerThread::" << __func__ << "(): num threads = " << this->clientsThreads.size() << std::endl)
 
-	this->clientsThreads.back()->Start();//start new thread
+	this->clientsThreads.back()->start();//start new thread
 	return this->clientsThreads.back().operator->();
 }
 
 
 
-void ServerThread::HandleNewConnection(ting::net::TCPSocket socket){
+void ServerThread::HandleNewConnection(setka::TCPSocket socket){
 //	LOG(<< "ServerThread::" << __func__ << "(): enter" << std::endl)
 //	TRACE(<< "ServerThread::" << __func__ << "(): enter" << std::endl)
 
@@ -166,7 +138,7 @@ void ServerThread::HandleNewConnection(ting::net::TCPSocket socket){
 //		TRACE_AND_LOG(<< "ServerThread::" << __func__ << "(): GetNotFullThread() failed: " << e.what() << std::endl)
 		//failed getting not full thread, possibly maximum threads limit set by system reached
 		//ignore connection
-		socket.Close();
+		socket.close();
 		return;
 	}
 
@@ -178,7 +150,7 @@ void ServerThread::HandleNewConnection(ting::net::TCPSocket socket){
 	conn->socket = std::move(socket);
 	ASSERT(conn->socket)	
 	
-	thr->PushMessage(
+	thr->pushMessage(
 			[thr, conn](){
 				thr->HandleAddConnectionMessage(conn, true);
 			}
@@ -217,14 +189,14 @@ void ServerThread::HandleConnectionRemovedMessage(ServerThread::ServerConnection
 
 	for(auto i = this->clientsThreads.begin(); i != this->clientsThreads.end(); ++i){
 		if((*i).get() == cht){
-			(*i)->PushQuitMessage();//post a quit message to the thread before message is sent to threads killer thread
+			(*i)->pushQuitMessage();//post a quit message to the thread before message is sent to threads killer thread
 			
 			CopyablePtr<decltype(i)::value_type::element_type> ptr(std::move(*i));
 			
 			//schedule thread for termination
-			this->threadsKillerThread.PushMessage(
+			this->threadsKillerThread.pushMessage(
 					[ptr](){
-						ptr.p->Join();
+						ptr.p->join();
 					}
 				);
 			//remove thread from threads list
@@ -238,21 +210,21 @@ void ServerThread::HandleConnectionRemovedMessage(ServerThread::ServerConnection
 
 
 
-void ServerThread::ThreadsKillerThread::Run(){
-	ting::WaitSet ws(1);
+void ServerThread::ThreadsKillerThread::run(){
+	pogodi::WaitSet ws(1);
 	
-	ws.Add(this->queue, ting::Waitable::READ);
+	ws.add(this->queue, pogodi::Waitable::READ);
 	
 	while(!this->quitFlag){
 //		TRACE(<< "ThreadsKillerThread::" << __func__ << "(): going to get message" << std::endl)
-		ws.Wait();
-		while(auto m = this->queue.PeekMsg()){
+		ws.wait();
+		while(auto m = this->queue.peekMsg()){
 			m();
 		}
 //		TRACE(<< "ThreadsKillerThread::" << __func__ << "(): message handled, qf = " << this->quitFlag << std::endl)
 	}
 	
-	ws.Remove(this->queue);
+	ws.remove(this->queue);
 //	TRACE(<< "ThreadsKillerThread::" << __func__ << "(): exit" << std::endl)
 }
 

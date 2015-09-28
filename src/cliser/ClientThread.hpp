@@ -40,7 +40,7 @@ public:
 	 */
 	ClientThread(unsigned maxConnections, cliser::Listener* listener);
 
-	virtual ~ClientThread()NOEXCEPT;
+	virtual ~ClientThread()noexcept;
 
 	/**
 	 * @brief Request connection.
@@ -52,10 +52,10 @@ public:
 	 *           of unsuccessful result.
 	 */
 	//send connection request message to the thread
-	std::shared_ptr<cliser::Connection> Connect_ts(const ting::net::IPAddress& ip);
+	std::shared_ptr<cliser::Connection> Connect_ts(const setka::IPAddress& ip);
 
 private:
-	void HandleConnectRequest(const ting::net::IPAddress& ip, const std::shared_ptr<cliser::Connection>& conn);
+	void HandleConnectRequest(const setka::IPAddress& ip, const std::shared_ptr<cliser::Connection>& conn);
 };
 
 
