@@ -207,7 +207,7 @@ private:
 				[c](){
 					std::vector<std::uint8_t> d = std::move(c->GetReceivedData_ts());
 					if(d.size()){
-						std::static_pointer_cast<Connection>(c)->HandleReceivedData(d);
+						std::static_pointer_cast<Connection>(c)->HandleReceivedData(utki::wrapBuf(d));
 					}else{
 						ASSERT_ALWAYS(false)
 					}

@@ -151,7 +151,7 @@ private:
 				[c](){
 					std::vector<std::uint8_t> d = c->GetReceivedData_ts();
 					if(d.size() != 0){
-						std::static_pointer_cast<Connection>(c)->HandleReceivedData(d);
+						std::static_pointer_cast<Connection>(c)->HandleReceivedData(utki::wrapBuf(d));
 					}
 				}
 			);

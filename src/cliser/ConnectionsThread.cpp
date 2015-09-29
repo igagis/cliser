@@ -164,7 +164,7 @@ void ConnectionsThread::HandleSocketActivity(std::shared_ptr<Connection>& conn){
 			try{
 //				TRACE(<< "ConnectionsThread::" << __func__ << "(): Packet data left = " << (conn->packetQueue.front().Size() - conn->dataSent) << std::endl)
 
-				conn->dataSent += conn->socket.send(utki::Buf<const std::uint8_t>(
+				conn->dataSent += conn->socket.send(utki::wrapBuf(
 						&*conn->packetQueue.front()->begin() + conn->dataSent,
 						conn->packetQueue.front()->size() - conn->dataSent
 					));
@@ -202,7 +202,7 @@ void ConnectionsThread::HandleSocketActivity(std::shared_ptr<Connection>& conn){
 		std::array<std::uint8_t, 0x2000> buffer;//8kb
 
 		try{
-			unsigned bytesReceived = conn->socket.recieve(buffer);
+			unsigned bytesReceived = conn->socket.recieve(utki::wrapBuf(buffer));
 			ASSERT(!conn->socket.canRead())
 			if(bytesReceived != 0){
 				utki::Buf<std::uint8_t> b(&*buffer.begin(), bytesReceived);
@@ -360,7 +360,7 @@ void ConnectionsThread::HandleSendDataMessage(std::shared_ptr<Connection>& conn,
 		return;
 	}else{
 		try{
-			unsigned numBytesSent = conn->socket.send(*data);
+			unsigned numBytesSent = conn->socket.send(utki::wrapBuf(*data));
 			ASSERT(numBytesSent <= data->size())
 
 			if(numBytesSent != data->size()){
