@@ -65,7 +65,7 @@ void ServerThread::run(){
 		if(sock.canRead()){
 			setka::TCPSocket newSock;
 			try{
-				if(newSock = sock.accept()){
+				if((newSock = sock.accept())){
 					this->HandleNewConnection(std::move(newSock));
 				}
 			}catch(setka::Exc& e){
