@@ -8,9 +8,9 @@ Standards-Version: 3.9.2
 
 Package: libcliser-dev
 Architecture: all
-Depends: libcliser$(soname) (= ${binary:Version}), ${misc:Depends},
+Depends: libcliser$(soname) (= ${binary:Version}), libcliser$(soname)-dbg (= ${binary:Version}), ${misc:Depends},
 		libsetka-dev, libnitki-dev
-Suggests: libcliser-doc, libcliser$(soname)-dbg (= ${binary:Version})
+Suggests: libcliser-doc
 Description: TCP client-server library in C++.
  libcliser is a library written in C++ which allows easy creation of
  TCP-based network client-server systems.
