@@ -8,9 +8,9 @@ this_srcs := main.cpp
 
 
 
-this_cflags += -Wall
-this_cflags += -g
-this_cflags += -std=c++11
+this_cxxflags += -Wall
+this_cxxflags += -g
+this_cxxflags += -std=c++11
 
 
 this_ldlibs += -lcliser -lsetka -lnitki -pthread
@@ -18,7 +18,7 @@ this_ldlibs += -lcliser -lsetka -lnitki -pthread
 this_ldflags += -L$(prorab_this_dir)../../src
 
 ifeq ($(debug),true)
-    this_cflags += -DDEBUG
+    this_cxxflags += -DDEBUG
 endif
 
 

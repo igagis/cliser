@@ -42,7 +42,7 @@
       <makefileType>
         <makeTool>
           <buildCommandWorkingDir>.</buildCommandWorkingDir>
-          <buildCommand>${MAKE} -f makefile debug=true -j8</buildCommand>
+          <buildCommand>${MAKE} -f makefile debug=true -j8 CXX=g++-4.9</buildCommand>
           <cleanCommand>${MAKE} -f makefile clean</cleanCommand>
           <executablePath>tests/Simple/tests</executablePath>
           <ccTool>
@@ -50,9 +50,6 @@
             <incDir>
               <pElem>.</pElem>
             </incDir>
-            <preprocessorList>
-              <Elem>DEBUG</Elem>
-            </preprocessorList>
           </ccTool>
         </makeTool>
         <preBuild>
