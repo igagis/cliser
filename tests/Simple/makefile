@@ -11,6 +11,7 @@ this_srcs := main.cpp
 this_cxxflags += -Wall
 this_cxxflags += -g
 this_cxxflags += -std=c++11
+this_cxxflags += -O3
 
 
 this_ldlibs += -lcliser -lsetka -lnitki -pthread
