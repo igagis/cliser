@@ -82,7 +82,7 @@ public:
 	 * indicate that the disconnection has actually happened.
 	 * This method is thread safe (the _ts suffix tells that).
 	 */
-	void Disconnect_ts();
+	void disconnect_ts();
 
 	/**
 	 * @brief Request data sending to the remote end.
@@ -95,7 +95,7 @@ public:
 	 * sending queue.
 	 * @param data - data to send.
 	 */
-	void Send_ts(const std::shared_ptr<const std::vector<std::uint8_t>>& data);
+	void send_ts(const std::shared_ptr<const std::vector<std::uint8_t>>& data);
 
 	/**
 	 * @brief Get stored received data and resume listening for incoming data.
@@ -112,7 +112,7 @@ public:
 	 * @return non-empty vector with the data if there is data stored.
 	 * @return empty vector if there is no data stored.
 	 */
-	const std::vector<std::uint8_t> GetReceivedData_ts();
+	const std::vector<std::uint8_t> getReceivedData_ts();
 };
 
 
@@ -145,7 +145,7 @@ public:
 	 * the newly created Connection object.
 	 * @return std::shared_ptr reference to the newly created Connection object.
 	 */
-	virtual std::shared_ptr<cliser::Connection> CreateConnectionObject() = 0;
+	virtual std::shared_ptr<cliser::Connection> createConnectionObject() = 0;
 
 	/**
 	 * @brief New connection estabilished.
@@ -154,7 +154,7 @@ public:
 	 * The method is supposed to be thread safe.
 	 * @param c - connection object of the new connection.
 	 */
-	virtual void OnConnected_ts(const std::shared_ptr<Connection>& c) = 0;
+	virtual void onConnected_ts(const std::shared_ptr<Connection>& c) = 0;
 
 	/**
 	 * @brief connection closed.
@@ -163,7 +163,7 @@ public:
 	 * The method is supposed to be thread safe.
 	 * @param c - connection object of the connection which was closed.
 	 */
-	virtual void OnDisconnected_ts(const std::shared_ptr<Connection>& c) = 0;
+	virtual void onDisconnected_ts(const std::shared_ptr<Connection>& c) = 0;
 
 	/**
 	 * @brief Data received.
@@ -178,7 +178,7 @@ public:
 	 *         The data can later be retrieved using cliser::Connection::GetReceivedData_ts()
 	 *         method which will also resume listening for new incoming data from remote end.
 	 */
-	virtual bool OnDataReceived_ts(const std::shared_ptr<Connection>& c, const utki::Buf<std::uint8_t> d) = 0;
+	virtual bool onDataReceived_ts(const std::shared_ptr<Connection>& c, const utki::Buf<std::uint8_t> d) = 0;
 
 	/**
 	 * @brief Data has been sent.
@@ -192,7 +192,7 @@ public:
      * @param numPacketsInQueue - number of packets currently stored in the sending queue of the connection object.
      * @param addedToQueue - flag indicating that the data was stored to the sending queue instead of actually sending.
      */
-	virtual void OnDataSent_ts(const std::shared_ptr<Connection>& c, unsigned numPacketsInQueue, bool addedToQueue){}
+	virtual void onDataSent_ts(const std::shared_ptr<Connection>& c, unsigned numPacketsInQueue, bool addedToQueue){}
 
 	virtual ~Listener()noexcept{
 		ASSERT(this->numTimesAdded == 0)

@@ -45,7 +45,7 @@ public:
 
 		if(this->cnt == DMaxCnt){
 			if(this->rcnt == DMaxCnt){
-				this->Disconnect_ts();
+				this->disconnect_ts();
 			}
 			return;
 		}
@@ -61,7 +61,7 @@ public:
 			++this->cnt;
 		}
 
-		this->Send_ts(std::make_shared<std::vector<std::uint8_t>>(std::move(buf)));
+		this->send_ts(std::make_shared<std::vector<std::uint8_t>>(std::move(buf)));
 	}
 
 
@@ -82,7 +82,7 @@ public:
 
 		if(this->rcnt == DMaxCnt){
 			if(this->cnt == DMaxCnt){
-				this->Disconnect_ts();
+				this->disconnect_ts();
 			}
 		}
 	}
@@ -105,12 +105,12 @@ private:
 	unsigned numConnections = 0;
 	
 	//override
-	std::shared_ptr<cliser::Connection> CreateConnectionObject(){
+	std::shared_ptr<cliser::Connection> createConnectionObject(){
 		return utki::makeShared<Connection>();
 	}
 
 	//override
-	void OnConnected_ts(const std::shared_ptr<cliser::Connection>& c){
+	void onConnected_ts(const std::shared_ptr<cliser::Connection>& c){
 		TRACE_ALWAYS(<< "Server::" << __func__ << "(): CONNECTED!!!" << std::endl)
 
 		std::shared_ptr<Connection> conn = std::static_pointer_cast<Connection>(c);
@@ -128,7 +128,7 @@ private:
 	}
 
 	//override
-	void OnDisconnected_ts(const std::shared_ptr<cliser::Connection>& c)override{
+	void onDisconnected_ts(const std::shared_ptr<cliser::Connection>& c)override{
 		TRACE_ALWAYS(<< "Server::" << __func__ << "(): DISCONNECTED!!!" << std::endl)
 
 		std::shared_ptr<Connection> conn = std::static_pointer_cast<Connection>(c);
@@ -145,11 +145,11 @@ private:
 	}
 
 	//override
-	bool OnDataReceived_ts(const std::shared_ptr<cliser::Connection>& c, const utki::Buf<std::uint8_t> d)override{
+	bool onDataReceived_ts(const std::shared_ptr<cliser::Connection>& c, const utki::Buf<std::uint8_t> d)override{
 		TRACE_ALWAYS(<< "Server: data received" << std::endl)
 		this->pushMessage(
 				[c](){
-					std::vector<std::uint8_t> d = c->GetReceivedData_ts();
+					std::vector<std::uint8_t> d = c->getReceivedData_ts();
 					if(d.size() != 0){
 						std::static_pointer_cast<Connection>(c)->HandleReceivedData(utki::wrapBuf(d));
 					}
@@ -160,7 +160,7 @@ private:
 	}
 
 	//override
-	void OnDataSent_ts(const std::shared_ptr<cliser::Connection>& c, unsigned numPacketsInQueue, bool addedToQueue)override{
+	void onDataSent_ts(const std::shared_ptr<cliser::Connection>& c, unsigned numPacketsInQueue, bool addedToQueue)override{
 		if(numPacketsInQueue >= 2)
 			return;
 
@@ -188,12 +188,12 @@ private:
 	unsigned numConnections = 0;
 
 	//override
-	std::shared_ptr<cliser::Connection> CreateConnectionObject()override{
+	std::shared_ptr<cliser::Connection> createConnectionObject()override{
 		return utki::makeShared<Connection>();
 	}
 
 	//override
-	void OnConnected_ts(const std::shared_ptr<cliser::Connection>& c)override{
+	void onConnected_ts(const std::shared_ptr<cliser::Connection>& c)override{
 		TRACE_ALWAYS(<< "Client::" << __func__ << "(): CONNECTED!!!" << std::endl)
 
 		{
@@ -211,7 +211,7 @@ private:
 	}
 
 	//override
-	void OnDisconnected_ts(const std::shared_ptr<cliser::Connection>& c)override{
+	void onDisconnected_ts(const std::shared_ptr<cliser::Connection>& c)override{
 		std::shared_ptr<Connection> conn = std::static_pointer_cast<Connection>(c);
 		
 		if(conn->isConnected){
@@ -238,7 +238,7 @@ private:
 	}
 
 	//override
-	bool OnDataReceived_ts(const std::shared_ptr<cliser::Connection>& c, const utki::Buf<std::uint8_t> d)override{
+	bool onDataReceived_ts(const std::shared_ptr<cliser::Connection>& c, const utki::Buf<std::uint8_t> d)override{
 		std::shared_ptr<Connection> con = std::static_pointer_cast<Connection>(c);
 
 		con->HandleReceivedData(d);
@@ -247,7 +247,7 @@ private:
 	}
 
 	//override
-	void OnDataSent_ts(const std::shared_ptr<cliser::Connection>& c, unsigned numPacketsInQueue, bool addedToQueue)override{
+	void onDataSent_ts(const std::shared_ptr<cliser::Connection>& c, unsigned numPacketsInQueue, bool addedToQueue)override{
 		if(numPacketsInQueue >= 2)
 			return;
 		
@@ -279,7 +279,7 @@ int main(int argc, char *argv[]){
 	Client client;
 	client.start();
 
-	for(unsigned i = 0; i < client.MaxConnections(); ++i){
+	for(unsigned i = 0; i < client.maxConnections(); ++i){
 		client.connect_ts(setka::IPAddress(DIpAddress, DPort));
 	}
 

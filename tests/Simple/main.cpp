@@ -50,7 +50,7 @@ public:
 		}
 		ASSERT_ALWAYS(p == &*buf.end())
 
-		this->Send_ts(std::make_shared<std::vector<std::uint8_t>>(std::move(buf)));
+		this->send_ts(std::make_shared<std::vector<std::uint8_t>>(std::move(buf)));
 	}
 
 
@@ -96,11 +96,11 @@ private:
 	std::mutex numConsMut;
 	unsigned numConnections = 0;
 	
-	std::shared_ptr<cliser::Connection> CreateConnectionObject()override{
+	std::shared_ptr<cliser::Connection> createConnectionObject()override{
 		return utki::makeShared<Connection>();
 	}
 
-	void OnConnected_ts(const std::shared_ptr<cliser::Connection>& c)override{
+	void onConnected_ts(const std::shared_ptr<cliser::Connection>& c)override{
 		std::shared_ptr<Connection> conn = std::static_pointer_cast<Connection>(c);
 		ASSERT_ALWAYS(!conn->isConnected)
 		conn->isConnected = true;
@@ -116,7 +116,7 @@ private:
 		std::static_pointer_cast<Connection>(c)->SendPortion();
 	}
 
-	void OnDisconnected_ts(const std::shared_ptr<cliser::Connection>& c)override{
+	void onDisconnected_ts(const std::shared_ptr<cliser::Connection>& c)override{
 		std::shared_ptr<Connection> conn = std::static_pointer_cast<Connection>(c);
 
 		ASSERT_INFO_ALWAYS(conn->isConnected, "Server: disconnected non-connected connection")
@@ -129,7 +129,7 @@ private:
 		}
 	}
 
-	bool OnDataReceived_ts(const std::shared_ptr<cliser::Connection>& c, const utki::Buf<std::uint8_t> d)override{
+	bool onDataReceived_ts(const std::shared_ptr<cliser::Connection>& c, const utki::Buf<std::uint8_t> d)override{
 		std::shared_ptr<Connection> con = std::static_pointer_cast<Connection>(c);
 
 		con->HandleReceivedData(d);
@@ -137,7 +137,7 @@ private:
 		return true;
 	}
 
-	void OnDataSent_ts(const std::shared_ptr<cliser::Connection>& c, unsigned numPacketsInQueue, bool addedToQueue)override{
+	void onDataSent_ts(const std::shared_ptr<cliser::Connection>& c, unsigned numPacketsInQueue, bool addedToQueue)override{
 		if(numPacketsInQueue >= 2){
 			return;
 		}
@@ -163,11 +163,11 @@ private:
 	std::mutex numConsMut;
 	unsigned numConnections = 0;
 	
-	std::shared_ptr<cliser::Connection> CreateConnectionObject()override{
+	std::shared_ptr<cliser::Connection> createConnectionObject()override{
 		return utki::makeShared<Connection>();
 	}
 
-	void OnConnected_ts(const std::shared_ptr<cliser::Connection>& c)override{
+	void onConnected_ts(const std::shared_ptr<cliser::Connection>& c)override{
 		{
 			std::lock_guard<decltype(this->numConsMut)> mutexGuard(this->numConsMut);
 			++(this->numConnections);
@@ -182,7 +182,7 @@ private:
 		conn->SendPortion();
 	}
 
-	void OnDisconnected_ts(const std::shared_ptr<cliser::Connection>& c)override{
+	void onDisconnected_ts(const std::shared_ptr<cliser::Connection>& c)override{
 		std::shared_ptr<Connection> conn = std::static_pointer_cast<Connection>(c);
 		
 		if(conn->isConnected){
@@ -200,12 +200,12 @@ private:
 	}
 
 
-	bool OnDataReceived_ts(const std::shared_ptr<cliser::Connection>& c, const utki::Buf<std::uint8_t> d)override{
+	bool onDataReceived_ts(const std::shared_ptr<cliser::Connection>& c, const utki::Buf<std::uint8_t> d)override{
 		TRACE_ALWAYS(<< "Client: data received" << std::endl)
 		
 		this->pushMessage(
 				[c](){
-					std::vector<std::uint8_t> d = std::move(c->GetReceivedData_ts());
+					std::vector<std::uint8_t> d = std::move(c->getReceivedData_ts());
 					if(d.size()){
 						std::static_pointer_cast<Connection>(c)->HandleReceivedData(utki::wrapBuf(d));
 					}else{
@@ -217,7 +217,7 @@ private:
 		return false;
 	}
 
-	void OnDataSent_ts(const std::shared_ptr<cliser::Connection>& c, unsigned numPacketsInQueue, bool addedToQueue)override{
+	void onDataSent_ts(const std::shared_ptr<cliser::Connection>& c, unsigned numPacketsInQueue, bool addedToQueue)override{
 		if(numPacketsInQueue >= 2){
 			return;
 		}
@@ -250,7 +250,7 @@ int main(int argc, char *argv[]){
 	Client client;
 	client.start();
 
-	for(unsigned i = 0; i < client.MaxConnections(); ++i){
+	for(unsigned i = 0; i < client.maxConnections(); ++i){
 		client.connect_ts(setka::IPAddress(DIpAddress, DPort));
 	}
 

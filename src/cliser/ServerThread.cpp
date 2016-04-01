@@ -66,7 +66,7 @@ void ServerThread::run(){
 			setka::TCPSocket newSock;
 			try{
 				if((newSock = sock.accept())){
-					this->HandleNewConnection(std::move(newSock));
+					this->handleNewConnection(std::move(newSock));
 				}
 			}catch(setka::Exc& e){
 				ASSERT_INFO(false, "sock.Accept() failed")
@@ -104,7 +104,7 @@ void ServerThread::run(){
 
 
 
-ServerThread::ServerConnectionsThread* ServerThread::GetNotFullThread(){
+ServerThread::ServerConnectionsThread* ServerThread::getNotFullThread(){
 	//TODO: adjust threads order for faster search
 	for(auto i = this->clientsThreads.begin(); i != this->clientsThreads.end(); ++i){
 		if((*i)->numConnections < this->maxClientsPerThread){
@@ -112,10 +112,12 @@ ServerThread::ServerConnectionsThread* ServerThread::GetNotFullThread(){
 		}
 	}
 
-	this->clientsThreads.push_back(ServerConnectionsThread::New(
-			this,
-			this->MaxClientsPerThread()
-		));
+	this->clientsThreads.push_back(
+			utki::makeUnique<ServerConnectionsThread>(
+					this,
+					this->MaxClientsPerThread()
+				)
+		);
 
 //	TRACE(<< "ServerThread::" << __func__ << "(): num threads = " << this->clientsThreads.size() << std::endl)
 
@@ -125,7 +127,7 @@ ServerThread::ServerConnectionsThread* ServerThread::GetNotFullThread(){
 
 
 
-void ServerThread::HandleNewConnection(setka::TCPSocket socket){
+void ServerThread::handleNewConnection(setka::TCPSocket socket){
 //	LOG(<< "ServerThread::" << __func__ << "(): enter" << std::endl)
 //	TRACE(<< "ServerThread::" << __func__ << "(): enter" << std::endl)
 
@@ -133,7 +135,7 @@ void ServerThread::HandleNewConnection(setka::TCPSocket socket){
 
 	ServerConnectionsThread* thr;
 	try{
-		 thr = this->GetNotFullThread();
+		 thr = this->getNotFullThread();
 	}catch(std::exception& e){
 //		TRACE_AND_LOG(<< "ServerThread::" << __func__ << "(): GetNotFullThread() failed: " << e.what() << std::endl)
 		//failed getting not full thread, possibly maximum threads limit set by system reached
@@ -144,7 +146,7 @@ void ServerThread::HandleNewConnection(setka::TCPSocket socket){
 
 	ASSERT(thr)
 
-	std::shared_ptr<Connection> conn = ASS(this->listener)->CreateConnectionObject();
+	std::shared_ptr<Connection> conn = ASS(this->listener)->createConnectionObject();
 
 	//set client socket
 	conn->socket = std::move(socket);
@@ -152,7 +154,7 @@ void ServerThread::HandleNewConnection(setka::TCPSocket socket){
 	
 	thr->pushMessage(
 			[thr, conn](){
-				thr->HandleAddConnectionMessage(conn, true);
+				thr->handleAddConnectionMessage(conn, true);
 			}
 		);
 	++thr->numConnections;
@@ -174,7 +176,7 @@ template <typename T> struct CopyablePtr{
 
 
 
-void ServerThread::HandleConnectionRemovedMessage(ServerThread::ServerConnectionsThread* cht){
+void ServerThread::handleConnectionRemovedMessage(ServerThread::ServerConnectionsThread* cht){
 //	TRACE(<< "ServerThread::" << __func__ << "(): enter" << std::endl)
 
 	ASSERT(cht->numConnections > 0)

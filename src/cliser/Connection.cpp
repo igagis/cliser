@@ -9,7 +9,7 @@ using namespace cliser;
 
 
 
-void Connection::Send_ts(const std::shared_ptr<const std::vector<std::uint8_t>>& data){
+void Connection::send_ts(const std::shared_ptr<const std::vector<std::uint8_t>>& data){
 	std::lock_guard<decltype(this->mutex)> mutexGuard(this->mutex);//make sure that this->clientThread won't be zeroed out by other thread
 	if(!this->parentThread){
 		//client disconnected, do nothing
@@ -20,7 +20,7 @@ void Connection::Send_ts(const std::shared_ptr<const std::vector<std::uint8_t>>&
 	
 	this->parentThread->pushMessage(std::bind(
 			[](ConnectionsThread* thr, std::shared_ptr<Connection>& c, std::shared_ptr<const std::vector<std::uint8_t>>& data){
-				thr->HandleSendDataMessage(c, std::move(data));
+				thr->handleSendDataMessage(c, std::move(data));
 			},
 			this->parentThread,
 			this->sharedFromThis(this),
@@ -33,7 +33,7 @@ void Connection::Send_ts(const std::shared_ptr<const std::vector<std::uint8_t>>&
 
 
 
-void Connection::Disconnect_ts(){
+void Connection::disconnect_ts(){
 	std::lock_guard<decltype(this->mutex)> mutexGuard(this->mutex);
 	if(!this->parentThread){
 		//client disconnected, do nothing
@@ -44,7 +44,7 @@ void Connection::Disconnect_ts(){
 	
 	this->parentThread->pushMessage(std::bind(
 			[](ConnectionsThread* t, std::shared_ptr<Connection>& c){
-				t->HandleRemoveConnectionMessage(c);
+				t->handleRemoveConnectionMessage(c);
 			},
 			this->parentThread,
 			this->sharedFromThis(this)
@@ -55,7 +55,7 @@ void Connection::Disconnect_ts(){
 
 
 
-const std::vector<std::uint8_t> Connection::GetReceivedData_ts(){
+const std::vector<std::uint8_t> Connection::getReceivedData_ts(){
 	std::lock_guard<decltype(this->mutex)> parentThreadMutextGuard(this->mutex);
 
 	//At the moment of sending the ResumeListeningForReadMessage the receivedData variable should be empty.
@@ -68,7 +68,7 @@ const std::vector<std::uint8_t> Connection::GetReceivedData_ts(){
 		//send message to parentHandler thread
 		ASS(this->parentThread)->pushMessage(std::bind(
 				[](ConnectionsThread* t, std::shared_ptr<Connection>& c){
-					t->HandleResumeListeningForReadMessage(c);
+					t->handleResumeListeningForReadMessage(c);
 				},
 				this->parentThread,
 				this->sharedFromThis(this)

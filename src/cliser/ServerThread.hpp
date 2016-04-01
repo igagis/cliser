@@ -9,6 +9,7 @@
 #include <list>
 
 #include <utki/debug.hpp>
+#include <utki/Unique.hpp>
 #include <nitki/MsgThread.hpp>
 #include <setka/TCPSocket.hpp>
 
@@ -30,11 +31,11 @@ namespace cliser{
  * thread can handle up to a given maximum number of connections, this number is
  * determined by a constructor parameter (See constructor description).
  */
-class ServerThread : public nitki::MsgThread{
+class ServerThread : public nitki::MsgThread, public utki::Unique{
 	
 	class ThreadsKillerThread : public nitki::MsgThread{
 	public:
-		ThreadsKillerThread(){};
+		ThreadsKillerThread(){}
 
 		void run()override;
 	} threadsKillerThread;
@@ -87,14 +88,14 @@ public:
 	void run()override;
 
 private:
-	ServerConnectionsThread* GetNotFullThread();
+	ServerConnectionsThread* getNotFullThread();
 
 
 
 private:
-	void HandleNewConnection(setka::TCPSocket socket);
+	void handleNewConnection(setka::TCPSocket socket);
 
-	void HandleConnectionRemovedMessage(ServerThread::ServerConnectionsThread* cht);
+	void handleConnectionRemovedMessage(ServerThread::ServerConnectionsThread* cht);
 
 
 
@@ -118,53 +119,40 @@ private:
 		
 		~ServerConnectionsThread()noexcept{}
 
-		virtual std::shared_ptr<cliser::Connection> CreateConnectionObject()override{
+		virtual std::shared_ptr<cliser::Connection> createConnectionObject()override{
 			//this function will not be ever called.
 			ASSERT(false);
 			return std::shared_ptr<cliser::Connection>();
 		}
 
-		void OnConnected_ts(const std::shared_ptr<Connection>& c)override{
-			ASS(this->serverThread)->listener->OnConnected_ts(c);
+		void onConnected_ts(const std::shared_ptr<Connection>& c)override{
+			ASS(this->serverThread)->listener->onConnected_ts(c);
 		}
 
 
-		void OnDisconnected_ts(const std::shared_ptr<Connection>& c)override{
+		void onDisconnected_ts(const std::shared_ptr<Connection>& c)override{
 			//Disconnection may be because thread is exiting because server main thread
 			//is also exiting, in that case no need to notify server main thread.
 			//Send notification message to server main thread only if thread is not exiting yet.
 			if(!this->quitFlag){
 				this->serverThread->pushMessage(std::bind(
 						[](ServerThread* serverMainThread, ServerThread::ServerConnectionsThread* clientsHandlerThread){
-							serverMainThread->HandleConnectionRemovedMessage(clientsHandlerThread);
+							serverMainThread->handleConnectionRemovedMessage(clientsHandlerThread);
 						},
 						this->serverThread,
 						this
 					));
 			}
 
-			ASS(this->serverThread)->listener->OnDisconnected_ts(c);
+			ASS(this->serverThread)->listener->onDisconnected_ts(c);
 		}
 
-		bool OnDataReceived_ts(const std::shared_ptr<Connection>& c, const utki::Buf<std::uint8_t> d)override{
-			return ASS(this->serverThread)->listener->OnDataReceived_ts(c, d);
+		bool onDataReceived_ts(const std::shared_ptr<Connection>& c, const utki::Buf<std::uint8_t> d)override{
+			return ASS(this->serverThread)->listener->onDataReceived_ts(c, d);
 		}
 
-		void OnDataSent_ts(const std::shared_ptr<Connection>& c, unsigned numPacketsInQueue, bool addedToQueue)override{
-			ASS(this->serverThread)->listener->OnDataSent_ts(c, numPacketsInQueue, addedToQueue);
-		}
-
-		static std::unique_ptr<ServerConnectionsThread> New(
-				ServerThread* serverThread,
-				unsigned maxConnections
-			)
-		{
-			return std::unique_ptr<ServerConnectionsThread>(
-					new ServerConnectionsThread(
-							serverThread,
-							maxConnections
-						)
-				);
+		void onDataSent_ts(const std::shared_ptr<Connection>& c, unsigned numPacketsInQueue, bool addedToQueue)override{
+			ASS(this->serverThread)->listener->onDataSent_ts(c, numPacketsInQueue, addedToQueue);
 		}
 	};
 };

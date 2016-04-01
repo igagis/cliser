@@ -7,6 +7,7 @@
 #include <setka/TCPSocket.hpp>
 #include <pogodi/WaitSet.hpp>
 #include <nitki/MsgThread.hpp>
+#include <utki/Unique.hpp>
 
 #include "Connection.hpp"
 
@@ -14,9 +15,9 @@
 
 //#define M_ENABLE_SRV_CLIENTS_HANDLER_TRACE
 #ifdef M_ENABLE_SRV_CLIENTS_HANDLER_TRACE
-#define M_SRV_CLIENTS_HANDLER_TRACE(x) TRACE(x)
+#	define M_SRV_CLIENTS_HANDLER_TRACE(x) TRACE(x)
 #else
-#define M_SRV_CLIENTS_HANDLER_TRACE(x)
+#	define M_SRV_CLIENTS_HANDLER_TRACE(x)
 #endif
 
 
@@ -30,7 +31,7 @@ class ClientThread;
 
 
 
-class ConnectionsThread : public nitki::MsgThread{
+class ConnectionsThread : public nitki::MsgThread, public utki::Unique{
 	friend class cliser::ServerThread;
 	friend class cliser::ClientThread;
 	friend class cliser::Connection;
@@ -47,17 +48,17 @@ private:
 
 	void run()override;
 
-	void HandleSocketActivity(std::shared_ptr<cliser::Connection>& conn);
+	void handleSocketActivity(std::shared_ptr<cliser::Connection>& conn);
 
 public:
 	~ConnectionsThread()throw();
 
-	unsigned MaxConnections()const{
+	unsigned maxConnections()const{
 		return ASSCOND(this->waitSet.size() - 1, > 0);
 	}
 
 private:
-	void AddSocketToSocketSet(
+	void addSocketToSocketSet(
 			setka::TCPSocket &sock,
 			pogodi::Waitable::EReadinessFlags flagsToWaitFor = pogodi::Waitable::READ
 		)
@@ -68,22 +69,22 @@ private:
 			);
 	}
 
-	inline void RemoveSocketFromSocketSet(setka::TCPSocket &sock){
+	inline void removeSocketFromSocketSet(setka::TCPSocket &sock){
 		this->waitSet.remove(sock);
 	}
 
 
 
 private:
-	void HandleAddConnectionMessage(const std::shared_ptr<Connection>& conn, bool isConnected);
+	void handleAddConnectionMessage(const std::shared_ptr<Connection>& conn, bool isConnected);
 
 
-	void HandleRemoveConnectionMessage(std::shared_ptr<Connection>& conn);
+	void handleRemoveConnectionMessage(std::shared_ptr<Connection>& conn);
 
 
-	void HandleSendDataMessage(std::shared_ptr<Connection>& conn, std::shared_ptr<const std::vector<std::uint8_t>>&& data);
+	void handleSendDataMessage(std::shared_ptr<Connection>& conn, std::shared_ptr<const std::vector<std::uint8_t>>&& data);
 
-	void HandleResumeListeningForReadMessage(std::shared_ptr<Connection>& conn);
+	void handleResumeListeningForReadMessage(std::shared_ptr<Connection>& conn);
 };//~class
 
 

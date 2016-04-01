@@ -69,7 +69,7 @@ void ConnectionsThread::run(){
 				std::shared_ptr<cliser::Connection> conn = connection->sharedFromThis(connection);
 				ASSERT(conn)
 
-				this->HandleSocketActivity(conn);
+				this->handleSocketActivity(conn);
 			}
 		}//~for()
 
@@ -113,11 +113,11 @@ void ConnectionsThread::run(){
 	for(T_ConnectionsIter i = this->connections.begin(); i != this->connections.end(); ++i){
 		std::shared_ptr<Connection> c(ASS(*i));
 
-		this->RemoveSocketFromSocketSet(c->socket);
+		this->removeSocketFromSocketSet(c->socket);
 		c->socket.close();
 		c->ClearHandlingThread();
 
-		ASS(this->listener)->OnDisconnected_ts(c);
+		ASS(this->listener)->onDisconnected_ts(c);
 	}
 	this->connections.clear();//clear clients list
 
@@ -130,7 +130,7 @@ void ConnectionsThread::run(){
 
 
 
-void ConnectionsThread::HandleSocketActivity(std::shared_ptr<Connection>& conn){
+void ConnectionsThread::handleSocketActivity(std::shared_ptr<Connection>& conn){
 	if(conn->socket.canWrite()){
 //		TRACE(<< "ConnectionsThread::HandleSocketActivity(): CanWrite" << std::endl)
 		if(conn->packetQueue.size() == 0){
@@ -150,11 +150,11 @@ void ConnectionsThread::HandleSocketActivity(std::shared_ptr<Connection>& conn){
 				ASSERT(!conn->socket.canWrite())
 
 				conn->SetHandlingThread(this);
-				ASS(this->listener)->OnConnected_ts(conn);
+				ASS(this->listener)->onConnected_ts(conn);
 //				TRACE(<< "ConnectionsThread::" << __func__ << "(): connection was successful" << std::endl)
 			}catch(setka::Exc& e){
 				TRACE(<< "ConnectionsThread::" << __func__ << "(): connection was unsuccessful: " << e.what() << std::endl)
-				this->HandleRemoveConnectionMessage(conn);
+				this->handleRemoveConnectionMessage(conn);
 				return;
 			}
 
@@ -178,7 +178,7 @@ void ConnectionsThread::HandleSocketActivity(std::shared_ptr<Connection>& conn){
 
 //					TRACE(<< "ConnectionsThread::" << __func__ << "(): Packet sent!!!!!!!!!!!!!!!!!!!!!" << std::endl)
 
-					ASS(this->listener)->OnDataSent_ts(conn, conn->packetQueue.size(), false);
+					ASS(this->listener)->onDataSent_ts(conn, conn->packetQueue.size(), false);
 
 					if(conn->packetQueue.size() == 0){
 						//clear WRITE waiting flag.
@@ -190,7 +190,7 @@ void ConnectionsThread::HandleSocketActivity(std::shared_ptr<Connection>& conn){
 				}
 			}catch(setka::Exc &e){
 //				TRACE(<< "ConnectionsThread::" << __func__ << "(): exception caught while sending: " << e.What() << std::endl)
-				this->HandleRemoveConnectionMessage(conn);
+				this->handleRemoveConnectionMessage(conn);
 				return;
 			}
 		}
@@ -215,7 +215,7 @@ void ConnectionsThread::HandleSocketActivity(std::shared_ptr<Connection>& conn){
 //					)
 
 				ASSERT(conn->receivedData.size() == 0)
-				if(!ASS(this->listener)->OnDataReceived_ts(conn, b)){
+				if(!ASS(this->listener)->onDataReceived_ts(conn, b)){
 					std::lock_guard<decltype(conn->mutex)> mutexGuard(conn->mutex);
 					
 //					TRACE(<< "ConnectionsThread::HandleSocketActivity(): received data not handled!!!!!!!!!!!" << std::endl)
@@ -232,18 +232,18 @@ void ConnectionsThread::HandleSocketActivity(std::shared_ptr<Connection>& conn){
 				}
 			}else{
 				//connection closed
-				this->HandleRemoveConnectionMessage(conn);
+				this->handleRemoveConnectionMessage(conn);
 				return;
 			}
 		}catch(setka::Exc &e){
 //			TRACE(<< "ConnectionsThread::" << __func__ << "(): exception caught while reading: " << e.What() << std::endl)
-			this->HandleRemoveConnectionMessage(conn);
+			this->handleRemoveConnectionMessage(conn);
 			return;
 		}
 	}
 
 	if(conn->socket.errorCondition()){
-		this->HandleRemoveConnectionMessage(conn);
+		this->handleRemoveConnectionMessage(conn);
 		return;
 	}
 
@@ -253,7 +253,7 @@ void ConnectionsThread::HandleSocketActivity(std::shared_ptr<Connection>& conn){
 
 
 
-void ConnectionsThread::HandleAddConnectionMessage(const std::shared_ptr<Connection>& conn, bool isConnected){
+void ConnectionsThread::handleAddConnectionMessage(const std::shared_ptr<Connection>& conn, bool isConnected){
 	M_SRV_CLIENTS_HANDLER_TRACE(<< "ConnectionsThread::" << __func__ << "(): enter" << std::endl)
 
 	ASSERT(conn)
@@ -272,13 +272,13 @@ void ConnectionsThread::HandleAddConnectionMessage(const std::shared_ptr<Connect
 	//if not connected, will be waiting for WRITE, because WRITE indicates that connect request has finished.
 	conn->currentFlags = isConnected ? pogodi::Waitable::READ : pogodi::Waitable::WRITE;
 	try{
-		this->AddSocketToSocketSet(
+		this->addSocketToSocketSet(
 				conn->socket,
 				conn->currentFlags
 			);
 	}catch(utki::Exc& e){
 //		TRACE(<< "ConnectionsThread::" << __func__ << "(): adding socket to waitset failed: " << e.What() << std::endl)
-		ASS(this->listener)->OnDisconnected_ts(conn);
+		ASS(this->listener)->onDisconnected_ts(conn);
 		return;
 	}
 
@@ -291,7 +291,7 @@ void ConnectionsThread::HandleAddConnectionMessage(const std::shared_ptr<Connect
 		//set client's handling thread
 		conn->SetHandlingThread(this);
 
-		ASS(this->listener)->OnConnected_ts(conn);
+		ASS(this->listener)->onConnected_ts(conn);
 	}else{
 		ASSERT(!conn->parentThread)
 	}
@@ -305,7 +305,7 @@ void ConnectionsThread::HandleAddConnectionMessage(const std::shared_ptr<Connect
 
 
 //removing client means disconnect as well
-void ConnectionsThread::HandleRemoveConnectionMessage(std::shared_ptr<cliser::Connection>& conn){
+void ConnectionsThread::handleRemoveConnectionMessage(std::shared_ptr<cliser::Connection>& conn){
 	M_SRV_CLIENTS_HANDLER_TRACE(<< "ConnectionsThread::" << __func__ << "(): enter" << std::endl)
 
 	ASSERT(conn)
@@ -319,7 +319,7 @@ void ConnectionsThread::HandleRemoveConnectionMessage(std::shared_ptr<cliser::Co
 			ASSERT((*i) == conn)
 			ASSERT((*i).operator->() == conn.operator->())
 
-			this->RemoveSocketFromSocketSet(conn->socket);
+			this->removeSocketFromSocketSet(conn->socket);
 
 			conn->socket.close();//close connection if it is opened
 
@@ -329,7 +329,7 @@ void ConnectionsThread::HandleRemoveConnectionMessage(std::shared_ptr<cliser::Co
 			conn->packetQueue.clear();
 
 			//notify client disconnection
-			ASS(this->listener)->OnDisconnected_ts(conn);
+			ASS(this->listener)->onDisconnected_ts(conn);
 
 			this->connections.erase(i);//remove client from list
 
@@ -345,7 +345,7 @@ void ConnectionsThread::HandleRemoveConnectionMessage(std::shared_ptr<cliser::Co
 
 
 
-void ConnectionsThread::HandleSendDataMessage(std::shared_ptr<Connection>& conn, std::shared_ptr<const std::vector<std::uint8_t>>&& data){
+void ConnectionsThread::handleSendDataMessage(std::shared_ptr<Connection>& conn, std::shared_ptr<const std::vector<std::uint8_t>>&& data){
 //	TRACE(<< "ConnectionsThread::" << __func__ << "(): enter" << std::endl)
 	
 	if(!conn->socket){
@@ -356,7 +356,7 @@ void ConnectionsThread::HandleSendDataMessage(std::shared_ptr<Connection>& conn,
 	if(conn->packetQueue.size() != 0){
 //		TRACE(<< "ConnectionsThread::" << __func__ << "(): adding data to send queue right away" << std::endl)
 		conn->packetQueue.push_back(std::move(data));
-		ASS(this->listener)->OnDataSent_ts(conn, conn->packetQueue.size(), true);
+		ASS(this->listener)->onDataSent_ts(conn, conn->packetQueue.size(), true);
 		return;
 	}else{
 		try{
@@ -375,15 +375,15 @@ void ConnectionsThread::HandleSendDataMessage(std::shared_ptr<Connection>& conn,
 				this->waitSet.change(conn->socket, conn->currentFlags);
 
 				ASSERT_INFO(conn->packetQueue.size() == 1, conn->packetQueue.size())
-				ASS(this->listener)->OnDataSent_ts(conn, 1, true);
+				ASS(this->listener)->onDataSent_ts(conn, 1, true);
 			}else{
 //				TRACE(<< "ConnectionsThread::" << __func__ << "(): NOT adding data to send queue" << std::endl)
 				ASSERT_INFO(conn->packetQueue.size() == 0, conn->packetQueue.size())
-				ASS(this->listener)->OnDataSent_ts(conn, 0, false);
+				ASS(this->listener)->onDataSent_ts(conn, 0, false);
 			}
 		}catch(setka::Exc& e){
 //			TRACE(<< "ConnectionsThread::" << __func__ << "(): exception caught" << e.What() << std::endl)
-			conn->Disconnect_ts();
+			conn->disconnect_ts();
 		}
 	}
 //	TRACE(<< "ConnectionsThread::" << __func__ << "(): exit" << std::endl)
@@ -391,7 +391,7 @@ void ConnectionsThread::HandleSendDataMessage(std::shared_ptr<Connection>& conn,
 
 
 
-void ConnectionsThread::HandleResumeListeningForReadMessage(std::shared_ptr<Connection>& conn){
+void ConnectionsThread::handleResumeListeningForReadMessage(std::shared_ptr<Connection>& conn){
 	if(!conn->socket){//if connection is closed
 		return;
 	}

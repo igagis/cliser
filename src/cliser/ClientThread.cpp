@@ -24,7 +24,7 @@ ClientThread::~ClientThread()noexcept{
 std::shared_ptr<cliser::Connection> ClientThread::connect_ts(const setka::IPAddress& ip){
 //    TRACE(<< "ClientThread::" << __func__ << "(): enter" << std::endl)
 
-	std::shared_ptr<cliser::Connection> conn = ASS(this->listener)->CreateConnectionObject();
+	std::shared_ptr<cliser::Connection> conn = ASS(this->listener)->createConnectionObject();
 	
 	//send connect request to thread
 	this->pushMessage(
@@ -50,9 +50,9 @@ void ClientThread::handleConnectRequest(
 		conn->socket.open(ip);
 	}catch(setka::Exc &e){
 //		TRACE(<< "ConnectToServerMessage::" << __func__ << "(): exception caught, e = " << e.What() << ", sending connect failed reply to main thread" << std::endl)
-		ASS(this->listener)->OnDisconnected_ts(conn);
+		ASS(this->listener)->onDisconnected_ts(conn);
 		return;
 	}
 
-	this->HandleAddConnectionMessage(conn, false);
+	this->handleAddConnectionMessage(conn, false);
 }
