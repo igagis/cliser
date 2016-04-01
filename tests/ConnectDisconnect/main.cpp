@@ -234,7 +234,7 @@ private:
 			}
 		}
 
-		this->Connect_ts(setka::IPAddress(DIpAddress, DPort));
+		this->connect_ts(setka::IPAddress(DIpAddress, DPort));
 	}
 
 	//override
@@ -280,7 +280,7 @@ int main(int argc, char *argv[]){
 	client.start();
 
 	for(unsigned i = 0; i < client.MaxConnections(); ++i){
-		client.Connect_ts(setka::IPAddress(DIpAddress, DPort));
+		client.connect_ts(setka::IPAddress(DIpAddress, DPort));
 	}
 
 	if(msec == 0){

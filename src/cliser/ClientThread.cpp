@@ -21,7 +21,7 @@ ClientThread::~ClientThread()noexcept{
 
 
 
-std::shared_ptr<cliser::Connection> ClientThread::Connect_ts(const setka::IPAddress& ip){
+std::shared_ptr<cliser::Connection> ClientThread::connect_ts(const setka::IPAddress& ip){
 //    TRACE(<< "ClientThread::" << __func__ << "(): enter" << std::endl)
 
 	std::shared_ptr<cliser::Connection> conn = ASS(this->listener)->CreateConnectionObject();
@@ -29,7 +29,7 @@ std::shared_ptr<cliser::Connection> ClientThread::Connect_ts(const setka::IPAddr
 	//send connect request to thread
 	this->pushMessage(
 			[this, conn, ip](){
-				this->HandleConnectRequest(ip, conn);
+				this->handleConnectRequest(ip, conn);
 			}
 		);
 	
@@ -38,7 +38,7 @@ std::shared_ptr<cliser::Connection> ClientThread::Connect_ts(const setka::IPAddr
 
 
 
-void ClientThread::HandleConnectRequest(
+void ClientThread::handleConnectRequest(
 		const setka::IPAddress& ip,
 		const std::shared_ptr<cliser::Connection>& conn
 	)

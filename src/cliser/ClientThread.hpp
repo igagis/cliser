@@ -52,10 +52,10 @@ public:
 	 *           of unsuccessful result.
 	 */
 	//send connection request message to the thread
-	std::shared_ptr<cliser::Connection> Connect_ts(const setka::IPAddress& ip);
+	std::shared_ptr<cliser::Connection> connect_ts(const setka::IPAddress& ip);
 
 private:
-	void HandleConnectRequest(const setka::IPAddress& ip, const std::shared_ptr<cliser::Connection>& conn);
+	void handleConnectRequest(const setka::IPAddress& ip, const std::shared_ptr<cliser::Connection>& conn);
 };
 
 
