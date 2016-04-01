@@ -22,6 +22,7 @@ this_cxxflags += -fstrict-aliasing #strict aliasing (in order to comply with the
 this_cxxflags += -g #include debugging symbols
 this_cxxflags += -fPIC
 this_cxxflags += -std=c++11
+this_cxxflags += -O3
 
 this_ldlibs += -lsetka -lnitki -lpogodi
 
