@@ -1,5 +1,5 @@
 #include <utki/Buf.hpp>
-#include <setka/Lib.hpp>
+#include <setka/Setka.hpp>
 
 #include "ClientThread.hpp"
 
@@ -11,7 +11,7 @@ using namespace cliser;
 ClientThread::ClientThread(unsigned maxConnections, cliser::Listener* listener) :
 		ConnectionsThread(maxConnections, listener)
 {
-	ASSERT(setka::Lib::isCreated())
+	ASSERT(setka::Setka::isCreated())
 }
 
 

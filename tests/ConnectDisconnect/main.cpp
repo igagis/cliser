@@ -1,6 +1,6 @@
 #include <utki/debug.hpp>
 #include <utki/Buf.hpp>
-#include <setka/Lib.hpp>
+#include <setka/Setka.hpp>
 
 #include <algorithm>
 
@@ -269,7 +269,7 @@ int main(int argc, char *argv[]){
 		}
 	}
 
-	setka::Lib socketsLib;
+	setka::Setka socketsLib;
 
 	Server server;
 	server.start();

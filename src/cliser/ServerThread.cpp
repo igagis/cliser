@@ -2,7 +2,7 @@
 
 #include <utki/debug.hpp>
 #include <setka/TCPServerSocket.hpp>
-#include <setka/Lib.hpp>
+#include <setka/Setka.hpp>
 
 #include "ServerThread.hpp"
 
@@ -24,7 +24,7 @@ ServerThread::ServerThread(
 		disableNaggle(disableNaggle),
 		queueLength(queueLength)
 {
-	ASSERT(setka::Lib::isCreated())
+	ASSERT(setka::Setka::isCreated())
 
 	++this->listener->numTimesAdded;
 }

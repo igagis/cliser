@@ -1,7 +1,7 @@
 #include <utki/debug.hpp>
 #include <utki/Buf.hpp>
 #include <nitki/MsgThread.hpp>
-#include <setka/Lib.hpp>
+#include <setka/Setka.hpp>
 
 #include "../../src/cliser/ServerThread.hpp"
 #include "../../src/cliser/ClientThread.hpp"
@@ -240,7 +240,7 @@ int main(int argc, char *argv[]){
 		}
 	}
 
-	setka::Lib socketsLib;
+	setka::Setka socketsLib;
 
 	Server server;
 	server.start();
